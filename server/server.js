@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static('../client'));
+app.use(express.static('client'));
 
 // PostgreSQL connection - Use environment variables
 const pool = new Pool({
@@ -168,6 +168,11 @@ app.post('/api/verify-otp', async (req, res) => {
   }
 });
 
+// Root route - Serve the main page
+app.get('/', (req, res) => {
+  res.sendFile('client/webpages/login.html', { root: './' });
+});
+
 // Login endpoint
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
@@ -215,6 +220,24 @@ app.post('/api/login', async (req, res) => {
       message: 'Server error' 
     });
   }
+});
+
+// Add routes for all HTML pages
+app.get('/login', (req, res) => {
+  res.sendFile('client/webpages/login.html', { root: './' });
+});
+
+app.get('/register', (req, res) => {
+  res.sendFile('client/webpages/register.html', { root: './' });
+});
+
+app.get('/dashboard', (req, res) => {
+  res.sendFile('client/webpages/dashboard.html', { root: './' });
+});
+
+// Catch-all route to handle any undefined routes
+app.use((req, res) => {
+  res.status(404).sendFile('client/webpages/login.html', { root: './' });
 });
 
 // Start server and initialize database
