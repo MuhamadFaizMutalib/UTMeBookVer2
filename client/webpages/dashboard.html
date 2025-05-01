@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTMeBook - Dashboard</title>
+    <link rel="stylesheet" href="../webstyles/css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="../webfunctions/dashboardApp.js"></script>
+</head>
+<body ng-app="dashboardApp" ng-controller="DashboardController">
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <h1>UTMeBook</h1>
+            </div>
+            <div class="user-menu">
+                <span class="username">{{ user.username }}</span>
+                <button class="btn-logout" ng-click="logout()">Logout</button>
+            </div>
+        </header>
+        
+        <!-- Navigation Bar -->
+        <nav class="navbar">
+            <ul>
+                <li ng-class="{'active': activeTab === 'add-ebook'}">
+                    <a href="#" ng-click="setActiveTab('add-ebook')">
+                        <i class="fas fa-plus-circle"></i> Add eBook
+                    </a>
+                </li>
+                <li ng-class="{'active': activeTab === 'cart'}">
+                    <a href="#" ng-click="setActiveTab('cart')">
+                        <i class="fas fa-shopping-cart"></i> Cart
+                    </a>
+                </li>
+                <li ng-class="{'active': activeTab === 'order'}">
+                    <a href="#" ng-click="setActiveTab('order')">
+                        <i class="fas fa-clipboard-list"></i> Order
+                    </a>
+                </li>
+                <li ng-class="{'active': activeTab === 'messages'}">
+                    <a href="#" ng-click="setActiveTab('messages')">
+                        <i class="fas fa-envelope"></i> Messages
+                    </a>
+                </li>
+                <li ng-class="{'active': activeTab === 'mybook'}">
+                    <a href="#" ng-click="setActiveTab('mybook')">
+                        <i class="fas fa-book"></i> MyBook
+                    </a>
+                </li>
+                <li ng-class="{'active': activeTab === 'account'}">
+                    <a href="#" ng-click="setActiveTab('account')">
+                        <i class="fas fa-user"></i> Account
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        
+        <!-- Search Section -->
+        <section class="search-section">
+            <div class="search-container">
+                <input type="text" placeholder="Search for eBooks..." ng-model="searchQuery">
+                <button class="search-btn" ng-click="searchBooks()">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            <div class="search-filters">
+                <select ng-model="searchFilter.category">
+                    <option value="">All Categories</option>
+                    <option value="fiction">Fiction</option>
+                    <option value="non-fiction">Non-Fiction</option>
+                    <option value="academic">Academic</option>
+                    <option value="technical">Technical</option>
+                </select>
+                <select ng-model="searchFilter.sortBy">
+                    <option value="relevance">Sort by Relevance</option>
+                    <option value="price_asc">Price: Low to High</option>
+                    <option value="price_desc">Price: High to Low</option>
+                    <option value="rating">Rating</option>
+                    <option value="newest">Newest</option>
+                </select>
+            </div>
+        </section>
+        
+        <!-- Banner Section -->
+        <section class="banner-section">
+            <div class="banner">
+                <div class="banner-content">
+                    <h2>Welcome to UTMeBook</h2>
+                    <p>Discover thousands of eBooks for your reading pleasure</p>
+                    <button class="btn-primary">Explore Now</button>
+                </div>
+            </div>
+        </section>
+        
+        <!-- New Arrivals Section -->
+        <section class="new-arrivals-section">
+            <h2 class="section-title">New Arrivals</h2>
+            <div class="book-grid">
+                <!-- Sample Books - In a real app these would be ng-repeat -->
+                <div class="book-card" ng-repeat="book in newArrivals">
+                    <div class="book-cover">
+                        <img ng-src="{{ book.coverUrl }}" alt="{{ book.title }}">
+                    </div>
+                    <div class="book-info">
+                        <h3>{{ book.title }}</h3>
+                        <p class="author">{{ book.author }}</p>
+                        <div class="book-meta">
+                            <span class="price">${{ book.price.toFixed(2) }}</span>
+                            <span class="rating">
+                                <i class="fas fa-star"></i> {{ book.rating }}
+                            </span>
+                        </div>
+                        <div class="book-actions">
+                            <button class="btn-add-cart" ng-click="addToCart(book)">
+                                <i class="fas fa-cart-plus"></i>
+                            </button>
+                            <button class="btn-wishlist" ng-click="toggleWishlist(book)">
+                                <i class="fas" ng-class="{'fa-heart': book.inWishlist, 'fa-heart-o': !book.inWishlist}"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Wishlist Section -->
+        <section class="wishlist-section">
+            <h2 class="section-title">My Wishlist</h2>
+            <div class="book-grid">
+                <!-- Sample Wishlist Books - In a real app these would be ng-repeat -->
+                <div class="book-card" ng-repeat="book in wishlistBooks">
+                    <div class="book-cover">
+                        <img ng-src="{{ book.coverUrl }}" alt="{{ book.title }}">
+                    </div>
+                    <div class="book-info">
+                        <h3>{{ book.title }}</h3>
+                        <p class="author">{{ book.author }}</p>
+                        <div class="book-meta">
+                            <span class="price">${{ book.price.toFixed(2) }}</span>
+                            <span class="rating">
+                                <i class="fas fa-star"></i> {{ book.rating }}
+                            </span>
+                        </div>
+                        <div class="book-actions">
+                            <button class="btn-add-cart" ng-click="addToCart(book)">
+                                <i class="fas fa-cart-plus"></i>
+                            </button>
+                            <button class="btn-remove-wishlist" ng-click="removeFromWishlist(book)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Empty Wishlist Message -->
+                <div class="empty-message" ng-if="wishlistBooks.length === 0">
+                    <p>Your wishlist is empty. Add books that interest you!</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <p>&copy; 2023 UTMeBook. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

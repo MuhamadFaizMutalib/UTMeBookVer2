@@ -1,0 +1,25 @@
+UTMeBookVer2/
+│
+├── client/
+│   ├── webpages/                    # HTML Files
+│   │   ├── login.html
+│   │   ├── register.html
+│   │   └── dashboard.html
+│   │
+│   ├── webfunctions/                # JS Files
+│   │   ├── loginApp.js
+│   │   ├── registerApp.js
+│   │   └── dashboardApp.js
+│   │
+│   ├── webstyles/                   # CSS Files and others
+│   │   ├── css/
+│   │   │   ├── login.css
+│   │   │   ├── register.css
+│   │   │   └── dashboard.css
+│   │   └── img/
+│   │       └── placeholder.svg
+│   │
+├── server/
+│   └── server.js                    # Node.js + Express backend
+│
+└── package.json

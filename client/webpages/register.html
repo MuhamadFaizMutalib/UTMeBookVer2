@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTMeBook - Register</title>
+    <link rel="stylesheet" href="../webstyles/css/register.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="../webfunctions/registerApp.js"></script>
+</head>
+<body ng-app="registerApp" ng-controller="RegisterController">
+    <div class="auth-container">
+        <div class="auth-form">
+            <h1>UTMeBook Registration</h1>
+            
+            <div class="alert" ng-if="message" ng-class="message.type">
+                {{ message.text }}
+            </div>
+            
+            <!-- Step 1: Initial User Info -->
+            <form ng-if="step === 1" ng-submit="sendOTP()">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" ng-model="formData.username" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" ng-model="formData.email" required>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">Get OTP</button>
+                </div>
+            </form>
+            
+            <!-- Step 2: OTP Verification -->
+            <form ng-if="step === 2" ng-submit="verifyOTP()">
+                <div class="form-group">
+                    <label for="otp">Enter OTP sent to your email</label>
+                    <input type="text" id="otp" ng-model="formData.otp" required>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" ng-click="step = 1">Back</button>
+                    <button type="submit" class="btn-primary">Verify OTP</button>
+                </div>
+            </form>
+            
+            <!-- Step 3: Set Password -->
+            <form ng-if="step === 3" ng-submit="register()">
+                <div class="form-group">
+                    <label for="password">Create Password</label>
+                    <input type="password" id="password" ng-model="formData.password" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input type="password" id="confirmPassword" ng-model="formData.confirmPassword" required>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" ng-click="step = 2">Back</button>
+                    <button type="submit" class="btn-primary">Register</button>
+                </div>
+            </form>
+            
+            <div class="auth-links">
+                <p>Already have an account? <a href="login.html">Login</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
