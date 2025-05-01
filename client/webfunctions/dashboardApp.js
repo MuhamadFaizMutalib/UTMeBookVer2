@@ -119,9 +119,8 @@ angular.module('dashboardApp', [])
     $scope.addToCart = function(book) {
       console.log('Adding to cart:', book.title);
       
-      // In a real app, this would add the book to the cart
-      // For now, we'll just log the action
-      alert('Added "' + book.title + '" to cart');
+      // Create toast notification
+      showToast('Added "' + book.title + '" to cart', 'success');
     };
     
     // Function to toggle book in wishlist
@@ -131,12 +130,13 @@ angular.module('dashboardApp', [])
       // Toggle wishlist status
       book.inWishlist = !book.inWishlist;
       
-      // In a real app, this would update the wishlist on the server
-      // For now, we'll just update the UI
+      // Show toast notification
       if (book.inWishlist) {
+        showToast('Added "' + book.title + '" to wishlist', 'heart');
         // Add to wishlist
         $scope.wishlistBooks.push(Object.assign({}, book));
       } else {
+        showToast('Removed "' + book.title + '" from wishlist', 'info');
         // Remove from wishlist
         $scope.removeFromWishlist(book);
       }
@@ -157,14 +157,64 @@ angular.module('dashboardApp', [])
       $scope.wishlistBooks = $scope.wishlistBooks.filter(function(wishlistBook) {
         return wishlistBook.id !== book.id;
       });
+      
+      // Show toast notification when called directly (not via toggleWishlist)
+      if (event && event.currentTarget.className.includes('btn-remove-wishlist')) {
+        showToast('Removed "' + book.title + '" from wishlist', 'info');
+      }
     };
+    
+    // Helper function to show toast notifications
+    function showToast(message, type) {
+      // Create toast element
+      var toast = document.createElement('div');
+      toast.className = 'toast-notification';
+      
+      // Set icon based on type
+      var icon = '';
+      if (type === 'success') {
+        icon = '<i class="fas fa-check-circle"></i>';
+      } else if (type === 'heart') {
+        icon = '<i class="fas fa-heart"></i>';
+      } else if (type === 'info') {
+        icon = '<i class="fas fa-info-circle"></i>';
+      }
+      
+      toast.innerHTML = icon + ' ' + message;
+      document.body.appendChild(toast);
+      
+      // Show toast
+      setTimeout(function() {
+        toast.classList.add('show');
+      }, 100);
+      
+      // Hide and remove toast
+      setTimeout(function() {
+        toast.classList.remove('show');
+        setTimeout(function() {
+          document.body.removeChild(toast);
+        }, 300);
+      }, 3000);
+    }
     
     // Logout function
     $scope.logout = function() {
-      // Clear user data from localStorage
-      $window.localStorage.removeItem('user');
-      
-      // Redirect to login page
-      $window.location.href = '/login';
+      if (confirm('Are you sure you want to logout?')) {
+        // Clear user data from localStorage
+        $window.localStorage.removeItem('user');
+        
+        // Redirect to login page
+        $window.location.href = '/login';
+      }
     };
+    
+    // Adjust mobile menu on window resize
+    angular.element($window).bind('resize', function() {
+      if (window.innerWidth > 768 && $scope.mobileMenuOpen) {
+        $scope.mobileMenuOpen = false;
+        if (!$scope.$$phase) {
+          $scope.$apply();
+        }
+      }
+    });
   }]);

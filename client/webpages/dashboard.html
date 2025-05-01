@@ -9,61 +9,19 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
     <script src="../webfunctions/dashboardApp.js"></script>
-    <style>
-        /* Additional styles - will not override existing styling */
-        .mobile-menu-toggle {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 24px;
-            color: #2980b9;
-            cursor: pointer;
-            padding: 10px;
-            margin-right: 15px;
-        }
-        
-        @media (max-width: 768px) {
-            .mobile-menu-toggle {
-                display: block;
-            }
-            
-            .navbar ul {
-                display: none;
-            }
-            
-            .navbar ul.show-mobile {
-                display: block;
-            }
-        }
-        
-        /* Fix for wishlist heart button */
-        .btn-wishlist .fa-heart {
-            color: #dc3545 !important; /* Red color for filled heart */
-        }
-        
-        .btn-wishlist .fa-heart-o {
-            color: #6c757d !important; /* Gray color for empty heart */
-        }
-        
-        /* Make text labels visible for wishlist */
-        .wishlist-text {
-            margin-left: 5px;
-            display: inline;
-        }
-    </style>
 </head>
 <body ng-app="dashboardApp" ng-controller="DashboardController">
     <div class="dashboard-container">
         <!-- Header -->
         <header class="header">
-            <div class="logo">
-                <h1>UTMeBook</h1>
-            </div>
-            
             <!-- Mobile Menu Toggle Button -->
             <button class="mobile-menu-toggle" ng-click="toggleMobileMenu()">
                 <i class="fas" ng-class="{'fa-bars': !mobileMenuOpen, 'fa-times': mobileMenuOpen}"></i>
             </button>
+            
+            <div class="logo">
+                <h1>UTMeBook</h1>
+            </div>
             
             <div class="user-menu">
                 <span class="username">{{ user.username }}</span>
@@ -164,7 +122,7 @@
                         </div>
                         <div class="book-actions">
                             <button class="btn-add-cart" ng-click="addToCart(book)">
-                                <i class="fas fa-cart-plus"></i>
+                                <i class="fas fa-shopping-cart"></i> Add
                             </button>
                             <button class="btn-wishlist" ng-click="toggleWishlist(book)">
                                 <i class="fas" ng-class="{'fa-heart': book.inWishlist, 'fa-heart-o': !book.inWishlist}"></i>
@@ -197,10 +155,10 @@
                         </div>
                         <div class="book-actions">
                             <button class="btn-add-cart" ng-click="addToCart(book)">
-                                <i class="fas fa-cart-plus"></i>
+                                <i class="fas fa-shopping-cart"></i> Add
                             </button>
                             <button class="btn-remove-wishlist" ng-click="removeFromWishlist(book)">
-                                <i class="fas fa-trash"></i>
+                                <i class="fas fa-trash"></i> Remove
                             </button>
                         </div>
                     </div>
