@@ -5,136 +5,50 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UTMeBook - Dashboard</title>
     <link rel="stylesheet" href="../webstyles/css/dashboard.css">
+    <link rel="stylesheet" href="../webstyles/css/mobile-styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
     <script src="../webfunctions/dashboardApp.js"></script>
     <style>
-        /* Improved mobile responsiveness and wishlist button styling */
-        @media (max-width: 768px) {
-            .navbar {
-                display: none;
-                width: 100%;
-                position: absolute;
-                top: 60px;
-                left: 0;
-                background-color: #fff;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-                z-index: 100;
-            }
-            
-            .navbar.active {
-                display: block;
-            }
-            
-            .navbar ul {
-                flex-direction: column;
-                padding: 0;
-            }
-            
-            .navbar li {
-                width: 100%;
-                text-align: left;
-                border-bottom: 1px solid #eee;
-            }
-            
-            .navbar li a {
-                padding: 15px 20px;
-                display: block;
-            }
-            
-            .mobile-menu-toggle {
-                display: block;
-            }
-            
-            .header {
-                justify-content: space-between;
-                padding: 0 15px;
-            }
-            
-            .book-grid {
-                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            }
-        }
-        
-        /* Mobile menu toggle button */
+        /* Additional styles - will not override existing styling */
         .mobile-menu-toggle {
             display: none;
             background: none;
             border: none;
             font-size: 24px;
-            color: #333;
+            color: #2980b9;
             cursor: pointer;
             padding: 10px;
+            margin-right: 15px;
         }
         
-        /* Improved wishlist button styling */
-        .btn-wishlist {
-            background-color: #f8f9fa;
-            border: 1px solid #ddd;
-            color: #dc3545;
-            padding: 6px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: all 0.3s ease;
+        @media (max-width: 768px) {
+            .mobile-menu-toggle {
+                display: block;
+            }
+            
+            .navbar ul {
+                display: none;
+            }
+            
+            .navbar ul.show-mobile {
+                display: block;
+            }
         }
         
-        .btn-wishlist:hover {
-            background-color: #f1f1f1;
-        }
-        
+        /* Fix for wishlist heart button */
         .btn-wishlist .fa-heart {
-            color: #dc3545; /* Red color for filled heart */
+            color: #dc3545 !important; /* Red color for filled heart */
         }
         
         .btn-wishlist .fa-heart-o {
-            color: #6c757d; /* Gray color for empty heart */
+            color: #6c757d !important; /* Gray color for empty heart */
         }
         
-        /* Button hover effects */
-        .btn-add-cart:hover, .btn-wishlist:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        
-        /* Improved book card styling */
-        .book-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border-radius: 8px;
-            overflow: hidden;
-            background: white;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        
-        .book-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        
-        .book-actions {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 10px;
-        }
-        
-        .book-actions button {
-            flex: 1;
-            margin: 0 5px;
-        }
-        
-        /* Fix for mobile views */
-        @media (max-width: 576px) {
-            .search-filters {
-                flex-direction: column;
-            }
-            
-            .search-filters select {
-                width: 100%;
-                margin-bottom: 10px;
-            }
-            
-            .book-card {
-                margin-bottom: 20px;
-            }
+        /* Make text labels visible for wishlist */
+        .wishlist-text {
+            margin-left: 5px;
+            display: inline;
         }
     </style>
 </head>
@@ -158,8 +72,8 @@
         </header>
         
         <!-- Navigation Bar -->
-        <nav class="navbar" ng-class="{'active': mobileMenuOpen}">
-            <ul>
+        <nav class="navbar">
+            <ul ng-class="{'show-mobile': mobileMenuOpen}">
                 <li ng-class="{'active': activeTab === 'add-ebook'}">
                     <a href="#" ng-click="setActiveTab('add-ebook')">
                         <i class="fas fa-plus-circle"></i> Add eBook
@@ -250,12 +164,12 @@
                         </div>
                         <div class="book-actions">
                             <button class="btn-add-cart" ng-click="addToCart(book)">
-                                <i class="fas fa-cart-plus"></i> Add
+                                <i class="fas fa-cart-plus"></i>
                             </button>
-                            <button class="btn-wishlist" ng-click="toggleWishlist(book)" aria-label="Add to wishlist">
+                            <button class="btn-wishlist" ng-click="toggleWishlist(book)">
                                 <i class="fas" ng-class="{'fa-heart': book.inWishlist, 'fa-heart-o': !book.inWishlist}"></i>
-                                <span ng-if="!book.inWishlist">Like</span>
-                                <span ng-if="book.inWishlist">Liked</span>
+                                <span class="wishlist-text" ng-if="!book.inWishlist">Like</span>
+                                <span class="wishlist-text" ng-if="book.inWishlist">Liked</span>
                             </button>
                         </div>
                     </div>
@@ -283,10 +197,10 @@
                         </div>
                         <div class="book-actions">
                             <button class="btn-add-cart" ng-click="addToCart(book)">
-                                <i class="fas fa-cart-plus"></i> Add
+                                <i class="fas fa-cart-plus"></i>
                             </button>
                             <button class="btn-remove-wishlist" ng-click="removeFromWishlist(book)">
-                                <i class="fas fa-trash"></i> Remove
+                                <i class="fas fa-trash"></i>
                             </button>
                         </div>
                     </div>

@@ -1,0 +1,89 @@
+/* mobile-styles.css - Add this as a separate file */
+
+/* Mobile Menu Styles */
+@media (max-width: 768px) {
+    .navbar ul {
+      display: none;
+      position: absolute;
+      top: 60px;
+      left: 0;
+      width: 100%;
+      background: white;
+      z-index: 100;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .navbar ul.show-mobile {
+      display: block;
+    }
+    
+    .navbar li {
+      display: block;
+      margin: 0;
+      border-bottom: 1px solid #eee;
+    }
+    
+    .navbar li a {
+      display: block;
+      padding: 12px 15px;
+      text-align: left;
+    }
+    
+    .mobile-menu-toggle {
+      display: block;
+    }
+    
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 15px;
+    }
+    
+    .book-grid {
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    }
+    
+    .search-section {
+      padding: 10px;
+    }
+    
+    .search-filters {
+      flex-direction: column;
+    }
+    
+    .search-filters select {
+      margin-bottom: 10px;
+    }
+  }
+  
+  /* Wishlist Button Styles */
+  .btn-wishlist {
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 5px 10px;
+  }
+  
+  .btn-wishlist .fa-heart {
+    color: #dc3545 !important; /* Red color for better visibility */
+  }
+  
+  .btn-wishlist .fa-heart-o {
+    color: #6c757d !important; /* Gray color for better visibility */
+  }
+  
+  .wishlist-text {
+    font-size: 0.9em;
+    margin-left: 5px;
+  }
+  
+  /* Mobile menu toggle button */
+  .mobile-menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #333;
+    cursor: pointer;
+  }

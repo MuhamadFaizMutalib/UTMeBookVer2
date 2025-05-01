@@ -22,18 +22,18 @@ angular.module('dashboardApp', [])
       $scope.mobileMenuOpen = !$scope.mobileMenuOpen;
     };
     
-    // Close mobile menu when clicking a menu item (on mobile)
+    // Active tab (default: main dashboard)
+    $scope.activeTab = 'dashboard';
+    
+    // Function to set active tab
     $scope.setActiveTab = function(tab) {
       $scope.activeTab = tab;
       
-      // If on mobile (screen width <= 768px), close the menu
+      // If on mobile, close the menu after selecting an item
       if (window.innerWidth <= 768) {
         $scope.mobileMenuOpen = false;
       }
     };
-    
-    // Initialize active tab (default: dashboard)
-    $scope.activeTab = 'dashboard';
     
     // Search functionality
     $scope.searchQuery = '';
@@ -49,7 +49,7 @@ angular.module('dashboardApp', [])
       // In a real app, this would send a request to the server
       // For now, we'll just log the search parameters
       
-      // Close mobile menu when searching (if on mobile)
+      // Close mobile menu after search (if on mobile)
       if (window.innerWidth <= 768) {
         $scope.mobileMenuOpen = false;
       }
@@ -120,26 +120,8 @@ angular.module('dashboardApp', [])
       console.log('Adding to cart:', book.title);
       
       // In a real app, this would add the book to the cart
-      // For now, we'll just show a notification
-      
-      // Create a temporary notification
-      const notification = document.createElement('div');
-      notification.className = 'notification';
-      notification.innerHTML = `<i class="fas fa-check-circle"></i> Added "${book.title}" to cart`;
-      document.body.appendChild(notification);
-      
-      // Show notification
-      setTimeout(function() {
-        notification.classList.add('show');
-      }, 100);
-      
-      // Remove notification after 3 seconds
-      setTimeout(function() {
-        notification.classList.remove('show');
-        setTimeout(function() {
-          document.body.removeChild(notification);
-        }, 300);
-      }, 3000);
+      // For now, we'll just log the action
+      alert('Added "' + book.title + '" to cart');
     };
     
     // Function to toggle book in wishlist
@@ -149,30 +131,6 @@ angular.module('dashboardApp', [])
       // Toggle wishlist status
       book.inWishlist = !book.inWishlist;
       
-      // Show notification message
-      const message = book.inWishlist ? 
-        `Added "${book.title}" to wishlist` : 
-        `Removed "${book.title}" from wishlist`;
-      
-      // Create a temporary notification
-      const notification = document.createElement('div');
-      notification.className = 'notification';
-      notification.innerHTML = `<i class="fas ${book.inWishlist ? 'fa-heart' : 'fa-heart-broken'}"></i> ${message}`;
-      document.body.appendChild(notification);
-      
-      // Show notification
-      setTimeout(function() {
-        notification.classList.add('show');
-      }, 100);
-      
-      // Remove notification after 3 seconds
-      setTimeout(function() {
-        notification.classList.remove('show');
-        setTimeout(function() {
-          document.body.removeChild(notification);
-        }, 300);
-      }, 3000);
-      
       // In a real app, this would update the wishlist on the server
       // For now, we'll just update the UI
       if (book.inWishlist) {
@@ -181,11 +139,6 @@ angular.module('dashboardApp', [])
       } else {
         // Remove from wishlist
         $scope.removeFromWishlist(book);
-      }
-      
-      // Apply scope changes
-      if(!$scope.$$phase) {
-        $scope.$apply();
       }
     };
     
@@ -204,33 +157,14 @@ angular.module('dashboardApp', [])
       $scope.wishlistBooks = $scope.wishlistBooks.filter(function(wishlistBook) {
         return wishlistBook.id !== book.id;
       });
-      
-      // Apply scope changes
-      if(!$scope.$$phase) {
-        $scope.$apply();
-      }
     };
     
     // Logout function
     $scope.logout = function() {
-      // Ask for confirmation
-      if (confirm('Are you sure you want to logout?')) {
-        // Clear user data from localStorage
-        $window.localStorage.removeItem('user');
-        
-        // Redirect to login page
-        $window.location.href = '/login';
-      }
+      // Clear user data from localStorage
+      $window.localStorage.removeItem('user');
+      
+      // Redirect to login page
+      $window.location.href = '/login';
     };
-    
-    // Handle window resize to manage mobile menu
-    angular.element($window).bind('resize', function() {
-      // If window is resized to desktop size, close mobile menu
-      if (window.innerWidth > 768 && $scope.mobileMenuOpen) {
-        $scope.mobileMenuOpen = false;
-        if(!$scope.$$phase) {
-          $scope.$apply();
-        }
-      }
-    });
   }]);
