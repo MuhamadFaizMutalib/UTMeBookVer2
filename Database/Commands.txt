@@ -1,0 +1,65 @@
+mysql -u root -p
+FreshTomatoJuice2$
+
+################################################################
+
+git init
+echo "node_modules/" > .gitignore
+echo ".env" >> .gitignore
+git add .
+git commit -m "Initial commit ready for deployment"
+
+
+git remote add origin https://github.com/MuhamadFaizMutalib/UTMeBookSystem
+git branch -M main
+git push -u origin main
+
+#################################################################
+git add .
+git commit -m "Description of your changes"
+git push origin main
+
+
+
+######################################################
+
+[To Connect RenderDB ]
+
+To connect WITH WEB@GIT Deployment = postgresql://utmebookdb_user:3WpIOVlDseuWlBnOZ3tvMTHnp9VJ1r5q@dpg-d00ck4adbo4c738upcug-a/utmebookdb 
+To connect WITH cmd Controls = psql postgresql://utmebookdb_user:3WpIOVlDseuWlBnOZ3tvMTHnp9VJ1r5q@dpg-d00ck4adbo4c738upcug-a.singapore-postgres.render.com/utmebookdb
+
+
+########################################################
+
+[ Create DB ]
+
+CREATE DATABASE UTMeBook;
+
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'FreshTomatoJuice2$';
+FLUSH PRIVILEGES;
+
+#########################################################
+
+[ View ]
+\dt
+\d table_name
+\q = to quit
+
+DROP TABLE table_name;
+
+#########################################################
+
+[ REMOVE DATA ] 
+
+DELETE FROM ebooks
+WHERE author = 'John Doe';
+
+OR 
+
+DELETE FROM users
+WHERE id = 123;
+
+##########################################################
+
+UPDATE users SET role = 'admin' WHERE email = 'rafiqiadli11@gmail.com';
+
