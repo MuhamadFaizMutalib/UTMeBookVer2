@@ -111,14 +111,19 @@
                     </div>
                     <div class="book-info">
                         <h3>{{ book.title }}</h3>
-                        <p class="author">{{ book.sellerName }}</p>
+                        <p class="author">Seller: {{ book.sellerName }}</p>
                         <div class="book-meta">
                             <span class="price">RM{{ book.price.toFixed(2) }}</span>
-                            <span class="status">{{ book.status }}</span>
+                            <span class="status" style="font-weight: bold; color: green;">{{ book.status }}</span>
                         </div>
                         <div class="book-actions">
                             <button class="btn-add-cart" ng-click="addToCart(book)">
                                 <i class="fas fa-shopping-cart"></i> Add
+                            </button>
+                            <button class="btn-wishlist" ng-click="toggleWishlist(book)">
+                                <i class="fas" ng-class="{'fa-heart': book.inWishlist, 'fa-heart-o': !book.inWishlist}"></i>
+                                <span class="wishlist-text" ng-if="!book.inWishlist">Like</span>
+                                <span class="wishlist-text" ng-if="book.inWishlist">Liked</span>
                             </button>
                         </div>
                     </div>
