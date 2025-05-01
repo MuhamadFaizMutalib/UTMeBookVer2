@@ -49,7 +49,8 @@ angular.module('addEbookApp', [])
     };
     
     // File upload directive for handling file input
-    angular.module('addEbookApp').directive('fileModel', ['$parse', function($parse) {
+    angular.module('addEbookApp')
+    .directive('fileModel', ['$parse', function($parse) {
       return {
         restrict: 'A',
         link: function(scope, element, attrs) {
@@ -58,9 +59,10 @@ angular.module('addEbookApp', [])
           
           element.bind('change', function() {
             scope.$apply(function() {
+              // Make sure we're setting the model properly
               modelSetter(scope, element[0].files[0]);
               
-              // Add preview for cover image
+              // Preview for cover image
               if (attrs.id === 'coverImage' && element[0].files[0]) {
                 var reader = new FileReader();
                 reader.onload = function(e) {
@@ -73,9 +75,7 @@ angular.module('addEbookApp', [])
               
               // Display file name for book file
               if (attrs.id === 'bookFile' && element[0].files[0]) {
-                scope.$apply(function() {
-                  scope.bookFileName = element[0].files[0].name;
-                });
+                scope.bookFileName = element[0].files[0].name;
               }
             });
           });

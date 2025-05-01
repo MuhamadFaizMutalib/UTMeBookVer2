@@ -394,6 +394,17 @@ app.post('/api/books/add', upload.fields([
   { name: 'bookFile', maxCount: 1 }
 ]), async (req, res) => {
   console.log('Received book upload request');
+  console.log('Files received:', req.files); // Add this for debugging
+  
+  // Check if files are present
+  if (!req.files || !req.files.coverImage || !req.files.bookFile) {
+    return res.status(400).json({
+      success: false,
+      message: req.files ? 
+        (!req.files.coverImage ? 'Please upload a cover image' : 'Please upload a book file (PDF)') : 
+        'No files were uploaded'
+    });
+  }
   
   try {
     // Get form data

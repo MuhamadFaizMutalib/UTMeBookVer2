@@ -26,7 +26,9 @@ UTMeBookVer2/
 │   │   └── img/
 │   │       └── placeholder.svg
 │   │
-├──  uploads/   
+├──  uploads/ 
+│   │       └── books/
+│   │       └── covers/
 │
 ├──  server.js                    # Node.js + Express backend
 │
