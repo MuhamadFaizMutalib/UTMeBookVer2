@@ -37,10 +37,16 @@ angular.module('registerApp', [])
         return;
       }
       
-      // Send OTP request to server
+      // Show loading message
+      $scope.message = {
+        type: 'info',
+        text: 'Sending OTP...'
+      };
+      
+      // Send OTP request to server - Use relative URL instead of absolute
       $http({
         method: 'POST',
-        url: 'http://localhost:3000/api/send-otp',
+        url: '/api/send-otp',
         data: {
           username: $scope.formData.username,
           email: $scope.formData.email
@@ -83,20 +89,44 @@ angular.module('registerApp', [])
         return;
       }
       
-      // Verify OTP (in a real app, this would validate with the server)
-      // For now, we'll just move to the next step
+      // Show loading message
       $scope.message = {
-        type: 'success',
-        text: 'OTP verified successfully'
+        type: 'info',
+        text: 'Verifying OTP...'
       };
       
-      // Move to password creation step
-      $scope.step = 3;
-      
-      // Clear message after 5 seconds
-      $timeout(function() {
-        $scope.message = null;
-      }, 5000);
+      // Send verification request to server - Use relative URL
+      $http({
+        method: 'POST',
+        url: '/api/verify-otp',
+        data: {
+          email: $scope.formData.email,
+          otp: $scope.formData.otp,
+          password: null // We'll set the password in the next step
+        }
+      }).then(function(response) {
+        // In a real implementation, we would validate the OTP with the server
+        // For this flow, we just move to the password step
+        $scope.message = {
+          type: 'success',
+          text: 'OTP verified successfully'
+        };
+        
+        // Move to password creation step
+        $scope.step = 3;
+        
+        // Clear message after 5 seconds
+        $timeout(function() {
+          $scope.message = null;
+        }, 5000);
+      }).catch(function(error) {
+        console.error('OTP verification error:', error);
+        
+        $scope.message = {
+          type: 'error',
+          text: error.data && error.data.message ? error.data.message : 'OTP verification failed. Please try again.'
+        };
+      });
     };
     
     // Function to complete registration
@@ -128,10 +158,16 @@ angular.module('registerApp', [])
         return;
       }
       
-      // Send registration request to server
+      // Show loading message
+      $scope.message = {
+        type: 'info',
+        text: 'Creating your account...'
+      };
+      
+      // Send registration request to server - Use relative URL
       $http({
         method: 'POST',
-        url: 'http://localhost:3000/api/verify-otp',
+        url: '/api/verify-otp',
         data: {
           email: $scope.formData.email,
           otp: $scope.formData.otp,
@@ -147,7 +183,7 @@ angular.module('registerApp', [])
           
           // Redirect to login page after 2 seconds
           $timeout(function() {
-            $window.location.href = 'login.html';
+            $window.location.href = '/login';
           }, 2000);
         }
       }).catch(function(error) {

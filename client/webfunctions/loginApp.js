@@ -21,10 +21,16 @@ angular.module('loginApp', [])
         return;
       }
       
-      // Send login request to server
+      // Show loading message
+      $scope.message = {
+        type: 'info',
+        text: 'Logging in...'
+      };
+      
+      // Send login request to server - Use relative URL instead of absolute
       $http({
         method: 'POST',
-        url: 'http://localhost:3000/api/login',
+        url: '/api/login',
         data: $scope.formData
       }).then(function(response) {
         // Success
@@ -33,7 +39,7 @@ angular.module('loginApp', [])
           $window.localStorage.setItem('user', JSON.stringify(response.data.user));
           
           // Redirect to dashboard
-          $window.location.href = 'dashboard.html';
+          $window.location.href = '/dashboard';
         }
       }).catch(function(error) {
         // Error
