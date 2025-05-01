@@ -79,7 +79,7 @@
                     <i class="fas fa-exclamation-circle"></i> {{ errorMessage }}
                 </div>
                 
-                <form class="add-ebook-form" ng-submit="submitBook()">
+                <form class="add-ebook-form" ng-submit="submitBook()" enctype="multipart/form-data">
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="title">Title *</label>
@@ -120,22 +120,22 @@
                         <div class="form-group">
                             <label for="coverImage">Cover Image *</label>
                             <div class="file-upload">
-                                <input type="file" id="coverImage" accept="image/*" file-model="book.coverImage" required>
+                                <input type="file" id="coverImage" onchange="angular.element(this).scope().setFile(this)" accept="image/jpeg, image/png, image/jpg" required>
                                 <div class="file-preview" ng-if="coverPreview">
                                     <img ng-src="{{ coverPreview }}" alt="Cover Preview">
                                 </div>
                             </div>
-                        </div>
+                          </div>
                         
-                        <div class="form-group">
+                          <div class="form-group">
                             <label for="bookFile">Book File (PDF) *</label>
                             <div class="file-upload">
-                                <input type="file" id="bookFile" accept="application/pdf" file-model="book.bookFile" required>
+                                <input type="file" id="bookFile" onchange="angular.element(this).scope().setFile(this)" accept="application/pdf" required>
                                 <div class="file-info" ng-if="bookFileName">
                                     <i class="fas fa-file-pdf"></i> {{ bookFileName }}
                                 </div>
                             </div>
-                        </div>
+                          </div>
                     </div>
                     
                     <div class="form-actions">

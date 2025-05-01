@@ -82,21 +82,61 @@ angular.module('addEbookApp', [])
         }
       };
     }]);
+
+
+    // Direct file setter function
+    $scope.setFile = function(element) {
+      if (element.id === 'coverImage') {
+        $scope.$apply(function() {
+          $scope.book.coverImage = element.files[0];
+          
+          // Create preview
+          if (element.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+              $scope.$apply(function() {
+                $scope.coverPreview = e.target.result;
+              });
+            };
+            reader.readAsDataURL(element.files[0]);
+          }
+        });
+      } else if (element.id === 'bookFile') {
+        $scope.$apply(function() {
+          $scope.book.bookFile = element.files[0];
+          
+          // Show filename
+          if (element.files[0]) {
+            $scope.bookFileName = element.files[0].name;
+          }
+        });
+      }
+    };
     
     // Submit book function
     $scope.submitBook = function() {
+      // Get files directly from DOM
+      var coverImageInput = document.getElementById('coverImage');
+      var bookFileInput = document.getElementById('bookFile');
+      
+      var coverFile = coverImageInput.files[0];
+      var bookFile = bookFileInput.files[0];
+      
+      console.log("Cover file:", coverFile);
+      console.log("Book file:", bookFile);
+      
       // Validate inputs
       if (!$scope.book.title || !$scope.book.category || !$scope.book.price || !$scope.book.description) {
         $scope.errorMessage = 'Please fill in all required fields';
         return;
       }
       
-      if (!$scope.book.coverImage) {
+      if (!coverFile) {
         $scope.errorMessage = 'Please upload a cover image';
         return;
       }
       
-      if (!$scope.book.bookFile) {
+      if (!bookFile) {
         $scope.errorMessage = 'Please upload a book file (PDF)';
         return;
       }
@@ -113,8 +153,8 @@ angular.module('addEbookApp', [])
       formData.append('description', $scope.book.description);
       formData.append('status', $scope.book.status);
       formData.append('sellerId', $scope.user.id);
-      formData.append('coverImage', $scope.book.coverImage);
-      formData.append('bookFile', $scope.book.bookFile);
+      formData.append('coverImage', coverFile);
+      formData.append('bookFile', bookFile);
       
       // Send the form data to the server
       $http.post('/api/books/add', formData, {
@@ -135,7 +175,7 @@ angular.module('addEbookApp', [])
           $scope.coverPreview = null;
           $scope.bookFileName = null;
           
-          // Reset file inputs (hacky way, but Angular doesn't provide a clean way)
+          // Reset file inputs
           document.getElementById('coverImage').value = '';
           document.getElementById('bookFile').value = '';
           
