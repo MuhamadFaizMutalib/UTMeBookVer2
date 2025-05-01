@@ -19,7 +19,6 @@ UTMeBookVer2/
 │   │   └── img/
 │   │       └── placeholder.svg
 │   │
-├── server/
-│   └── server.js                    # Node.js + Express backend
+├──  server.js                    # Node.js + Express backend
 │
 └── package.json
