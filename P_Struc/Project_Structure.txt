@@ -5,20 +5,29 @@ UTMeBookVer2/
 │   │   ├── login.html
 │   │   ├── register.html
 │   │   └── dashboard.html
+│   │   └── order.html
+│   │   └── add-ebook.html
 │   │
 │   ├── webfunctions/                # JS Files
 │   │   ├── loginApp.js
 │   │   ├── registerApp.js
 │   │   └── dashboardApp.js
+│   │   └── addEbookApp.js
+│   │   └── orderApp.js
 │   │
 │   ├── webstyles/                   # CSS Files and others
 │   │   ├── css/
 │   │   │   ├── login.css
 │   │   │   ├── register.css
 │   │   │   └── dashboard.css
+│   │   │   └── order.css
+│   │   │   └── add-ebook.css
+│   │   │   └── mobile-styles.css
 │   │   └── img/
 │   │       └── placeholder.svg
 │   │
+├──  uploads/   
+│
 ├──  server.js                    # Node.js + Express backend
 │
 └── package.json

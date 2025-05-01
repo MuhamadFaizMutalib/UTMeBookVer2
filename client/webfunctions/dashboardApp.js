@@ -149,10 +149,10 @@ angular.module('dashboardApp', [])
     };
     
     // Function to edit book
-    // $scope.editBook = function(book) {
-    //   console.log('Editing book:', book.id);
-    //   $window.location.href = '/edit-book?id=' + book.id;
-    // };
+    $scope.editBook = function(book) {
+      console.log('Editing book:', book.id);
+      $window.location.href = '/edit-book?id=' + book.id;
+    };
     
     // Function to delete book
     $scope.deleteBook = function(book) {

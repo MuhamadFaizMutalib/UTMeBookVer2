@@ -213,11 +213,6 @@ app.post('/api/verify-otp', async (req, res) => {
   }
 });
 
-// Root route - Serve the main page
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client/webpages/login.html'));
-});
-
 // Login endpoint
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
@@ -732,7 +727,12 @@ app.delete('/api/books/:bookId', async (req, res) => {
 // Serve static files from the uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Add routes for all HTML pages - Use path.join for better cross-platform compatibility
+// Root route - Serve the main page
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/webpages/login.html'));
+});
+
+// Define all specific routes first
 app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/webpages/login.html'));
 });
@@ -746,11 +746,6 @@ app.get('/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/webpages/dashboard.html'));
 });
 
-// Catch-all route to handle any undefined routes
-app.use((req, res) => {
-  res.status(404).sendFile(path.join(__dirname, 'client/webpages/login.html'));
-});
-
 app.get('/add-ebook', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/webpages/add-ebook.html'));
 });
@@ -759,9 +754,9 @@ app.get('/order', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/webpages/order.html'));
 });
 
-// app.get('/edit-book', (req, res) => {
-//   res.sendFile(path.join(__dirname, 'client/webpages/edit-book.html'));
-// });
+app.get('/edit-book', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/webpages/edit-book.html'));
+});
 
 app.get('/messages', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/webpages/dashboard.html')); // Temporary redirect until implemented
@@ -775,13 +770,15 @@ app.get('/account', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/webpages/dashboard.html')); // Temporary redirect until implemented
 });
 
-// Catch-all route to handle any undefined routes
-// app.use((req, res) => {
-//   res.status(404).sendFile(path.join(__dirname, 'client/webpages/login.html'));
-// });
 
 // Start server and initialize database
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   initDB();
+});
+
+
+// The catch-all route should ALWAYS be defined LAST
+app.use((req, res) => {
+  res.status(404).sendFile(path.join(__dirname, 'client/webpages/login.html'));
 });
