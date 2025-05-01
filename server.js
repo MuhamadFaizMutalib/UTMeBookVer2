@@ -759,9 +759,9 @@ app.get('/order', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/webpages/order.html'));
 });
 
-app.get('/edit-book', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client/webpages/edit-book.html'));
-});
+// app.get('/edit-book', (req, res) => {
+//   res.sendFile(path.join(__dirname, 'client/webpages/edit-book.html'));
+// });
 
 app.get('/messages', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/webpages/dashboard.html')); // Temporary redirect until implemented
@@ -776,9 +776,9 @@ app.get('/account', (req, res) => {
 });
 
 // Catch-all route to handle any undefined routes
-app.use((req, res) => {
-  res.status(404).sendFile(path.join(__dirname, 'client/webpages/login.html'));
-});
+// app.use((req, res) => {
+//   res.status(404).sendFile(path.join(__dirname, 'client/webpages/login.html'));
+// });
 
 // Start server and initialize database
 app.listen(PORT, () => {
