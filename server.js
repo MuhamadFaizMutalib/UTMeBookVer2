@@ -228,6 +228,7 @@ app.get('/login', (req, res) => {
 });
 
 app.get('/register', (req, res) => {
+  console.log('Handling /register route');
   res.sendFile('client/webpages/register.html', { root: './' });
 });
 
