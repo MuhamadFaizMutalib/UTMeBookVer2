@@ -15,17 +15,18 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.static('../client'));
 
-// PostgreSQL connection
+// PostgreSQL connection - Use environment variables
 const pool = new Pool({
-  connectionString: 'postgresql://postgres:postgres@localhost:5432/utmebookdb'
+  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/utmebookdb',
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
 // Setup nodemailer for OTP emails
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'gengcangkui@gmail.com', // replace with your email
-    pass: 'xego euqm xrjf mrks' // replace with your password or app password
+    user: process.env.EMAIL_USER || 'gengcangkui@gmail.com',
+    pass: process.env.EMAIL_PASS || 'xego euqm xrjf mrks'
   }
 });
 
@@ -35,6 +36,11 @@ const otpStore = {};
 // Initialize database tables
 async function initDB() {
   try {
+    // Test database connection first
+    await pool.query('SELECT NOW()');
+    console.log('Database connection successful');
+    
+    // Then create tables if needed
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
@@ -47,6 +53,8 @@ async function initDB() {
     console.log('Database tables initialized');
   } catch (err) {
     console.error('Error initializing database:', err);
+    console.error('Please make sure your PostgreSQL database is running and accessible');
+    console.error('Database URL:', process.env.DATABASE_URL ? 'Using environment variable' : 'Using localhost default');
   }
 }
 
@@ -80,7 +88,7 @@ app.post('/api/send-otp', async (req, res) => {
     
     // Send email
     const mailOptions = {
-      from: 'your-email@gmail.com',
+      from: process.env.EMAIL_USER || 'your-email@gmail.com',
       to: email,
       subject: 'UTMeBook Registration OTP',
       text: `Your OTP for UTMeBook registration is: ${otp}. This code will expire in 5 minutes.`
