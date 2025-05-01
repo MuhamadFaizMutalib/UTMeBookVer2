@@ -1,4 +1,4 @@
-// Angular.js application for the dashboard page
+// Update the existing dashboardApp.js to include book functionality
 angular.module('dashboardApp', [])
   .controller('DashboardController', ['$scope', '$http', '$window', function($scope, $http, $window) {
     // Get user information from localStorage
@@ -22,10 +22,14 @@ angular.module('dashboardApp', [])
       $scope.mobileMenuOpen = !$scope.mobileMenuOpen;
     };
     
-    // Active tab (default: main dashboard)
-    $scope.activeTab = 'dashboard';
+    // Get tab from URL if present
+    let urlParams = new URLSearchParams(window.location.search);
+    let tabParam = urlParams.get('tab');
     
-    // Function to set active tab
+    // Active tab (default: main dashboard or from URL parameter)
+    $scope.activeTab = tabParam || 'dashboard';
+    
+    // Function to set active tab and handle navigation
     $scope.setActiveTab = function(tab) {
       $scope.activeTab = tab;
       
@@ -33,7 +37,35 @@ angular.module('dashboardApp', [])
       if (window.innerWidth <= 768) {
         $scope.mobileMenuOpen = false;
       }
+      
+      // Navigate to the appropriate page based on the tab
+      switch(tab) {
+        case 'add-ebook':
+          $window.location.href = '/add-ebook';
+          break;
+        case 'order':
+          $window.location.href = '/order';
+          break;
+        case 'messages':
+          $window.location.href = '/messages';
+          break;
+        case 'mybook':
+          $window.location.href = '/mybook';
+          break;
+        case 'account':
+          $window.location.href = '/account';
+          break;
+        default:
+          // Stay on dashboard for other tabs
+          break;
+      }
     };
+    
+    // Check if tab parameter is 'order' and load data
+    if (tabParam === 'order') {
+      loadMySales();
+      loadMyPurchases();
+    }
     
     // Search functionality
     $scope.searchQuery = '';
@@ -55,65 +87,58 @@ angular.module('dashboardApp', [])
       }
     };
     
-    // Sample data for new arrivals
-    $scope.newArrivals = [
-      {
-        id: 1,
-        title: 'The Art of Programming',
-        author: 'John Smith',
-        coverUrl: '../webstyles/img/placeholder.jpg',
-        price: 29.99,
-        rating: 4.5,
-        inWishlist: false
-      },
-      {
-        id: 2,
-        title: 'Data Structures and Algorithms',
-        author: 'Jane Doe',
-        coverUrl: '../webstyles/img/placeholder.jpg',
-        price: 34.99,
-        rating: 4.7,
-        inWishlist: true
-      },
-      {
-        id: 3,
-        title: 'Machine Learning Fundamentals',
-        author: 'Robert Johnson',
-        coverUrl: '../webstyles/img/placeholder.jpg',
-        price: 39.99,
-        rating: 4.8,
-        inWishlist: false
-      },
-      {
-        id: 4,
-        title: 'Web Development Mastery',
-        author: 'Sarah Williams',
-        coverUrl: '../webstyles/img/placeholder.jpg',
-        price: 27.99,
-        rating: 4.3,
-        inWishlist: false
-      }
-    ];
+    // Initialize arrays for books
+    $scope.newArrivals = [];
+    $scope.mySales = [];
+    $scope.myPurchases = [];
     
-    // Sample data for wishlist
-    $scope.wishlistBooks = [
-      {
-        id: 2,
-        title: 'Data Structures and Algorithms',
-        author: 'Jane Doe',
-        coverUrl: '../webstyles/img/placeholder.jpg',
-        price: 34.99,
-        rating: 4.7
-      },
-      {
-        id: 5,
-        title: 'Artificial Intelligence in Practice',
-        author: 'Michael Brown',
-        coverUrl: '../webstyles/img/placeholder.jpg',
-        price: 42.99,
-        rating: 4.6
-      }
-    ];
+    // Load new arrivals
+    function loadNewArrivals() {
+      $http.get('/api/books/new-arrivals')
+        .then(function(response) {
+          if (response.data.success) {
+            $scope.newArrivals = response.data.books;
+          } else {
+            console.error('Error loading new arrivals:', response.data.message);
+          }
+        })
+        .catch(function(error) {
+          console.error('Error loading new arrivals:', error);
+        });
+    }
+    
+    // Load my sales (for order page)
+    function loadMySales() {
+      $http.get('/api/books/my-sales/' + $scope.user.id)
+        .then(function(response) {
+          if (response.data.success) {
+            $scope.mySales = response.data.books;
+          } else {
+            console.error('Error loading my sales:', response.data.message);
+          }
+        })
+        .catch(function(error) {
+          console.error('Error loading my sales:', error);
+        });
+    }
+    
+    // Load my purchases (for order page)
+    function loadMyPurchases() {
+      $http.get('/api/books/my-purchases/' + $scope.user.id)
+        .then(function(response) {
+          if (response.data.success) {
+            $scope.myPurchases = response.data.purchases;
+          } else {
+            console.error('Error loading my purchases:', response.data.message);
+          }
+        })
+        .catch(function(error) {
+          console.error('Error loading my purchases:', error);
+        });
+    }
+    
+    // Load new arrivals on page load
+    loadNewArrivals();
     
     // Function to add book to cart
     $scope.addToCart = function(book) {
@@ -123,44 +148,32 @@ angular.module('dashboardApp', [])
       showToast('Added "' + book.title + '" to cart', 'success');
     };
     
-    // Function to toggle book in wishlist
-    $scope.toggleWishlist = function(book) {
-      console.log('Toggling wishlist status for:', book.title);
-      
-      // Toggle wishlist status
-      book.inWishlist = !book.inWishlist;
-      
-      // Show toast notification
-      if (book.inWishlist) {
-        showToast('Added "' + book.title + '" to wishlist', 'heart');
-        // Add to wishlist
-        $scope.wishlistBooks.push(Object.assign({}, book));
-      } else {
-        showToast('Removed "' + book.title + '" from wishlist', 'info');
-        // Remove from wishlist
-        $scope.removeFromWishlist(book);
-      }
+    // Function to edit book
+    $scope.editBook = function(book) {
+      console.log('Editing book:', book.id);
+      $window.location.href = '/edit-book?id=' + book.id;
     };
     
-    // Function to remove book from wishlist
-    $scope.removeFromWishlist = function(book) {
-      console.log('Removing from wishlist:', book.title);
-      
-      // Find book in new arrivals and update its status
-      $scope.newArrivals.forEach(function(newBook) {
-        if (newBook.id === book.id) {
-          newBook.inWishlist = false;
-        }
-      });
-      
-      // Remove from wishlist
-      $scope.wishlistBooks = $scope.wishlistBooks.filter(function(wishlistBook) {
-        return wishlistBook.id !== book.id;
-      });
-      
-      // Show toast notification when called directly (not via toggleWishlist)
-      if (event && event.currentTarget.className.includes('btn-remove-wishlist')) {
-        showToast('Removed "' + book.title + '" from wishlist', 'info');
+    // Function to delete book
+    $scope.deleteBook = function(book) {
+      if (confirm('Are you sure you want to delete "' + book.title + '"? This action cannot be undone.')) {
+        $http.delete('/api/books/' + book.id + '?sellerId=' + $scope.user.id)
+          .then(function(response) {
+            if (response.data.success) {
+              // Remove book from the sales list
+              $scope.mySales = $scope.mySales.filter(function(b) {
+                return b.id !== book.id;
+              });
+              
+              showToast('Book deleted successfully', 'success');
+            } else {
+              showToast('Error: ' + response.data.message, 'error');
+            }
+          })
+          .catch(function(error) {
+            console.error('Error deleting book:', error);
+            showToast('Server error. Please try again later.', 'error');
+          });
       }
     };
     
@@ -178,6 +191,8 @@ angular.module('dashboardApp', [])
         icon = '<i class="fas fa-heart"></i>';
       } else if (type === 'info') {
         icon = '<i class="fas fa-info-circle"></i>';
+      } else if (type === 'error') {
+        icon = '<i class="fas fa-exclamation-circle"></i>';
       }
       
       toast.innerHTML = icon + ' ' + message;

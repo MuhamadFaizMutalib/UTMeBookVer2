@@ -32,34 +32,34 @@
         <!-- Navigation Bar -->
         <nav class="navbar">
             <ul ng-class="{'show-mobile': mobileMenuOpen}">
-                <li ng-class="{'active': activeTab === 'add-ebook'}">
+                <li>
                     <a href="#" ng-click="setActiveTab('add-ebook')">
                         <i class="fas fa-plus-circle"></i> Add eBook
                     </a>
                 </li>
-                <li ng-class="{'active': activeTab === 'cart'}">
-                    <a href="#" ng-click="setActiveTab('cart')">
-                        <i class="fas fa-shopping-cart"></i> Cart
-                    </a>
-                </li>
-                <li ng-class="{'active': activeTab === 'order'}">
+                <li>
                     <a href="#" ng-click="setActiveTab('order')">
                         <i class="fas fa-clipboard-list"></i> Order
                     </a>
                 </li>
-                <li ng-class="{'active': activeTab === 'messages'}">
+                <li>
                     <a href="#" ng-click="setActiveTab('messages')">
                         <i class="fas fa-envelope"></i> Messages
                     </a>
                 </li>
-                <li ng-class="{'active': activeTab === 'mybook'}">
+                <li>
                     <a href="#" ng-click="setActiveTab('mybook')">
                         <i class="fas fa-book"></i> MyBook
                     </a>
                 </li>
-                <li ng-class="{'active': activeTab === 'account'}">
+                <li>
                     <a href="#" ng-click="setActiveTab('account')">
                         <i class="fas fa-user"></i> Account
+                    </a>
+                </li>
+                <li class="active">
+                    <a href="#" ng-click="setActiveTab('dashboard')">
+                        <i class="fas fa-home"></i> Dashboard
                     </a>
                 </li>
             </ul>
@@ -76,16 +76,14 @@
             <div class="search-filters">
                 <select ng-model="searchFilter.category">
                     <option value="">All Categories</option>
-                    <option value="fiction">Fiction</option>
-                    <option value="non-fiction">Non-Fiction</option>
+                    <option value="Texbook">Texbook</option>
+                    <option value="Research">Research</option>
                     <option value="academic">Academic</option>
                     <option value="technical">Technical</option>
                 </select>
                 <select ng-model="searchFilter.sortBy">
-                    <option value="relevance">Sort by Relevance</option>
                     <option value="price_asc">Price: Low to High</option>
                     <option value="price_desc">Price: High to Low</option>
-                    <option value="rating">Rating</option>
                     <option value="newest">Newest</option>
                 </select>
             </div>
@@ -106,31 +104,29 @@
         <section class="new-arrivals-section">
             <h2 class="section-title">New Arrivals</h2>
             <div class="book-grid">
-                <!-- Sample Books - In a real app these would be ng-repeat -->
+                <!-- Dynamic Books with ng-repeat -->
                 <div class="book-card" ng-repeat="book in newArrivals">
                     <div class="book-cover">
                         <img ng-src="{{ book.coverUrl }}" alt="{{ book.title }}">
                     </div>
                     <div class="book-info">
                         <h3>{{ book.title }}</h3>
-                        <p class="author">{{ book.author }}</p>
+                        <p class="author">{{ book.sellerName }}</p>
                         <div class="book-meta">
-                            <span class="price">${{ book.price.toFixed(2) }}</span>
-                            <span class="rating">
-                                <i class="fas fa-star"></i> {{ book.rating }}
-                            </span>
+                            <span class="price">RM{{ book.price.toFixed(2) }}</span>
+                            <span class="status">{{ book.status }}</span>
                         </div>
                         <div class="book-actions">
                             <button class="btn-add-cart" ng-click="addToCart(book)">
                                 <i class="fas fa-shopping-cart"></i> Add
                             </button>
-                            <button class="btn-wishlist" ng-click="toggleWishlist(book)">
-                                <i class="fas" ng-class="{'fa-heart': book.inWishlist, 'fa-heart-o': !book.inWishlist}"></i>
-                                <span class="wishlist-text" ng-if="!book.inWishlist">Like</span>
-                                <span class="wishlist-text" ng-if="book.inWishlist">Liked</span>
-                            </button>
                         </div>
                     </div>
+                </div>
+                
+                <!-- Empty New Arrivals Message -->
+                <div class="empty-message" ng-if="newArrivals.length === 0">
+                    <p>No books available yet. Be the first to add a book!</p>
                 </div>
             </div>
         </section>
@@ -170,11 +166,12 @@
                 </div>
             </div>
         </section>
+
         
         <!-- Footer -->
         <footer class="footer">
             <div class="footer-content">
-                <p>&copy; 2023 UTMeBook. All rights reserved.</p>
+                <p>&copy; 2025 UTMeBook. All rights reserved.</p>
             </div>
         </footer>
     </div>

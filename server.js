@@ -27,6 +27,8 @@ const pool = new Pool({
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
+
+//////////////////////////////////// [LOGIN & REGISTER ] ///////////////////////////////////
 // Setup nodemailer for OTP emails with more verbose error handling
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -272,6 +274,464 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+//////////////////////////////////// [END LOGIN & REGISTER ] ///////////////////////////////////
+
+
+
+//////////////////////////////////// [Add Book & Manage Order ] ///////////////////////////////////
+
+// Add these imports after the existing ones in server.js
+const multer = require('multer');
+const fs = require('fs');
+
+// Define storage directories - add these after the Express app initialization
+const UPLOAD_DIR = path.join(__dirname, 'uploads');
+const COVERS_DIR = path.join(UPLOAD_DIR, 'covers');
+const BOOKS_DIR = path.join(UPLOAD_DIR, 'books');
+
+// Create directories if they don't exist
+fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+fs.mkdirSync(COVERS_DIR, { recursive: true });
+fs.mkdirSync(BOOKS_DIR, { recursive: true });
+
+// Configure multer for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    // Determine destination based on field name
+    const dest = file.fieldname === 'coverImage' ? COVERS_DIR : BOOKS_DIR;
+    cb(null, dest);
+  },
+  filename: function (req, file, cb) {
+    // Generate unique filename with timestamp
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, file.fieldname + '-' + uniqueSuffix + ext);
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: function (req, file, cb) {
+    // Check file types
+    if (file.fieldname === 'coverImage') {
+      if (file.mimetype.startsWith('image/')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only image files are allowed for cover image'));
+      }
+    } else if (file.fieldname === 'bookFile') {
+      if (file.mimetype === 'application/pdf') {
+        cb(null, true);
+      } else {
+        cb(new Error('Only PDF files are allowed for book upload'));
+      }
+    } else {
+      cb(new Error('Unexpected field'));
+    }
+  }
+});
+
+// Add to initDB function - create books table
+// Inside the initDB function, add this after the users table creation
+async function initDB() {
+  try {
+    // Test database connection first
+    await pool.query('SELECT NOW()');
+    console.log('Database connection successful');
+    
+    // Then create tables if needed
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        username VARCHAR(50) UNIQUE NOT NULL,
+        email VARCHAR(100) UNIQUE NOT NULL,
+        role VARCHAR(50) DEFAULT 'public',
+        password VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    // Create books table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS books (
+        id SERIAL PRIMARY KEY,
+        title VARCHAR(100) NOT NULL,
+        category VARCHAR(50) NOT NULL,
+        price DECIMAL(10, 2) NOT NULL,
+        description TEXT,
+        cover_image_path VARCHAR(255),
+        upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        status VARCHAR(20) DEFAULT 'Available',
+        book_file_path VARCHAR(255),
+        seller_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    
+    // Create purchases table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS purchases (
+        id SERIAL PRIMARY KEY,
+        book_id INTEGER REFERENCES books(id) ON DELETE CASCADE,
+        buyer_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        purchase_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        price DECIMAL(10, 2) NOT NULL,
+        status VARCHAR(20) DEFAULT 'Completed'
+      )
+    `);
+    
+    console.log('Database tables initialized');
+  } catch (err) {
+    console.error('Error initializing database:', err);
+    console.error('Please make sure your PostgreSQL database is running and accessible');
+    console.error('Database URL:', process.env.DATABASE_URL ? 'Using environment variable' : 'Using localhost default');
+  }
+}
+
+// Add these API endpoints after existing ones
+
+// API endpoint to add a new book
+app.post('/api/books/add', upload.fields([
+  { name: 'coverImage', maxCount: 1 },
+  { name: 'bookFile', maxCount: 1 }
+]), async (req, res) => {
+  console.log('Received book upload request');
+  
+  try {
+    // Get form data
+    const { title, category, price, description, status, sellerId } = req.body;
+    
+    // Get file paths
+    const coverImagePath = req.files.coverImage[0].path.replace(/\\/g, '/');
+    const bookFilePath = req.files.bookFile[0].path.replace(/\\/g, '/');
+    
+    // Store relative paths from the upload directory
+    const relativeCoverPath = coverImagePath.replace(UPLOAD_DIR.replace(/\\/g, '/') + '/', '');
+    const relativeBookPath = bookFilePath.replace(UPLOAD_DIR.replace(/\\/g, '/') + '/', '');
+    
+    console.log(`Adding book: ${title} by seller: ${sellerId}`);
+    console.log(`Cover path: ${relativeCoverPath}`);
+    console.log(`Book path: ${relativeBookPath}`);
+    
+    // Insert book into database
+    const result = await pool.query(
+      `INSERT INTO books (title, category, price, description, status, cover_image_path, book_file_path, seller_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING id`,
+      [title, category, price, description, status, relativeCoverPath, relativeBookPath, sellerId]
+    );
+    
+    console.log(`Book added successfully with ID: ${result.rows[0].id}`);
+    
+    res.status(201).json({
+      success: true,
+      message: 'Book added successfully',
+      bookId: result.rows[0].id
+    });
+    
+  } catch (err) {
+    console.error('Error adding book:', err);
+    
+    // Clean up uploaded files if there was an error
+    if (req.files) {
+      if (req.files.coverImage) {
+        fs.unlink(req.files.coverImage[0].path, (err) => {
+          if (err) console.error('Error deleting cover image:', err);
+        });
+      }
+      if (req.files.bookFile) {
+        fs.unlink(req.files.bookFile[0].path, (err) => {
+          if (err) console.error('Error deleting book file:', err);
+        });
+      }
+    }
+    
+    res.status(500).json({
+      success: false,
+      message: 'Error adding book',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+// API endpoint to get new arrivals
+app.get('/api/books/new-arrivals', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT b.id, b.title, b.category, b.price, b.status, b.upload_date, 
+              b.cover_image_path, u.username as seller_name
+       FROM books b
+       JOIN users u ON b.seller_id = u.id
+       WHERE b.status = 'Available'
+       ORDER BY b.upload_date DESC
+       LIMIT 10`
+    );
+    
+    // Format the results
+    const books = result.rows.map(book => ({
+      id: book.id,
+      title: book.title,
+      category: book.category,
+      price: parseFloat(book.price),
+      status: book.status,
+      uploadDate: book.upload_date,
+      coverUrl: `/uploads/${book.cover_image_path}`,
+      sellerName: book.seller_name
+    }));
+    
+    res.status(200).json({
+      success: true,
+      books: books
+    });
+    
+  } catch (err) {
+    console.error('Error fetching new arrivals:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching new arrivals',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+// API endpoint to get user's books (for My Sales section)
+app.get('/api/books/my-sales/:userId', async (req, res) => {
+  const { userId } = req.params;
+  
+  try {
+    const result = await pool.query(
+      `SELECT id, title, category, price, status, upload_date, cover_image_path
+       FROM books
+       WHERE seller_id = $1
+       ORDER BY upload_date DESC`,
+      [userId]
+    );
+    
+    // Format the results
+    const books = result.rows.map(book => ({
+      id: book.id,
+      title: book.title,
+      category: book.category,
+      price: parseFloat(book.price),
+      status: book.status,
+      uploadDate: book.upload_date,
+      coverUrl: `/uploads/${book.cover_image_path}`
+    }));
+    
+    res.status(200).json({
+      success: true,
+      books: books
+    });
+    
+  } catch (err) {
+    console.error(`Error fetching sales for user ${userId}:`, err);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching your books',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+// API endpoint to get user's purchases
+app.get('/api/books/my-purchases/:userId', async (req, res) => {
+  const { userId } = req.params;
+  
+  try {
+    const result = await pool.query(
+      `SELECT b.id, b.title, b.category, p.price, p.status, p.purchase_date, 
+              b.cover_image_path, u.username as seller_name
+       FROM purchases p
+       JOIN books b ON p.book_id = b.id
+       JOIN users u ON b.seller_id = u.id
+       WHERE p.buyer_id = $1
+       ORDER BY p.purchase_date DESC`,
+      [userId]
+    );
+    
+    // Format the results
+    const purchases = result.rows.map(purchase => ({
+      id: purchase.id,
+      title: purchase.title,
+      category: purchase.category,
+      price: parseFloat(purchase.price),
+      status: purchase.status,
+      purchaseDate: purchase.purchase_date,
+      coverUrl: `/uploads/${purchase.cover_image_path}`,
+      sellerName: purchase.seller_name
+    }));
+    
+    res.status(200).json({
+      success: true,
+      purchases: purchases
+    });
+    
+  } catch (err) {
+    console.error(`Error fetching purchases for user ${userId}:`, err);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching your purchases',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+// API endpoint to update a book
+app.put('/api/books/:bookId', upload.fields([
+  { name: 'coverImage', maxCount: 1 },
+  { name: 'bookFile', maxCount: 1 }
+]), async (req, res) => {
+  const { bookId } = req.params;
+  
+  try {
+    // Get form data
+    const { title, category, price, description, status, sellerId } = req.body;
+    
+    // Verify that the book belongs to the seller
+    const bookCheck = await pool.query(
+      'SELECT * FROM books WHERE id = $1 AND seller_id = $2',
+      [bookId, sellerId]
+    );
+    
+    if (bookCheck.rows.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to edit this book'
+      });
+    }
+    
+    const book = bookCheck.rows[0];
+    
+    // Build the update query
+    let updateQuery = `
+      UPDATE books
+      SET title = $1, category = $2, price = $3, description = $4, status = $5
+    `;
+    
+    let params = [title, category, price, description, status];
+    let index = 6;
+    
+    // Update cover image if provided
+    if (req.files.coverImage) {
+      const coverImagePath = req.files.coverImage[0].path.replace(/\\/g, '/');
+      const relativeCoverPath = coverImagePath.replace(UPLOAD_DIR.replace(/\\/g, '/') + '/', '');
+      
+      updateQuery += `, cover_image_path = ${index}`;
+      params.push(relativeCoverPath);
+      index++;
+      
+      // Delete old cover image
+      if (book.cover_image_path) {
+        fs.unlink(path.join(UPLOAD_DIR, book.cover_image_path), (err) => {
+          if (err) console.error('Error deleting old cover image:', err);
+        });
+      }
+    }
+    
+    // Update book file if provided
+    if (req.files.bookFile) {
+      const bookFilePath = req.files.bookFile[0].path.replace(/\\/g, '/');
+      const relativeBookPath = bookFilePath.replace(UPLOAD_DIR.replace(/\\/g, '/') + '/', '');
+      
+      updateQuery += `, book_file_path = ${index}`;
+      params.push(relativeBookPath);
+      index++;
+      
+      // Delete old book file
+      if (book.book_file_path) {
+        fs.unlink(path.join(UPLOAD_DIR, book.book_file_path), (err) => {
+          if (err) console.error('Error deleting old book file:', err);
+        });
+      }
+    }
+    
+    // Complete the query
+    updateQuery += ` WHERE id = ${index} RETURNING id`;
+    params.push(bookId);
+    
+    // Execute the update
+    const result = await pool.query(updateQuery, params);
+    
+    res.status(200).json({
+      success: true,
+      message: 'Book updated successfully',
+      bookId: result.rows[0].id
+    });
+    
+  } catch (err) {
+    console.error('Error updating book:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating book',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+// API endpoint to delete a book
+app.delete('/api/books/:bookId', async (req, res) => {
+  const { bookId } = req.params;
+  const { sellerId } = req.query;
+  
+  try {
+    // Verify that the book belongs to the seller
+    const bookCheck = await pool.query(
+      'SELECT * FROM books WHERE id = $1 AND seller_id = $2',
+      [bookId, sellerId]
+    );
+    
+    if (bookCheck.rows.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to delete this book'
+      });
+    }
+    
+    const book = bookCheck.rows[0];
+    
+    // Delete the book from the database
+    await pool.query('DELETE FROM books WHERE id = $1', [bookId]);
+    
+    // Delete files
+    if (book.cover_image_path) {
+      fs.unlink(path.join(UPLOAD_DIR, book.cover_image_path), (err) => {
+        if (err) console.error('Error deleting cover image:', err);
+      });
+    }
+    
+    if (book.book_file_path) {
+      fs.unlink(path.join(UPLOAD_DIR, book.book_file_path), (err) => {
+        if (err) console.error('Error deleting book file:', err);
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      message: 'Book deleted successfully'
+    });
+    
+  } catch (err) {
+    console.error('Error deleting book:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting book',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+
+//////////////////////////////////// [END Add Book & Manage Order ] ///////////////////////////////////
+
+
+
+
+// Serve static files from the uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Add routes for all HTML pages - Use path.join for better cross-platform compatibility
 app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/webpages/login.html'));
@@ -284,6 +744,35 @@ app.get('/register', (req, res) => {
 
 app.get('/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/webpages/dashboard.html'));
+});
+
+// Catch-all route to handle any undefined routes
+app.use((req, res) => {
+  res.status(404).sendFile(path.join(__dirname, 'client/webpages/login.html'));
+});
+
+app.get('/add-ebook', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/webpages/add-ebook.html'));
+});
+
+app.get('/order', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/webpages/order.html'));
+});
+
+app.get('/edit-book', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/webpages/edit-book.html'));
+});
+
+app.get('/messages', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/webpages/dashboard.html')); // Temporary redirect until implemented
+});
+
+app.get('/mybook', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/webpages/dashboard.html')); // Temporary redirect until implemented
+});
+
+app.get('/account', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/webpages/dashboard.html')); // Temporary redirect until implemented
 });
 
 // Catch-all route to handle any undefined routes

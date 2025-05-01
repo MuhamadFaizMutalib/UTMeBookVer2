@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTMeBook - Order</title>
+    <link rel="stylesheet" href="../webstyles/css/dashboard.css">
+    <link rel="stylesheet" href="../webstyles/css/mobile-styles.css">
+    <link rel="stylesheet" href="../webstyles/css/order.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="../webfunctions/orderApp.js"></script>
+</head>
+<body ng-app="orderApp" ng-controller="OrderController">
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="header">
+            <!-- Mobile Menu Toggle Button -->
+            <button class="mobile-menu-toggle" ng-click="toggleMobileMenu()">
+                <i class="fas" ng-class="{'fa-bars': !mobileMenuOpen, 'fa-times': mobileMenuOpen}"></i>
+            </button>
+            
+            <div class="logo">
+                <h1>UTMeBook</h1>
+            </div>
+            
+            <div class="user-menu">
+                <span class="username">{{ user.username }}</span>
+                <button class="btn-logout" ng-click="logout()">Logout</button>
+            </div>
+        </header>
+        
+        <!-- Navigation Bar -->
+        <nav class="navbar">
+            <ul ng-class="{'show-mobile': mobileMenuOpen}">
+                <li>
+                    <a href="#" ng-click="navigateTo('add-ebook')">
+                        <i class="fas fa-plus-circle"></i> Add eBook
+                    </a>
+                </li>
+                <li class="active">
+                    <a href="#" ng-click="navigateTo('order')">
+                        <i class="fas fa-clipboard-list"></i> Order
+                    </a>
+                </li>
+                <li>
+                    <a href="#" ng-click="navigateTo('messages')">
+                        <i class="fas fa-envelope"></i> Messages
+                    </a>
+                </li>
+                <li>
+                    <a href="#" ng-click="navigateTo('mybook')">
+                        <i class="fas fa-book"></i> MyBook
+                    </a>
+                </li>
+                <li>
+                    <a href="#" ng-click="navigateTo('account')">
+                        <i class="fas fa-user"></i> Account
+                    </a>
+                </li>
+                <li>
+                    <a href="#" ng-click="navigateTo('dashboard')">
+                        <i class="fas fa-home"></i> Dashboard
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        
+        <!-- Order Page Content -->
+        <section class="order-section">
+            <div class="order-container">
+                <!-- My Purchases Section -->
+                <div class="purchases-section">
+                    <h2 class="section-title">My Purchases</h2>
+                    
+                    <div class="book-list">
+                        <div class="book-item" ng-repeat="purchase in myPurchases">
+                            <div class="book-cover">
+                                <img ng-src="{{ purchase.coverUrl }}" alt="{{ purchase.title }}">
+                            </div>
+                            <div class="book-details">
+                                <h3>{{ purchase.title }}</h3>
+                                <p class="book-meta">
+                                    <span class="book-category">{{ purchase.category }}</span>
+                                    <span class="book-price">RM{{ purchase.price.toFixed(2) }}</span>
+                                </p>
+                                <p class="seller-info">Seller: {{ purchase.sellerName }}</p>
+                                <p class="purchase-date">Purchased on: {{ purchase.purchaseDate | date:'mediumDate' }}</p>
+                                <div class="book-actions">
+                                    <button class="btn-download">
+                                        <i class="fas fa-download"></i> Download
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Empty Purchases Message -->
+                        <div class="empty-message" ng-if="myPurchases.length === 0">
+                            <p>You haven't purchased any books yet.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- My Sales Section -->
+                <div class="sales-section">
+                    <h2 class="section-title">My Sales</h2>
+                    
+                    <div class="book-list">
+                        <div class="book-item" ng-repeat="book in mySales">
+                            <div class="book-cover">
+                                <img ng-src="{{ book.coverUrl }}" alt="{{ book.title }}">
+                            </div>
+                            <div class="book-details">
+                                <h3>{{ book.title }}</h3>
+                                <p class="book-meta">
+                                    <span class="book-category">{{ book.category }}</span>
+                                    <span class="book-price">RM{{ book.price.toFixed(2) }}</span>
+                                </p>
+                                <p class="status">Status: {{ book.status }}</p>
+                                <p class="upload-date">Uploaded on: {{ book.uploadDate | date:'mediumDate' }}</p>
+                                <div class="book-actions">
+                                    <button class="btn-edit" ng-click="editBook(book)">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <button class="btn-delete" ng-click="deleteBook(book)">
+                                        <i class="fas fa-trash"></i> Remove
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Empty Sales Message -->
+                        <div class="empty-message" ng-if="mySales.length === 0">
+                            <p>You haven't uploaded any books yet. <a href="/add-ebook">Add a book</a> to get started!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <p>&copy; 2025 UTMeBook. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

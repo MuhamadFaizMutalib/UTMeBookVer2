@@ -6,3 +6,27 @@ role VARCHAR(50) DEFAULT 'public',
 password VARCHAR(255) NOT NULL,
 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS books (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(100) NOT NULL,
+  category VARCHAR(50) NOT NULL,
+  price DECIMAL(10, 2) NOT NULL,
+  description TEXT,
+  cover_image_path VARCHAR(255),
+  upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  status VARCHAR(20) DEFAULT 'Available',
+  book_file_path VARCHAR(255),
+  seller_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- If you want to define relationships, you can create a purchases table
+CREATE TABLE IF NOT EXISTS purchases (
+  id SERIAL PRIMARY KEY,
+  book_id INTEGER REFERENCES books(id) ON DELETE CASCADE,
+  buyer_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  purchase_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  price DECIMAL(10, 2) NOT NULL,
+  status VARCHAR(20) DEFAULT 'Pending'
+);
