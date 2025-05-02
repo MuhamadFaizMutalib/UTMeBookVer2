@@ -326,7 +326,7 @@
         width: 100%;
         justify-content: center;
     }
-    
+}  
     .form-grid {
         grid-template-columns: 1fr;
     }
@@ -335,12 +335,7 @@
         width: 95%;
         max-width: 100%;
     }
-}
-    gap: 8px;
-    transition: background-color 0.3s, transform 0.2s;
-    font-size: 14px;
-}
-
+   
 .btn-download {
     background-color: #0066cc;
     color: white;
@@ -478,3 +473,21 @@
     padding: 5px;
     display: flex;
     align-items: center;
+    gap: 8px;
+    transition: background-color 0.3s, transform 0.2s;
+    font-size: 14px;
+}
+
+.btn-primary[disabled], .btn-secondary[disabled] {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}

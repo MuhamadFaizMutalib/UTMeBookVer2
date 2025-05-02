@@ -186,21 +186,26 @@ angular.module('orderApp', [])
       
       // Add cover image if a new one was selected
       var coverImageInput = document.getElementById('editCoverImage');
-      if (coverImageInput.files.length > 0) {
+      if (coverImageInput && coverImageInput.files && coverImageInput.files.length > 0) {
         formData.append('coverImage', coverImageInput.files[0]);
       }
       
       // Add book file if a new one was selected
       var bookFileInput = document.getElementById('editBookFile');
-      if (bookFileInput.files.length > 0) {
+      if (bookFileInput && bookFileInput.files && bookFileInput.files.length > 0) {
         formData.append('bookFile', bookFileInput.files[0]);
       }
+      
+      // Show loading indicator or message
+      $scope.isUpdating = true;
       
       // Send the form data to the server
       $http.put('/api/books/' + $scope.editingBook.id, formData, {
         transformRequest: angular.identity,
         headers: {'Content-Type': undefined}
       }).then(function(response) {
+        $scope.isUpdating = false;
+        
         if (response.data.success) {
           $scope.successMessage = 'Book updated successfully!';
           
@@ -214,6 +219,7 @@ angular.module('orderApp', [])
           $scope.errorMessage = response.data.message || 'Error updating book';
         }
       }).catch(function(error) {
+        $scope.isUpdating = false;
         console.error('Error updating book:', error);
         $scope.errorMessage = 'Server error. Please try again later.';
       });

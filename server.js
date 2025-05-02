@@ -621,11 +621,11 @@ app.put('/api/books/:bookId', upload.fields([
     let index = 6;
     
     // Update cover image if provided
-    if (req.files.coverImage) {
+    if (req.files && req.files.coverImage && req.files.coverImage.length > 0) {
       const coverImagePath = req.files.coverImage[0].path.replace(/\\/g, '/');
       const relativeCoverPath = coverImagePath.replace(UPLOAD_DIR.replace(/\\/g, '/') + '/', '');
       
-      updateQuery += `, cover_image_path = ${index}`;
+      updateQuery += `, cover_image_path = $${index}`;
       params.push(relativeCoverPath);
       index++;
       
@@ -638,11 +638,11 @@ app.put('/api/books/:bookId', upload.fields([
     }
     
     // Update book file if provided
-    if (req.files.bookFile) {
+    if (req.files && req.files.bookFile && req.files.bookFile.length > 0) {
       const bookFilePath = req.files.bookFile[0].path.replace(/\\/g, '/');
       const relativeBookPath = bookFilePath.replace(UPLOAD_DIR.replace(/\\/g, '/') + '/', '');
       
-      updateQuery += `, book_file_path = ${index}`;
+      updateQuery += `, book_file_path = $${index}`;
       params.push(relativeBookPath);
       index++;
       
@@ -655,8 +655,12 @@ app.put('/api/books/:bookId', upload.fields([
     }
     
     // Complete the query
-    updateQuery += ` WHERE id = ${index} RETURNING id`;
+    updateQuery += ` WHERE id = $${index} RETURNING id`;
     params.push(bookId);
+    
+    // Log the query for debugging
+    console.log('Update query:', updateQuery);
+    console.log('Parameters:', params);
     
     // Execute the update
     const result = await pool.query(updateQuery, params);
