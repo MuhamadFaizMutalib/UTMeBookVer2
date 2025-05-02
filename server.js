@@ -733,8 +733,6 @@ app.delete('/api/books/:bookId', async (req, res) => {
 //////////////////////////////////// [END Add Book & Manage Order ] ///////////////////////////////////
 
 
-
-
 // Serve static files from the uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -765,9 +763,6 @@ app.get('/order', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/webpages/order.html'));
 });
 
-app.get('/edit-book', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client/webpages/edit-book.html'));
-});
 
 app.get('/messages', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/webpages/dashboard.html')); // Temporary redirect until implemented

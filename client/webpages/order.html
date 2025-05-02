@@ -138,6 +138,99 @@
             </div>
         </section>
         
+        <!-- Edit Book Modal -->
+        <div class="modal" ng-class="{'show-modal': showEditModal}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Edit Book</h2>
+                    <button class="close-button" ng-click="closeEditModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="alert alert-success" ng-if="successMessage">
+                        <i class="fas fa-check-circle"></i> {{ successMessage }}
+                    </div>
+                    
+                    <div class="alert alert-danger" ng-if="errorMessage">
+                        <i class="fas fa-exclamation-circle"></i> {{ errorMessage }}
+                    </div>
+                    
+                    <form class="edit-book-form" ng-submit="updateBook()" enctype="multipart/form-data">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="edit-title">Title *</label>
+                                <input type="text" id="edit-title" ng-model="editedBook.title" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="edit-category">Category *</label>
+                                <select id="edit-category" ng-model="editedBook.category" required>
+                                    <option value="">Select Category</option>
+                                    <option value="Textbook">Textbook</option>
+                                    <option value="Research">Research</option>
+                                    <option value="Academic">Academic</option>
+                                    <option value="Technical">Technical</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="edit-price">Price (RM) *</label>
+                                <input type="number" id="edit-price" ng-model="editedBook.price" step="0.01" min="0" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="edit-status">Status</label>
+                                <input type="text" id="edit-status" ng-model="editedBook.status" readonly>
+                            </div>                        
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="edit-description">Description *</label>
+                            <textarea id="edit-description" ng-model="editedBook.description" rows="4" required></textarea>
+                        </div>
+                        
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="edit-coverImage">Cover Image</label>
+                                <div class="file-upload">
+                                    <input type="file" id="edit-coverImage" onchange="angular.element(this).scope().setEditFile(this)" accept="image/jpeg, image/png, image/jpg">
+                                    <div class="file-preview" ng-if="editCoverPreview">
+                                        <img ng-src="{{ editCoverPreview }}" alt="Cover Preview">
+                                    </div>
+                                    <div class="file-preview" ng-if="!editCoverPreview && editedBook.coverUrl">
+                                        <img ng-src="{{ editedBook.coverUrl }}" alt="Current Cover">
+                                        <p class="current-file-info">Current cover image</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="edit-bookFile">Book File (PDF)</label>
+                                <div class="file-upload">
+                                    <input type="file" id="edit-bookFile" onchange="angular.element(this).scope().setEditFile(this)" accept="application/pdf">
+                                    <div class="file-info" ng-if="editBookFileName">
+                                        <i class="fas fa-file-pdf"></i> {{ editBookFileName }}
+                                    </div>
+                                    <div class="file-info" ng-if="!editBookFileName">
+                                        <i class="fas fa-file-pdf"></i> <span class="current-file-info">Current book file (leave empty to keep current)</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="btn-secondary" ng-click="closeEditModal()">Cancel</button>
+                            <button type="submit" class="btn-primary">
+                                <i class="fas fa-save"></i> Update Book
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
         <!-- Footer -->
         <footer class="footer">
             <div class="footer-content">

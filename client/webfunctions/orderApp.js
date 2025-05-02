@@ -19,6 +19,14 @@ angular.module('orderApp', [])
     // Mobile menu state
     $scope.mobileMenuOpen = false;
     
+    // Modal state
+    $scope.showEditModal = false;
+    $scope.editedBook = {};
+    $scope.editCoverPreview = null;
+    $scope.editBookFileName = null;
+    $scope.successMessage = null;
+    $scope.errorMessage = null;
+    
     // Toggle mobile menu
     $scope.toggleMobileMenu = function() {
       $scope.mobileMenuOpen = !$scope.mobileMenuOpen;
@@ -92,11 +100,133 @@ angular.module('orderApp', [])
     loadMySales();
     loadMyPurchases();
     
-    // Function to edit book
-    // $scope.editBook = function(book) {
-    //   console.log('Editing book:', book.id);
-    //   $window.location.href = '/edit-book?id=' + book.id;
-    // };
+    // Function to open edit modal
+    $scope.editBook = function(book) {
+      $scope.successMessage = null;
+      $scope.errorMessage = null;
+      $scope.editCoverPreview = null;
+      $scope.editBookFileName = null;
+      
+      // Clone the book object to avoid modifying the original
+      $scope.editedBook = {
+        id: book.id,
+        title: book.title,
+        category: book.category,
+        price: book.price,
+        description: book.description || '',
+        status: book.status,
+        coverUrl: book.coverUrl
+      };
+      
+      $scope.showEditModal = true;
+    };
+    
+    // Close edit modal
+    $scope.closeEditModal = function() {
+      $scope.showEditModal = false;
+    };
+    
+    // Handle file uploads for edit form
+    $scope.setEditFile = function(element) {
+      if (element.id === 'edit-coverImage') {
+        $scope.$apply(function() {
+          $scope.editedBook.newCoverImage = element.files[0];
+          
+          // Create preview
+          if (element.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+              $scope.$apply(function() {
+                $scope.editCoverPreview = e.target.result;
+              });
+            };
+            reader.readAsDataURL(element.files[0]);
+          }
+        });
+      } else if (element.id === 'edit-bookFile') {
+        $scope.$apply(function() {
+          $scope.editedBook.newBookFile = element.files[0];
+          
+          // Show filename
+          if (element.files[0]) {
+            $scope.editBookFileName = element.files[0].name;
+          }
+        });
+      }
+    };
+    
+    // Update book function
+    $scope.updateBook = function() {
+      // Validate inputs
+      if (!$scope.editedBook.title || !$scope.editedBook.category || !$scope.editedBook.price || !$scope.editedBook.description) {
+        $scope.errorMessage = 'Please fill in all required fields';
+        return;
+      }
+      
+      // Clear previous messages
+      $scope.errorMessage = null;
+      $scope.successMessage = null;
+      
+      // Create FormData object to send files
+      var formData = new FormData();
+      formData.append('title', $scope.editedBook.title);
+      formData.append('category', $scope.editedBook.category);
+      formData.append('price', $scope.editedBook.price);
+      formData.append('description', $scope.editedBook.description);
+      formData.append('status', $scope.editedBook.status);
+      formData.append('sellerId', $scope.user.id);
+      
+      // Add files only if provided
+      if ($scope.editedBook.newCoverImage) {
+        formData.append('coverImage', $scope.editedBook.newCoverImage);
+      }
+      
+      if ($scope.editedBook.newBookFile) {
+        formData.append('bookFile', $scope.editedBook.newBookFile);
+      }
+      
+      // Send the form data to the server
+      $http.put('/api/books/' + $scope.editedBook.id, formData, {
+        transformRequest: angular.identity,
+        headers: {'Content-Type': undefined}
+      }).then(function(response) {
+        if (response.data.success) {
+          $scope.successMessage = 'Book updated successfully!';
+          
+          // Update the book in the list
+          for (var i = 0; i < $scope.mySales.length; i++) {
+            if ($scope.mySales[i].id === $scope.editedBook.id) {
+              $scope.mySales[i].title = $scope.editedBook.title;
+              $scope.mySales[i].category = $scope.editedBook.category;
+              $scope.mySales[i].price = parseFloat($scope.editedBook.price);
+              $scope.mySales[i].description = $scope.editedBook.description;
+              $scope.mySales[i].status = $scope.editedBook.status;
+              
+              // Update cover URL if a new cover was uploaded
+              if ($scope.editCoverPreview) {
+                // The actual URL will be replaced after reloading
+                // This is just a temporary update for UI
+              }
+              
+              break;
+            }
+          }
+          
+          // Close modal and reload data after a short delay
+          setTimeout(function() {
+            $scope.showEditModal = false;
+            loadMySales(); // Reload to get updated data from server
+            $scope.$apply();
+          }, 1500);
+          
+        } else {
+          $scope.errorMessage = response.data.message || 'Error updating book';
+        }
+      }).catch(function(error) {
+        console.error('Error updating book:', error);
+        $scope.errorMessage = 'Server error. Please try again later.';
+      });
+    };
     
     // Function to delete book
     $scope.deleteBook = function(book) {
