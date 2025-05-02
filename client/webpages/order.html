@@ -33,8 +33,8 @@
         <!-- Navigation Bar -->
         <nav class="navbar">
             <ul ng-class="{'show-mobile': mobileMenuOpen}">
-                <li>
-                    <a href="#" ng-click="setActiveTab('add-ebook')">
+                <li ng-class="{'active': true}">
+                    <a href="#" ng-click="navigateTo('add-ebook')">
                         <i class="fas fa-plus-circle"></i> Add eBook
                     </a>
                 </li>
@@ -44,22 +44,22 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#" ng-click="setActiveTab('messages')">
+                    <a href="#" ng-click="navigateTo('messages')">
                         <i class="fas fa-envelope"></i> Messages
                     </a>
                 </li>
                 <li>
-                    <a href="#" ng-click="setActiveTab('mybook')">
+                    <a href="#" ng-click="navigateTo('mybook')">
                         <i class="fas fa-book"></i> MyBook
                     </a>
                 </li>
                 <li>
-                    <a href="#" ng-click="setActiveTab('account')">
+                    <a href="#" ng-click="navigateTo('account')">
                         <i class="fas fa-user"></i> Account
                     </a>
                 </li>
                 <li>
-                    <a href="#" ng-click="setActiveTab('dashboard')">
+                    <a href="#" ng-click="navigateTo('dashboard')">
                         <i class="fas fa-home"></i> Dashboard
                     </a>
                 </li>

@@ -36,31 +36,36 @@ angular.module('orderApp', [])
     $scope.mySales = [];
 
     
-    // Navigation function
-    $scope.navigateTo = function(page) {
-      switch(page) {
-        case 'dashboard':
-          $window.location.href = '/dashboard';
-          break;
-        case 'add-ebook':
-          $window.location.href = '/add-ebook';
-          break;
-        case 'order':
-          // Already on order page
-          break;
-        case 'messages':
-          $window.location.href = '/messages';
-          break;
-        case 'mybook':
-          $window.location.href = '/mybook';
-          break;
-        case 'account':
-          $window.location.href = '/account';
-          break;
-        default:
-          $window.location.href = '/dashboard';
-      }
-    };
+        // Function to set active tab and handle navigation
+        $scope.setActiveTab = function(tab) {
+          // If on mobile, close the menu after selecting an item
+          if (window.innerWidth <= 768) {
+            $scope.mobileMenuOpen = false;
+          }
+          
+          // Navigate to the appropriate page based on the tab
+          switch(tab) {
+
+            case 'order':
+              $window.location.href = '/order';
+              break;
+            case 'messages':
+              $window.location.href = '/messages';
+              break;
+            case 'mybook':
+              $window.location.href = '/mybook';
+              break;
+            case 'account':
+              $window.location.href = '/account';
+              break;
+            case 'dashboard':
+              $window.location.href = '/dashboard';
+              break;
+            default:
+              // Stay on current page for other tabs
+              break;
+          }
+        };
     
     // Load user's sales
     function loadMySales() {
