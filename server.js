@@ -621,11 +621,11 @@ app.put('/api/books/:bookId', upload.fields([
     let index = 6;
     
     // Update cover image if provided
-    if (req.files && req.files.coverImage && req.files.coverImage.length > 0) {
+    if (req.files.coverImage) {
       const coverImagePath = req.files.coverImage[0].path.replace(/\\/g, '/');
       const relativeCoverPath = coverImagePath.replace(UPLOAD_DIR.replace(/\\/g, '/') + '/', '');
       
-      updateQuery += `, cover_image_path = $${index}`;
+      updateQuery += `, cover_image_path = ${index}`;
       params.push(relativeCoverPath);
       index++;
       
@@ -638,11 +638,11 @@ app.put('/api/books/:bookId', upload.fields([
     }
     
     // Update book file if provided
-    if (req.files && req.files.bookFile && req.files.bookFile.length > 0) {
+    if (req.files.bookFile) {
       const bookFilePath = req.files.bookFile[0].path.replace(/\\/g, '/');
       const relativeBookPath = bookFilePath.replace(UPLOAD_DIR.replace(/\\/g, '/') + '/', '');
       
-      updateQuery += `, book_file_path = $${index}`;
+      updateQuery += `, book_file_path = ${index}`;
       params.push(relativeBookPath);
       index++;
       
@@ -655,12 +655,8 @@ app.put('/api/books/:bookId', upload.fields([
     }
     
     // Complete the query
-    updateQuery += ` WHERE id = $${index} RETURNING id`;
+    updateQuery += ` WHERE id = ${index} RETURNING id`;
     params.push(bookId);
-    
-    // Log the query for debugging
-    console.log('Update query:', updateQuery);
-    console.log('Parameters:', params);
     
     // Execute the update
     const result = await pool.query(updateQuery, params);
@@ -738,6 +734,7 @@ app.delete('/api/books/:bookId', async (req, res) => {
 
 
 
+
 // Serve static files from the uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -768,6 +765,10 @@ app.get('/order', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/webpages/order.html'));
 });
 
+app.get('/edit-book', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/webpages/edit-book.html'));
+});
+
 app.get('/messages', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/webpages/dashboard.html')); // Temporary redirect until implemented
 });
@@ -780,11 +781,13 @@ app.get('/account', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/webpages/dashboard.html')); // Temporary redirect until implemented
 });
 
+
 // Start server and initialize database
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   initDB();
 });
+
 
 // The catch-all route should ALWAYS be defined LAST
 app.use((req, res) => {
