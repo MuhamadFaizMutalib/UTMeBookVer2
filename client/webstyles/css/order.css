@@ -1,4 +1,3 @@
-/* Base styles from existing order.css */
 .order-section {
     padding: 20px;
     background-color: #f8f9fa;
@@ -30,14 +29,15 @@
     padding-bottom: 10px;
 }
 
-/* Improved Book List Styling */
+/* Book List */
 .book-list {
     display: flex;
     flex-direction: column;
     gap: 15px;
     max-height: 600px;
     overflow-y: auto;
-    padding: 10px 5px;
+    padding-right: 5px;
+    padding-bottom: 10px; /* Add some padding at bottom */
 }
 
 /* Scrollbar styling */
@@ -59,20 +59,19 @@
     background: #a8a8a8;
 }
 
-/* Enhanced Book Item */
 .book-item {
     display: flex;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
     overflow: hidden;
     transition: transform 0.3s, box-shadow 0.3s;
-    background-color: #ffffff;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    background-color: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .book-item:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 5px 15px rgba(0, 102, 204, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     border-color: #bbd6f8;
 }
 
@@ -81,19 +80,14 @@
     height: 160px;
     flex-shrink: 0;
     background-color: #f0f7ff;
-    overflow: hidden;
     position: relative;
+    border-right: 1px solid #f0f0f0;
 }
 
 .book-cover img {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.3s ease;
-}
-
-.book-item:hover .book-cover img {
-    transform: scale(1.05);
 }
 
 .book-details {
@@ -101,21 +95,21 @@
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
 }
 
 .book-details h3 {
-    margin: 0 0 10px 0;
-    font-size: 20px;
+    margin: 0 0 12px 0;
+    font-size: 18px;
     color: #333;
     font-weight: 600;
+    line-height: 1.3;
 }
 
 .book-meta {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 
 .book-category {
@@ -125,27 +119,28 @@
     border-radius: 4px;
     font-size: 13px;
     font-weight: 500;
+    display: inline-block;
 }
 
 .book-price {
-    font-weight: bold;
+    font-weight: 600;
     color: #0066cc;
-    font-size: 18px;
+    font-size: 17px;
 }
 
 .seller-info,
+.status,
 .purchase-date,
 .upload-date {
-    margin: 5px 0;
+    margin: 6px 0;
     font-size: 14px;
     color: #666;
+    line-height: 1.4;
 }
 
 .status {
     color: #28a745;
-    font-weight: bold;
-    font-size: 15px;
-    margin: 8px 0;
+    font-weight: 600;
     display: flex;
     align-items: center;
 }
@@ -157,7 +152,7 @@
     height: 8px;
     background-color: #28a745;
     border-radius: 50%;
-    margin-right: 6px;
+    margin-right: 8px;
 }
 
 /* Book Actions */
@@ -166,7 +161,7 @@
     gap: 10px;
     margin-top: auto;
     padding-top: 12px;
-    border-top: 1px solid #f0f0f0;
+    border-top: 1px solid #f5f5f5;
 }
 
 .btn-download,
@@ -175,7 +170,7 @@
     padding: 8px 15px;
     border-radius: 5px;
     border: none;
-    font-weight: 600;
+    font-weight: 500;
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -192,7 +187,7 @@
 .btn-download:hover {
     background-color: #0052a3;
     transform: translateY(-2px);
-    box-shadow: 0 3px 8px rgba(0, 82, 163, 0.2);
+    box-shadow: 0 3px 8px rgba(0, 102, 204, 0.2);
 }
 
 .btn-edit {
@@ -204,7 +199,7 @@
 .btn-edit:hover {
     background-color: #e9ecef;
     transform: translateY(-2px);
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05);
 }
 
 .btn-delete {
@@ -216,7 +211,7 @@
 .btn-delete:hover {
     background-color: #f8d7da;
     transform: translateY(-2px);
-    box-shadow: 0 3px 8px rgba(220, 53, 69, 0.1);
+    box-shadow: 0 3px 6px rgba(220, 53, 69, 0.1);
 }
 
 .empty-message {
@@ -232,12 +227,10 @@
     color: #0066cc;
     text-decoration: underline;
     font-weight: bold;
-    transition: color 0.2s;
 }
 
 .empty-message a:hover {
     text-decoration: none;
-    color: #0052a3;
 }
 
 /* Toast Notification */
@@ -248,8 +241,8 @@
     transform: translateX(-50%) translateY(100px);
     background-color: rgba(0, 0, 0, 0.8);
     color: white;
-    padding: 12px 24px;
-    border-radius: 30px;
+    padding: 12px 20px;
+    border-radius: 25px;
     font-size: 14px;
     z-index: 9999;
     opacity: 0;
@@ -268,7 +261,7 @@
 }
 
 .toast-notification i {
-    margin-right: 10px;
+    margin-right: 8px;
     font-size: 16px;
 }
 
@@ -286,13 +279,12 @@
     z-index: 1000;
     overflow-y: auto;
     padding: 20px;
-    backdrop-filter: blur(3px);
 }
 
 .modal-content {
     background-color: white;
     border-radius: 8px;
-    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
     width: 90%;
     max-width: 800px;
     max-height: calc(100vh - 40px);
@@ -339,11 +331,6 @@
     padding: 5px;
     display: flex;
     align-items: center;
-    transition: color 0.2s;
-}
-
-.modal-close:hover {
-    color: #dc3545;
 }
 
 .modal-body {
@@ -407,15 +394,6 @@
     border: 1px solid #ddd;
     border-radius: 4px;
     font-size: 14px;
-    transition: border-color 0.2s;
-}
-
-.form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus {
-    border-color: #0066cc;
-    box-shadow: 0 0 0 3px rgba(0,102,204,0.1);
-    outline: none;
 }
 
 .form-group textarea {
@@ -481,7 +459,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    transition: all 0.2s ease;
+    transition: background-color 0.3s, transform 0.2s;
 }
 
 .btn-primary {
@@ -493,7 +471,6 @@
 .btn-primary:hover {
     background-color: #0052a3;
     transform: translateY(-2px);
-    box-shadow: 0 3px 8px rgba(0, 82, 163, 0.2);
 }
 
 .btn-secondary {
@@ -505,15 +482,12 @@
 .btn-secondary:hover {
     background-color: #e9ecef;
     transform: translateY(-2px);
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
 }
 
 .btn-primary[disabled], 
 .btn-secondary[disabled] {
     opacity: 0.7;
     cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
 }
 
 .fa-spinner {
@@ -538,6 +512,8 @@
     .book-cover {
         width: 100%;
         height: 200px;
+        border-right: none;
+        border-bottom: 1px solid #f0f0f0;
     }
     
     .book-actions {
