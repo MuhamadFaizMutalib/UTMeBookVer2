@@ -18,6 +18,38 @@ angular.module('addEbookApp', [])
     
     // Mobile menu state
     $scope.mobileMenuOpen = false;
+
+
+        // Function to set active tab and handle navigation
+        $scope.setActiveTab = function(tab) {
+          // If on mobile, close the menu after selecting an item
+          if (window.innerWidth <= 768) {
+            $scope.mobileMenuOpen = false;
+          }
+          
+          // Navigate to the appropriate page based on the tab
+          switch(tab) {
+
+            case 'order':
+              $window.location.href = '/order';
+              break;
+            case 'messages':
+              $window.location.href = '/messages';
+              break;
+            case 'mybook':
+              $window.location.href = '/mybook';
+              break;
+            case 'account':
+              $window.location.href = '/account';
+              break;
+            case 'dashboard':
+              $window.location.href = '/dashboard';
+              break;
+            default:
+              // Stay on current page for other tabs
+              break;
+          }
+        };
     
     // Toggle mobile menu
     $scope.toggleMobileMenu = function() {
