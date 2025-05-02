@@ -69,29 +69,14 @@
         <!-- Order Page Content -->
         <section class="order-section">
             <div class="order-container">
+                
                 <!-- My Purchases Section -->
                 <div class="purchases-section">
                     <h2 class="section-title">My Purchases</h2>
                     
                     <div class="book-list">
                         <div class="book-item" ng-repeat="purchase in myPurchases">
-                            <div class="book-cover">
-                                <img ng-src="{{ purchase.coverUrl }}" alt="{{ purchase.title }}">
-                            </div>
-                            <div class="book-details">
-                                <h3>{{ purchase.title }}</h3>
-                                <p class="book-meta">
-                                    <span class="book-category">{{ purchase.category }}</span>
-                                    <span class="book-price">RM{{ purchase.price.toFixed(2) }}</span>
-                                </p>
-                                <p class="seller-info">Seller: {{ purchase.sellerName }}</p>
-                                <p class="purchase-date">Purchased on: {{ purchase.purchaseDate | date:'mediumDate' }}</p>
-                                <div class="book-actions">
-                                    <button class="btn-download">
-                                        <i class="fas fa-download"></i> Download
-                                    </button>
-                                </div>
-                            </div>
+
                         </div>
                         
                         <!-- Empty Purchases Message -->

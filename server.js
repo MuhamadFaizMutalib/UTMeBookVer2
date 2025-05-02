@@ -366,17 +366,6 @@ async function initDB() {
       )
     `);
     
-    // Create purchases table
-    await pool.query(`
-      CREATE TABLE IF NOT EXISTS purchases (
-        id SERIAL PRIMARY KEY,
-        book_id INTEGER REFERENCES books(id) ON DELETE CASCADE,
-        buyer_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-        purchase_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        price DECIMAL(10, 2) NOT NULL,
-        status VARCHAR(20) DEFAULT 'Completed'
-      )
-    `);
     
     console.log('Database tables initialized');
   } catch (err) {
@@ -543,47 +532,7 @@ app.get('/api/books/my-sales/:userId', async (req, res) => {
 });
 
 // API endpoint to get user's purchases
-app.get('/api/books/my-purchases/:userId', async (req, res) => {
-  const { userId } = req.params;
-  
-  try {
-    const result = await pool.query(
-      `SELECT b.id, b.title, b.category, p.price, p.status, p.purchase_date, 
-              b.cover_image_path, u.username as seller_name
-       FROM purchases p
-       JOIN books b ON p.book_id = b.id
-       JOIN users u ON b.seller_id = u.id
-       WHERE p.buyer_id = $1
-       ORDER BY p.purchase_date DESC`,
-      [userId]
-    );
-    
-    // Format the results
-    const purchases = result.rows.map(purchase => ({
-      id: purchase.id,
-      title: purchase.title,
-      category: purchase.category,
-      price: parseFloat(purchase.price),
-      status: purchase.status,
-      purchaseDate: purchase.purchase_date,
-      coverUrl: `/uploads/${purchase.cover_image_path}`,
-      sellerName: purchase.seller_name
-    }));
-    
-    res.status(200).json({
-      success: true,
-      purchases: purchases
-    });
-    
-  } catch (err) {
-    console.error(`Error fetching purchases for user ${userId}:`, err);
-    res.status(500).json({
-      success: false,
-      message: 'Error fetching your purchases',
-      details: process.env.NODE_ENV === 'development' ? err.message : undefined
-    });
-  }
-});
+
 
 // API endpoint to update a book
 app.put('/api/books/:bookId', upload.fields([

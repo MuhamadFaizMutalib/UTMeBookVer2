@@ -67,11 +67,6 @@ angular.module('dashboardApp', [])
       $window.location.href = '/place-order?bookId=' + book.id;
     };
     
-    // Check if tab parameter is 'order' and load data
-    if (tabParam === 'order') {
-      loadMySales();
-      loadMyPurchases();
-    }
     
     // Search functionality
     $scope.searchQuery = '';
@@ -96,7 +91,6 @@ angular.module('dashboardApp', [])
     // Initialize arrays for books
     $scope.newArrivals = [];
     $scope.mySales = [];
-    $scope.myPurchases = [];
     $scope.wishlistBooks = [];
     
     // Load new arrivals
@@ -129,21 +123,7 @@ angular.module('dashboardApp', [])
         });
     }
     
-    // Load my purchases (for order page)
-    function loadMyPurchases() {
-      $http.get('/api/books/my-purchases/' + $scope.user.id)
-        .then(function(response) {
-          if (response.data.success) {
-            $scope.myPurchases = response.data.purchases;
-          } else {
-            console.error('Error loading my purchases:', response.data.message);
-          }
-        })
-        .catch(function(error) {
-          console.error('Error loading my purchases:', error);
-        });
-    }
-    
+   
     // Load new arrivals on page load
     loadNewArrivals();
     

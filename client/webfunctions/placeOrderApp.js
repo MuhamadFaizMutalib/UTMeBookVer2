@@ -118,32 +118,6 @@ angular.module('placeOrderApp', [])
       // Show confirmation message (placeholder)
       showToast('Order placed successfully! This is a demo.', 'success');
       
-      // In a real app, you would send the order to the server
-      // Example (commented out for now):
-      /*
-      $http.post('/api/purchases/add', {
-        bookId: bookId,
-        buyerId: $scope.user.id,
-        price: $scope.book.price,
-        paymentMethod: $scope.payment.method,
-        macAddress: $scope.macAddress
-      })
-        .then(function(response) {
-          if (response.data.success) {
-            showToast('Order placed successfully!', 'success');
-            // Redirect to orders page after a short delay
-            setTimeout(function() {
-              $window.location.href = '/order';
-            }, 2000);
-          } else {
-            showToast('Error: ' + response.data.message, 'error');
-          }
-        })
-        .catch(function(error) {
-          console.error('Error placing order:', error);
-          showToast('Server error. Please try again later.', 'error');
-        });
-      */
     };
     
     // Helper function to show toast notifications

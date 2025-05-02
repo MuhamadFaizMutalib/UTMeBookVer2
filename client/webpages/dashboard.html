@@ -149,10 +149,7 @@
                         <h3>{{ book.title }}</h3>
                         <p class="author">{{ book.author }}</p>
                         <div class="book-meta">
-                            <span class="price">${{ book.price.toFixed(2) }}</span>
-                            <span class="rating">
-                                <i class="fas fa-star"></i> {{ book.rating }}
-                            </span>
+                            <span class="price">RM{{ book.price.toFixed(2) }}</span>
                         </div>
                         <div class="book-actions">
                             <button class="btn-add-buy" ng-click="buyBook(book)">

@@ -34,7 +34,7 @@ angular.module('orderApp', [])
     
     // Initialize arrays for the order page
     $scope.mySales = [];
-    $scope.myPurchases = [];
+
     
     // Navigation function
     $scope.navigateTo = function(page) {
@@ -78,28 +78,10 @@ angular.module('orderApp', [])
           showToast('Server error. Please try again later.', 'error');
         });
     }
-    
-    // Load user's purchases
-    function loadMyPurchases() {
-      $http.get('/api/books/my-purchases/' + $scope.user.id)
-        .then(function(response) {
-          if (response.data.success) {
-            $scope.myPurchases = response.data.purchases;
-          } else {
-            console.error('Error loading my purchases:', response.data.message);
-            showToast('Error loading your purchases', 'error');
-          }
-        })
-        .catch(function(error) {
-          console.error('Error loading my purchases:', error);
-          showToast('Server error. Please try again later.', 'error');
-        });
-    }
-    
+       
     // Load data on page load
     loadMySales();
-    loadMyPurchases();
-    
+
     // Function to open edit modal
     $scope.editBook = function(book) {
       $scope.successMessage = null;

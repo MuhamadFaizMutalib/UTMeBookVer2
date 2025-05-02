@@ -21,12 +21,3 @@ CREATE TABLE IF NOT EXISTS books (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- If you want to define relationships, you can create a purchases table
-CREATE TABLE IF NOT EXISTS purchases (
-  id SERIAL PRIMARY KEY,
-  book_id INTEGER REFERENCES books(id) ON DELETE CASCADE,
-  buyer_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-  purchase_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  price DECIMAL(10, 2) NOT NULL,
-  status VARCHAR(20) DEFAULT 'Pending'
-);
