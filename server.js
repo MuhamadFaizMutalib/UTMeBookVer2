@@ -734,7 +734,6 @@ app.delete('/api/books/:bookId', async (req, res) => {
 
 
 
-
 // Serve static files from the uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -765,10 +764,6 @@ app.get('/order', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/webpages/order.html'));
 });
 
-app.get('/edit-book', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client/webpages/edit-book.html'));
-});
-
 app.get('/messages', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/webpages/dashboard.html')); // Temporary redirect until implemented
 });
@@ -781,13 +776,11 @@ app.get('/account', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/webpages/dashboard.html')); // Temporary redirect until implemented
 });
 
-
 // Start server and initialize database
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   initDB();
 });
-
 
 // The catch-all route should ALWAYS be defined LAST
 app.use((req, res) => {

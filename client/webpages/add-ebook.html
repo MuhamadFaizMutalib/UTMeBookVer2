@@ -102,13 +102,16 @@
                             <input type="number" id="price" ng-model="book.price" step="0.01" min="0" required>
                         </div>
                         
-                        <div class="form-group">
+                        <!-- <div class="form-group">
                             <label for="status">Status</label>
                             <select id="status" ng-model="book.status">
                                 <option value="Available">Available</option>
-                                <option value="Draft">Draft</option>
                             </select>
-                        </div>
+                        </div> -->
+                        <div class="form-group" ng-init="book.status='Available'">
+                            <label for="status">Status</label>
+                            <input type="text" id="status" ng-model="book.status" readonly />
+                        </div>                        
                     </div>
                     
                     <div class="form-group">

@@ -148,11 +148,6 @@ angular.module('dashboardApp', [])
       showToast('Added "' + book.title + '" to cart', 'success');
     };
     
-    // Function to edit book
-    $scope.editBook = function(book) {
-      console.log('Editing book:', book.id);
-      $window.location.href = '/edit-book?id=' + book.id;
-    };
     
     // Function to delete book
     $scope.deleteBook = function(book) {

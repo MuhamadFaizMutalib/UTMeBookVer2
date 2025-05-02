@@ -114,7 +114,7 @@
                         <p class="author">Seller: {{ book.sellerName }}</p>
                         <div class="book-meta">
                             <span class="price">RM{{ book.price.toFixed(2) }}</span>
-                            <span class="status" style="font-weight: bold; color: green;">{{ book.status }}</span>
+                            <span class="status">{{ book.status }}</span>
                         </div>
                         <div class="book-actions">
                             <button class="btn-add-cart" ng-click="addToCart(book)">
