@@ -45,7 +45,9 @@ angular.module('orderApp', [])
           
           // Navigate to the appropriate page based on the tab
           switch(tab) {
-
+            case 'add-ebook':
+              $window.location.href = '/add-ebook';
+              break;
             case 'order':
               $window.location.href = '/order';
               break;
