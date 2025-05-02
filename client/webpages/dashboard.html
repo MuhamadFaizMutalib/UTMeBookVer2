@@ -117,8 +117,8 @@
                             <span class="status">{{ book.status }}</span>
                         </div>
                         <div class="book-actions">
-                            <button class="btn-add-cart" ng-click="addToCart(book)">
-                                <i class="fas fa-shopping-cart"></i> Add
+                            <button class="btn-add-buy" ng-click="buyBook(book)">
+                                <i class="fas fa-shopping-cart"></i> Buy
                             </button>
                             <button class="btn-wishlist" ng-click="toggleWishlist(book)">
                                 <i class="fas" ng-class="{'fa-heart': book.inWishlist, 'fa-heart-o': !book.inWishlist}"></i>
@@ -155,8 +155,8 @@
                             </span>
                         </div>
                         <div class="book-actions">
-                            <button class="btn-add-cart" ng-click="addToCart(book)">
-                                <i class="fas fa-shopping-cart"></i> Add
+                            <button class="btn-add-buy" ng-click="buyBook(book)">
+                                <i class="fas fa-shopping-cart"></i> Buy
                             </button>
                             <button class="btn-remove-wishlist" ng-click="removeFromWishlist(book)">
                                 <i class="fas fa-trash"></i> Remove

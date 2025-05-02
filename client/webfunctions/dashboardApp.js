@@ -61,6 +61,12 @@ angular.module('dashboardApp', [])
       }
     };
     
+    // Function to handle buying a book
+    $scope.buyBook = function(book) {
+      // Navigate to the place-order page with the book ID
+      $window.location.href = '/place-order?bookId=' + book.id;
+    };
+    
     // Check if tab parameter is 'order' and load data
     if (tabParam === 'order') {
       loadMySales();
@@ -91,6 +97,7 @@ angular.module('dashboardApp', [])
     $scope.newArrivals = [];
     $scope.mySales = [];
     $scope.myPurchases = [];
+    $scope.wishlistBooks = [];
     
     // Load new arrivals
     function loadNewArrivals() {
@@ -140,14 +147,32 @@ angular.module('dashboardApp', [])
     // Load new arrivals on page load
     loadNewArrivals();
     
-    // Function to add book to cart
-    $scope.addToCart = function(book) {
-      console.log('Adding to cart:', book.title);
+    // Function to toggle wishlist
+    $scope.toggleWishlist = function(book) {
+      book.inWishlist = !book.inWishlist;
       
-      // Create toast notification
-      showToast('Added "' + book.title + '" to cart', 'success');
+      if (book.inWishlist) {
+        showToast('Added to wishlist', 'heart');
+        
+        // In a real app, you would send this to the server
+        // For now, just add to local wishlist
+        if (!$scope.wishlistBooks.some(b => b.id === book.id)) {
+          $scope.wishlistBooks.push(book);
+        }
+      } else {
+        showToast('Removed from wishlist', 'heart');
+        
+        // Remove from local wishlist
+        $scope.wishlistBooks = $scope.wishlistBooks.filter(b => b.id !== book.id);
+      }
     };
     
+    // Function to remove from wishlist
+    $scope.removeFromWishlist = function(book) {
+      book.inWishlist = false;
+      $scope.wishlistBooks = $scope.wishlistBooks.filter(b => b.id !== book.id);
+      showToast('Removed from wishlist', 'heart');
+    };
     
     // Function to delete book
     $scope.deleteBook = function(book) {
@@ -222,7 +247,7 @@ angular.module('dashboardApp', [])
     angular.element($window).bind('resize', function() {
       if (window.innerWidth > 768 && $scope.mobileMenuOpen) {
         $scope.mobileMenuOpen = false;
-        if (!$scope.$$phase) {
+        if (!$scope.$phase) {
           $scope.$apply();
         }
       }

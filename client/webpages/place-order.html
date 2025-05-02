@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTMeBook - Place Order</title>
+    <link rel="stylesheet" href="../webstyles/css/placeorder.css">
+    <link rel="stylesheet" href="../webstyles/css/mobile-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="../webfunctions/placeOrderApp.js"></script>
+</head>
+<body ng-app="placeOrderApp" ng-controller="PlaceOrderController">
+    <div class="place-order-container">
+        <!-- Header -->
+        <header class="header">
+            <!-- Mobile Menu Toggle Button -->
+            <button class="mobile-menu-toggle" ng-click="toggleMobileMenu()">
+                <i class="fas" ng-class="{'fa-bars': !mobileMenuOpen, 'fa-times': mobileMenuOpen}"></i>
+            </button>
+            
+            <div class="logo">
+                <h1>UTMeBook</h1>
+            </div>
+            
+            <div class="user-menu">
+                <span class="username">{{ user.username }}</span>
+                <button class="btn-logout" ng-click="logout()">Logout</button>
+            </div>
+        </header>
+        
+        <!-- Navigation Bar -->
+        <nav class="navbar">
+            <ul ng-class="{'show-mobile': mobileMenuOpen}">
+                <li>
+                    <a href="#" ng-click="setActiveTab('add-ebook')">
+                        <i class="fas fa-plus-circle"></i> Add eBook
+                    </a>
+                </li>
+                <li>
+                    <a href="#" ng-click="setActiveTab('order')">
+                        <i class="fas fa-clipboard-list"></i> Order
+                    </a>
+                </li>
+                <li>
+                    <a href="#" ng-click="setActiveTab('messages')">
+                        <i class="fas fa-envelope"></i> Messages
+                    </a>
+                </li>
+                <li>
+                    <a href="#" ng-click="setActiveTab('mybook')">
+                        <i class="fas fa-book"></i> MyBook
+                    </a>
+                </li>
+                <li>
+                    <a href="#" ng-click="setActiveTab('account')">
+                        <i class="fas fa-user"></i> Account
+                    </a>
+                </li>
+                <li>
+                    <a href="#" ng-click="setActiveTab('dashboard')">
+                        <i class="fas fa-home"></i> Dashboard
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        
+        <!-- Order Details Section -->
+        <section class="order-details-section">
+            <h2 class="section-title">Place Order</h2>
+            
+            <div class="book-details-card">
+                <div class="book-cover">
+                    <img ng-src="{{ book.coverUrl }}" alt="{{ book.title }}">
+                </div>
+                <div class="book-info">
+                    <h3>{{ book.title }}</h3>
+                    <p class="seller">Seller: {{ book.sellerName }}</p>
+                    <p class="price">RM{{ book.price.toFixed(2) }}</p>
+                    <p class="upload-date">Upload Date: {{ book.uploadDate | date:'mediumDate' }}</p>
+                    <p class="description">{{ book.description }}</p>
+                </div>
+            </div>
+            
+            <!-- Payment Method Section -->
+            <div class="payment-section">
+                <h3>Payment Method</h3>
+                <div class="payment-options">
+                    <label>
+                        <input type="radio" name="paymentMethod" value="creditCard" ng-model="payment.method">
+                        Credit Card
+                    </label>
+                    <label>
+                        <input type="radio" name="paymentMethod" value="paypal" ng-model="payment.method">
+                        PayPal
+                    </label>
+                    <label>
+                        <input type="radio" name="paymentMethod" value="bankTransfer" ng-model="payment.method">
+                        Bank Transfer
+                    </label>
+                </div>
+            </div>
+            
+            <!-- MAC Address Section -->
+            <div class="mac-address-section">
+                <h3>Device Verification</h3>
+                <p>Please enter your device's MAC address for DRM verification:</p>
+                <input type="text" placeholder="Enter MAC Address (XX:XX:XX:XX:XX:XX)" ng-model="macAddress">
+                
+                <div class="instruction-buttons">
+                    <button class="btn-instruction" ng-click="showInstructions('desktop')">
+                        Desktop Instruction
+                    </button>
+                    <button class="btn-instruction" ng-click="showInstructions('mobile')">
+                        Mobile Instruction
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Place Order Button -->
+            <div class="order-actions">
+                <button class="btn-place-order" ng-click="placeOrder()">
+                    Place Order
+                </button>
+            </div>
+        </section>
+        
+        <!-- Modal for Instructions -->
+        <div class="modal" ng-if="showInstructionModal">
+            <div class="modal-content">
+                <span class="close-modal" ng-click="closeInstructions()">&times;</span>
+                <h3>{{ instructionType === 'desktop' ? 'Desktop MAC Address Instructions' : 'Mobile MAC Address Instructions' }}</h3>
+                
+                <div class="instruction-steps" ng-if="instructionType === 'desktop'">
+                    <p>To find your MAC address on Windows:</p>
+                    <ol>
+                        <li>Press <strong>Win + R</strong> to open Run dialog</li>
+                        <li>Type <strong>cmd</strong> and press Enter</li>
+                        <li>In the command prompt, type <strong>ipconfig /all</strong> and press Enter</li>
+                        <li>Look for "Physical Address" under your network adapter</li>
+                    </ol>
+                    
+                    <p>To find your MAC address on Mac:</p>
+                    <ol>
+                        <li>Click the Apple menu and select System Preferences</li>
+                        <li>Click Network</li>
+                        <li>Select your connection (Wi-Fi or Ethernet) and click Advanced</li>
+                        <li>Go to the Hardware tab</li>
+                        <li>Your MAC Address is listed as "MAC Address"</li>
+                    </ol>
+                    
+                    <div class="download-section">
+                        <p>Alternatively, download our MAC reader tool:</p>
+                        <a href="/uploads/apps/MACReader.exe" download class="btn-download">
+                            Download Desktop MacReader
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="instruction-steps" ng-if="instructionType === 'mobile'">
+                    <p>To find your MAC address on Android:</p>
+                    <ol>
+                        <li>Go to <strong>Settings</strong></li>
+                        <li>Tap on <strong>About Phone</strong></li>
+                        <li>Tap on <strong>Status</strong> or <strong>Hardware Information</strong></li>
+                        <li>Look for "Wi-Fi MAC address" or "WLAN MAC Address"</li>
+                    </ol>
+                    
+                    <p>To find your MAC address on iOS:</p>
+                    <ol>
+                        <li>Go to <strong>Settings</strong></li>
+                        <li>Tap on <strong>General</strong></li>
+                        <li>Tap on <strong>About</strong></li>
+                        <li>Look for "Wi-Fi Address"</li>
+                    </ol>
+                    
+                    <div class="download-section">
+                        <p>Alternatively, download our MAC reader app:</p>
+                        <a href="/uploads/apps/MACReader.apk" download class="btn-download">
+                            Download Mobile MacReader
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <p>&copy; 2025 UTMeBook. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

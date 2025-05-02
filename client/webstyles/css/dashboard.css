@@ -277,7 +277,7 @@ a {
     justify-content: space-between;
 }
 
-.btn-add-cart,
+.btn-add-buy,
 .btn-wishlist,
 .btn-remove-wishlist {
     border: none;
@@ -289,7 +289,7 @@ a {
     cursor: pointer;
 }
 
-.btn-add-cart:hover {
+.btn-add-buy:hover {
     color: #0066cc;
 }
 

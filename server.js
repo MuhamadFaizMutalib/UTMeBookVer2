@@ -737,6 +737,62 @@ app.delete('/api/books/:bookId', async (req, res) => {
 //////////////////////////////////// [END Add Book & Manage Order ] ///////////////////////////////////
 
 
+
+
+// Also add the API endpoint to fetch individual book details
+app.get('/api/books/:bookId', async (req, res) => {
+  const { bookId } = req.params;
+  
+  try {
+    const result = await pool.query(
+      `SELECT b.id, b.title, b.category, b.price, b.description, b.status, 
+              b.upload_date, b.cover_image_path, u.username as seller_name
+       FROM books b
+       JOIN users u ON b.seller_id = u.id
+       WHERE b.id = $1`,
+      [bookId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Book not found'
+      });
+    }
+    
+    // Format the result
+    const book = result.rows[0];
+    const formattedBook = {
+      id: book.id,
+      title: book.title,
+      category: book.category,
+      price: parseFloat(book.price),
+      description: book.description || '',
+      status: book.status,
+      uploadDate: book.upload_date,
+      coverUrl: `/uploads/${book.cover_image_path}`,
+      sellerName: book.seller_name
+    };
+    
+    res.status(200).json({
+      success: true,
+      book: formattedBook
+    });
+    
+  } catch (err) {
+    console.error(`Error fetching book with ID ${bookId}:`, err);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching book details',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+
+
+
+
 // Serve static files from the uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -780,6 +836,9 @@ app.get('/account', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/webpages/dashboard.html')); // Temporary redirect until implemented
 });
 
+app.get('/place-order', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/webpages/place-order.html'));
+});
 
 // Start server and initialize database
 app.listen(PORT, () => {

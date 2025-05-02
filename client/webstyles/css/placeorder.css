@@ -1,0 +1,433 @@
+/* Order Page Styles */
+
+/* General Reset - Inherited from dashboard.css */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f5f5f5;
+}
+
+a {
+    text-decoration: none;
+    color: #0066cc;
+}
+
+/* Container */
+.place-order-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header Styles - Inherited from dashboard.css */
+.header {
+    background-color: #0066cc;
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo h1 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.user-menu {
+    display: flex;
+    align-items: center;
+}
+
+.username {
+    margin-right: 15px;
+    font-weight: bold;
+}
+
+.btn-logout {
+    background-color: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 3px;
+    transition: background-color 0.3s;
+    cursor: pointer;
+}
+
+.btn-logout:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Navigation Bar - Inherited from dashboard.css */
+.navbar {
+    background-color: #333;
+    padding: 10px 20px;
+}
+
+.navbar ul {
+    list-style-type: none;
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+}
+
+.navbar li {
+    margin: 0 5px;
+}
+
+.navbar a {
+    color: white;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.navbar a i {
+    margin-right: 8px;
+}
+
+.navbar a:hover,
+.navbar li.active a {
+    background-color: #00ccc2;
+}
+
+/* Section Titles */
+.section-title {
+    text-align: center;
+    margin: 30px 0 20px;
+    color: #333;
+    font-size: 24px;
+}
+
+/* Order Details Section */
+.order-details-section {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Book Details Card */
+.book-details-card {
+    background-color: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+    display: flex;
+    flex-direction: row;
+}
+
+.book-cover {
+    width: 200px;
+    height: 300px;
+    background-color: #eee;
+    overflow: hidden;
+}
+
+.book-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.book-info {
+    padding: 20px;
+    flex: 1;
+}
+
+.book-info h3 {
+    font-size: 24px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.book-info p {
+    margin-bottom: 10px;
+}
+
+.seller {
+    color: #666;
+}
+
+.price {
+    font-weight: bold;
+    font-size: 18px;
+    color: #0066cc;
+}
+
+.upload-date {
+    color: #666;
+    font-size: 14px;
+}
+
+.description {
+    margin-top: 15px;
+    line-height: 1.6;
+}
+
+/* Payment Section */
+.payment-section {
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.payment-section h3 {
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.payment-options {
+    display: flex;
+    flex-direction: column;
+}
+
+.payment-options label {
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.payment-options input[type="radio"] {
+    margin-right: 10px;
+}
+
+/* MAC Address Section */
+.mac-address-section {
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+}
+
+.mac-address-section h3 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.mac-address-section p {
+    margin-bottom: 15px;
+    color: #666;
+}
+
+.mac-address-section input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    font-size: 16px;
+}
+
+.instruction-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.btn-instruction {
+    background-color: #eee;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s;
+    flex: 1;
+}
+
+.btn-instruction:hover {
+    background-color: #ddd;
+}
+
+/* Place Order Button */
+.order-actions {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.btn-place-order {
+    background-color: #0066cc;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 5px;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-place-order:hover {
+    background-color: #0052a3;
+}
+
+/* Modal for Instructions */
+.modal {
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: white;
+    border-radius: 10px;
+    padding: 30px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.close-modal {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #666;
+}
+
+.close-modal:hover {
+    color: #333;
+}
+
+.modal-content h3 {
+    margin-bottom: 20px;
+    color: #333;
+    text-align: center;
+}
+
+.instruction-steps {
+    margin-bottom: 20px;
+}
+
+.instruction-steps p {
+    margin-bottom: 10px;
+}
+
+.instruction-steps ol {
+    margin-left: 20px;
+    margin-bottom: 20px;
+}
+
+.instruction-steps li {
+    margin-bottom: 8px;
+}
+
+.download-section {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.btn-download {
+    display: inline-block;
+    background-color: #0066cc;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    margin-top: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.btn-download:hover {
+    background-color: #0052a3;
+}
+
+/* Toast Notifications */
+.toast-notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: white;
+    color: #333;
+    padding: 15px 20px;
+    border-radius: 5px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: transform 0.3s, opacity 0.3s;
+    z-index: 2000;
+}
+
+.toast-notification.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.toast-notification i {
+    margin-right: 10px;
+    font-size: 18px;
+}
+
+.toast-notification .fa-check-circle {
+    color: #28a745;
+}
+
+.toast-notification .fa-heart {
+    color: #e74c3c;
+}
+
+.toast-notification .fa-info-circle {
+    color: #0066cc;
+}
+
+.toast-notification .fa-exclamation-circle {
+    color: #dc3545;
+}
+
+/* Footer */
+.footer {
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 20px;
+    margin-top: auto;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .book-details-card {
+        flex-direction: column;
+    }
+    
+    .book-cover {
+        width: 100%;
+        height: 250px;
+    }
+    
+    .instruction-buttons {
+        flex-direction: column;
+    }
+    
+    .modal-content {
+        padding: 20px;
+        width: 95%;
+    }
+}

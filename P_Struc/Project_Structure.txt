@@ -2,23 +2,17 @@ UTMeBookVer2/
 │
 ├── client/
 │   ├── webpages/                    # HTML Files
-│   │   ├── login.html
-│   │   ├── register.html
 │   │   └── dashboard.html
 │   │   └── order.html
 │   │   └── add-ebook.html
 │   │
 │   ├── webfunctions/                # JS Files
-│   │   ├── loginApp.js
-│   │   ├── registerApp.js
 │   │   └── dashboardApp.js
 │   │   └── addEbookApp.js
 │   │   └── orderApp.js
 │   │
 │   ├── webstyles/                   # CSS Files and others
 │   │   ├── css/
-│   │   │   ├── login.css
-│   │   │   ├── register.css
 │   │   │   └── dashboard.css
 │   │   │   └── order.css
 │   │   │   └── add-ebook.css
@@ -29,6 +23,7 @@ UTMeBookVer2/
 ├──  uploads/ 
 │   │       └── books/
 │   │       └── covers/
+│   │       └── apps/
 │
 ├──  server.js                    # Node.js + Express backend
 │
