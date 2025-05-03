@@ -41,8 +41,9 @@ angular.module('placeOrderApp', [])
     
     // Function to initialize Stripe
     function initStripe() {
-      // Initialize Stripe with your publishable key
-      stripe = Stripe('pk_test_51RKh4n2cOYJReXIf397n8CUAKJ42VNC3C8Y92mi0R6dMx1M621JmSbyyQVc10tRAqfo1BoNFKanyvnOeVvV7A3Ht002ruFnFMD');
+      // Initialize Stripe with your publishable key from environment
+      // The publishable key is safe to include in client-side code
+      stripe = Stripe(stripePublishableKey); // This will be defined elsewhere
       
       // Create payment element options
       const options = {
@@ -116,23 +117,80 @@ angular.module('placeOrderApp', [])
     };
     
     // Function to fetch book details
+    // function loadBookDetails() {
+    //   $http.get('/api/books/' + bookId)
+    //     .then(function(response) {
+    //       if (response.data.success) {
+    //         $scope.book = response.data.book;
+    //         // Initialize Stripe after book details are loaded
+    //         initStripe();
+    //       } else {
+    //         console.error('Error loading book details:', response.data.message);
+    //         showToast('Error loading book details', 'error');
+    //       }
+    //     })
+    //     .catch(function(error) {
+    //       console.error('Error loading book details:', error);
+    //       showToast('Server error. Please try again later.', 'error');
+    //     });
+    // }
+
     function loadBookDetails() {
       $http.get('/api/books/' + bookId)
         .then(function(response) {
           if (response.data.success) {
             $scope.book = response.data.book;
-            // Initialize Stripe after book details are loaded
-            initStripe();
+            
+            // Get Stripe publishable key from server instead of hardcoding it
+            return $http.get('/api/stripe-config');
           } else {
             console.error('Error loading book details:', response.data.message);
             showToast('Error loading book details', 'error');
+            throw new Error('Failed to load book details');
           }
         })
+        .then(function(response) {
+          // Initialize Stripe with the publishable key from the server
+          stripe = Stripe(response.data.publishableKey);
+          
+          // Create payment element options
+          const options = {
+            mode: 'payment',
+            amount: Math.round($scope.book.price * 100), // Convert to cents
+            currency: 'myr',
+            appearance: {
+              theme: 'stripe',
+              variables: {
+                colorPrimary: '#0066cc',
+              },
+            },
+          };
+          
+          // Create elements instance
+          elements = stripe.elements(options);
+          
+          // Create and mount the Payment Element
+          paymentElement = elements.create('payment');
+          paymentElement.mount('#stripe-payment-element');
+          
+          // Handle real-time validation errors
+          paymentElement.on('change', function(event) {
+            const displayError = document.querySelector('.card-errors');
+            if (event.error) {
+              displayError.textContent = event.error.message;
+            } else {
+              displayError.textContent = '';
+            }
+          });
+        })
         .catch(function(error) {
-          console.error('Error loading book details:', error);
+          console.error('Error loading book details or initializing Stripe:', error);
           showToast('Server error. Please try again later.', 'error');
         });
     }
+
+
+    
     
     // Function to show instructions modal
     $scope.showInstructions = function(type) {

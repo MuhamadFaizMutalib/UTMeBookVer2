@@ -1,3 +1,7 @@
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
+
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -776,7 +780,8 @@ app.get('/api/books/:bookId', async (req, res) => {
 
 //////////////////////////////////// [PlaceOrder(STRIPE) & Message Control ] ///////////////////////////////////
 
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_51RKh4n2cOYJReXIfZyD72JNVK6GU0o5NPiBZzq7sIJzl7zBNhC81KYEmkjNuF8qLYYo7TBRotgRARWNNOQAMGonm00fmmoNvLb');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
 
 // API endpoint to place an order
 app.post('/api/purchases/place-order', async (req, res) => {
@@ -911,7 +916,6 @@ app.post('/api/create-payment-intent', async (req, res) => {
     });
   }
 });
-
 
 
 
@@ -1289,6 +1293,13 @@ app.put('/api/admin/purchases/update-status/:orderId', async (req, res) => {
 
 // Serve static files from the uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Add this endpoint to your server.js
+app.get('/api/stripe-config', (req, res) => {
+  res.json({
+    publishableKey: process.env.STRIPE_PUBLISHABLE_KEY
+  });
+});
 
 // Root route - Serve the main page
 app.get('/', (req, res) => {
