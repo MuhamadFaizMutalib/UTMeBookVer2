@@ -58,13 +58,55 @@
     background: #a8a8a8;
 }
 
+/* .book-item {
+    display: flex;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+} */
+
 .book-item {
     display: flex;
     border: 1px solid #eee;
     border-radius: 8px;
     overflow: hidden;
     transition: transform 0.3s, box-shadow 0.3s;
+    margin-bottom: 20px; /* Add more space between book items */
+    background-color: white; /* Ensure background is white */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
+
+/* .book-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+} */
+
+/* Add a visual separator for better distinction */
+.book-item:not(:last-child):after {
+    content: '';
+    display: block;
+    height: 1px;
+    margin-top: 20px;
+    background: #f0f0f0;
+}
+
+/* Status indicator styling */
+.status-pending {
+    color: #ff8f00;
+    font-weight: bold;
+}
+
+.status-delivered {
+    color: #388e3c;
+    font-weight: bold;
+}
+
+.status-canceled {
+    color: #d32f2f;
+    font-weight: bold;
+}
+
 
 .book-item:hover {
     transform: translateY(-2px);
@@ -131,14 +173,21 @@
 }
 
 /* Book Actions */
-.book-actions {
+/* .book-actions {
     display: flex;
     gap: 10px;
     margin-top: auto;
     padding-top: 10px;
+} */
+
+.book-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px; /* Increased margin for better spacing */
+    flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
 }
 
-.btn-download,
+/* .btn-download,
 .btn-edit,
 .btn-delete {
     padding: 8px 15px;
@@ -151,6 +200,57 @@
     gap: 8px;
     transition: background-color 0.3s, transform 0.2s;
     font-size: 14px;
+} */
+
+.btn-download,
+.btn-edit,
+.btn-cancel {
+    padding: 8px 15px;
+    border-radius: 5px;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background-color 0.3s, transform 0.2s;
+    font-size: 14px;
+    min-width: 120px; /* Ensure consistent button width */
+    justify-content: center; /* Center text inside buttons */
+}
+
+/* .btn-download {
+    background-color: #0066cc;
+    color: white;
+}
+
+.btn-download:hover {
+    background-color: #0052a3;
+    transform: translateY(-2px);
+} */
+
+.btn-download.disabled {
+    background-color: #e6e6e6;
+    color: #999;
+    cursor: not-allowed;
+}
+
+.btn-download.disabled:hover {
+    background-color: #e6e6e6;
+    transform: none;
+}
+
+
+
+.btn-cancel {
+    background-color: #f8f9fa;
+    color: #dc3545;
+    border: 1px solid #ddd;
+}
+
+.btn-cancel:hover {
+    background-color: #f8d7da;
+    transform: translateY(-2px);
 }
 
 .btn-download {
@@ -162,6 +262,7 @@
     background-color: #0052a3;
     transform: translateY(-2px);
 }
+
 
 .btn-edit {
     background-color: #f8f9fa;

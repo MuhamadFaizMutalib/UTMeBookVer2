@@ -75,41 +75,49 @@
                     <h2 class="section-title">My Purchases</h2>
                     
                     <div class="book-list">
-                      <div class="book-item" ng-repeat="purchase in myPurchases">
-                        <div class="book-cover">
-                          <img ng-src="{{ purchase.coverUrl }}" alt="{{ purchase.title }}">
+                        <div class="book-item" ng-repeat="purchase in myPurchases">
+                            <div class="book-cover">
+                                <img ng-src="{{ purchase.coverUrl }}" alt="{{ purchase.title }}">
+                            </div>
+                            <div class="book-details">
+                                <h3>{{ purchase.title }}</h3>
+                                <p class="book-meta">
+                                    <span class="book-category">{{ purchase.category }}</span>
+                                    <span class="book-price">RM{{ purchase.price.toFixed(2) }}</span>
+                                </p>
+                                <p class="order-id"><strong>Order ID:</strong> {{ purchase.orderId }}</p>
+                                <p class="seller-info"><strong>Seller:</strong> {{ purchase.sellerName }}</p>
+                                <p><strong>Status:</strong> <span ng-class="{
+                                    'status-pending': purchase.status === 'Pending',
+                                    'status-delivered': purchase.status === 'Delivered', 
+                                    'status-canceled': purchase.status === 'Canceled'
+                                }">{{ purchase.status }}</span></p>
+                                <p class="mac-address"><strong>MAC Address:</strong> {{ purchase.macAddress }}</p>
+                                <p class="purchase-date"><strong>Purchased on:</strong> {{ purchase.purchaseDate | date:'mediumDate' }}</p>
+                                
+                                <div class="book-actions">
+                                    <button class="btn-download" ng-click="downloadBook(purchase)" ng-if="purchase.status === 'Delivered'">
+                                        <i class="fas fa-download"></i> Download
+                                    </button>
+                                    <button class="btn-download disabled" ng-if="purchase.status !== 'Delivered' && purchase.status !== 'Canceled'">
+                                        <i class="fas fa-download"></i> Download (Unavailable)
+                                    </button>
+                                    <button class="btn-edit" ng-click="editMAC(purchase)" ng-if="purchase.status !== 'Canceled'">
+                                        <i class="fas fa-edit"></i> Edit MAC
+                                    </button>
+                                    <button class="btn-cancel" ng-click="cancelOrder(purchase)" ng-if="purchase.status === 'Pending'">
+                                        <i class="fas fa-times"></i> Cancel Order
+                                    </button>
+                                </div>
+                            </div>
                         </div>
-                        <div class="book-details">
-                          <h3>{{ purchase.title }}</h3>
-                          <p class="book-meta">
-                            <span class="book-category">{{ purchase.category }}</span>
-                            <span class="book-price">RM{{ purchase.price.toFixed(2) }}</span>
-                          </p>
-                          <p class="order-id">Order ID: {{ purchase.orderId }}</p>
-                          <p class="seller-info">Seller: {{ purchase.sellerName }}</p>
-                          <p class="status">Status: <span ng-class="{'status-pending': purchase.status === 'Pending', 'status-delivered': purchase.status === 'Delivered', 'status-canceled': purchase.status === 'Canceled'}">{{ purchase.status }}</span></p>
-                          <p class="mac-address">MAC Address: {{ purchase.macAddress }}</p>
-                          <p class="purchase-date">Purchased on: {{ purchase.purchaseDate | date:'mediumDate' }}</p>
-                          <div class="book-actions">
-                            <button class="btn-download" ng-if="purchase.status !== 'Canceled'">
-                              <i class="fas fa-download"></i> Download
-                            </button>
-                            <button class="btn-edit" ng-click="editMAC(purchase)" ng-if="purchase.status !== 'Canceled'">
-                              <i class="fas fa-edit"></i> Edit MAC
-                            </button>
-                            <button class="btn-cancel" ng-click="cancelOrder(purchase)" ng-if="purchase.status === 'Pending'">
-                              <i class="fas fa-times"></i> Cancel Order
-                            </button>
-                          </div>
+                        
+                        <!-- Empty Purchases Message -->
+                        <div class="empty-message" ng-if="myPurchases.length === 0">
+                            <p>You haven't purchased any books yet. Check out the <a href="/dashboard">Dashboard</a> to find books to purchase!</p>
                         </div>
-                      </div>
-                      
-                      <!-- Empty Purchases Message -->
-                      <div class="empty-message" ng-if="myPurchases.length === 0">
-                        <p>You haven't purchased any books yet. Check out the <a href="/dashboard">Dashboard</a> to find books to purchase!</p>
-                      </div>
                     </div>
-                  </div>
+                </div>
                   
                   <!-- Add this modal for editing MAC address -->
                   <div class="modal" ng-class="{'show-modal': showEditMACModal}">
