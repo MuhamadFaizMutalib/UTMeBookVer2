@@ -1,3 +1,6 @@
+/* Order Page Styles */
+
+/* General Reset - Inherited from dashboard.css */
 * {
     box-sizing: border-box;
     margin: 0;
@@ -112,8 +115,8 @@ a {
     padding: 20px;
 }
 
-/* Order Row Layout */
-.order-row {
+/* Order Layout */
+.order-layout {
     display: flex;
     gap: 30px;
     margin-bottom: 30px;
@@ -128,6 +131,7 @@ a {
     display: flex;
     flex-direction: row;
     flex: 0 0 60%;
+    align-self: flex-start;
 }
 
 .book-cover {
@@ -178,13 +182,20 @@ a {
     line-height: 1.6;
 }
 
+/* Right Column */
+.right-column {
+    flex: 0 0 calc(40% - 30px);
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
 /* Payment Section */
 .payment-section {
     background-color: white;
     border-radius: 10px;
     padding: 20px;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-    flex: 0 0 calc(40% - 30px);
 }
 
 .payment-section h3 {
@@ -208,18 +219,12 @@ a {
     margin-right: 10px;
 }
 
-/* Empty Space */
-.empty-space {
-    flex: 0 0 60%;
-}
-
 /* MAC Address Section */
 .mac-address-section {
     background-color: white;
     border-radius: 10px;
     padding: 20px;
     box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-    flex: 0 0 calc(40% - 30px);
 }
 
 .mac-address-section h3 {
@@ -422,19 +427,13 @@ a {
 
 /* Responsive Design */
 @media (max-width: 992px) {
-    .order-row {
+    .order-layout {
         flex-direction: column;
     }
     
     .book-details-card,
-    .payment-section,
-    .empty-space,
-    .mac-address-section {
+    .right-column {
         flex: 0 0 100%;
-    }
-    
-    .empty-space {
-        display: none;
     }
 }
 

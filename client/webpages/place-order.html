@@ -69,8 +69,8 @@
         <section class="order-details-section">
             <h2 class="section-title">Place Order</h2>
             
-            <!-- First Row: Book Details and Payment Method -->
-            <div class="order-row">
+            <div class="order-layout">
+                <!-- Left Column: Book Details -->
                 <div class="book-details-card">
                     <div class="book-cover">
                         <img ng-src="{{ book.coverUrl }}" alt="{{ book.title }}">
@@ -84,43 +84,41 @@
                     </div>
                 </div>
                 
-                <!-- Payment Method Section -->
-                <div class="payment-section">
-                    <h3>Payment Method</h3>
-                    <div class="payment-options">
-                        <label>
-                            <input type="radio" name="paymentMethod" value="creditCard" ng-model="payment.method">
-                            Credit Card
-                        </label>
-                        <label>
-                            <input type="radio" name="paymentMethod" value="paypal" ng-model="payment.method">
-                            PayPal
-                        </label>
-                        <label>
-                            <input type="radio" name="paymentMethod" value="bankTransfer" ng-model="payment.method">
-                            Bank Transfer
-                        </label>
+                <!-- Right Column: Payment and MAC sections -->
+                <div class="right-column">
+                    <!-- Payment Method Section -->
+                    <div class="payment-section">
+                        <h3>Payment Method</h3>
+                        <div class="payment-options">
+                            <label>
+                                <input type="radio" name="paymentMethod" value="creditCard" ng-model="payment.method">
+                                Credit Card
+                            </label>
+                            <label>
+                                <input type="radio" name="paymentMethod" value="paypal" ng-model="payment.method">
+                                PayPal
+                            </label>
+                            <label>
+                                <input type="radio" name="paymentMethod" value="bankTransfer" ng-model="payment.method">
+                                Bank Transfer
+                            </label>
+                        </div>
                     </div>
-                </div>
-            </div>
-            
-            <!-- Second Row: Empty space and MAC Address Section -->
-            <div class="order-row">
-                <div class="empty-space"></div>
-                
-                <!-- MAC Address Section -->
-                <div class="mac-address-section">
-                    <h3>Device Verification</h3>
-                    <p>Please enter your device's MAC address for DRM verification:</p>
-                    <input type="text" placeholder="Enter MAC Address (XX:XX:XX:XX:XX:XX)" ng-model="macAddress">
                     
-                    <div class="instruction-buttons">
-                        <button class="btn-instruction" ng-click="showInstructions('desktop')">
-                            <i class="fa fa-laptop"></i> Desktop Instruction
-                        </button>
-                        <button class="btn-instruction" ng-click="showInstructions('mobile')">
-                            <i class="fa fa-mobile-alt"></i> Mobile Instruction
-                        </button>
+                    <!-- MAC Address Section -->
+                    <div class="mac-address-section">
+                        <h3>Device Verification</h3>
+                        <p>Please enter your device's MAC address for DRM verification:</p>
+                        <input type="text" placeholder="Enter MAC Address (XX:XX:XX:XX:XX:XX)" ng-model="macAddress">
+                        
+                        <div class="instruction-buttons">
+                            <button class="btn-instruction" ng-click="showInstructions('desktop')">
+                                <i class="fa fa-laptop"></i> Desktop Instruction
+                            </button>
+                            <button class="btn-instruction" ng-click="showInstructions('mobile')">
+                                <i class="fa fa-mobile-alt"></i> Mobile Instruction
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
