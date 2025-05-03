@@ -70,11 +70,6 @@
         <section class="order-details-section">
             <h2 class="section-title">Place Order</h2>
             
-            <!-- Test Mode Banner (only visible when testMode is true) -->
-            <div class="test-mode-banner" ng-if="testMode">
-                <i class="fas fa-flask"></i> Test Mode: No actual payment will be processed
-            </div>
-            
             <div class="book-details-card">
                 <div class="book-cover">
                     <img ng-src="{{ book.coverUrl }}" alt="{{ book.title }}">
@@ -91,76 +86,11 @@
             <!-- Payment Method Section -->
             <div class="payment-section">
                 <h3>Payment Method</h3>
-                
-                <!-- Payment Method Selection -->
-                <div class="payment-method-selection">
-                    <label class="payment-option" ng-class="{'selected': selectedPaymentMethod === 'stripe'}">
-                        <input type="radio" name="paymentMethod" value="stripe" 
-                               ng-model="selectedPaymentMethod" 
-                               ng-change="changePaymentMethod('stripe')">
-                        <span class="payment-label">
-                            <i class="fas fa-credit-card"></i> Credit Card / Online Banking (Stripe)
-                        </span>
-                    </label>
-                    
-                    <label class="payment-option" ng-class="{'selected': selectedPaymentMethod === 'bank_transfer'}">
-                        <input type="radio" name="paymentMethod" value="bank_transfer" 
-                               ng-model="selectedPaymentMethod"
-                               ng-change="changePaymentMethod('bank_transfer')">
-                        <span class="payment-label">
-                            <i class="fas fa-university"></i> Manual Bank Transfer
-                        </span>
-                    </label>
-                    
-                    <label class="payment-option" ng-class="{'selected': selectedPaymentMethod === 'ewallet'}">
-                        <input type="radio" name="paymentMethod" value="ewallet" 
-                               ng-model="selectedPaymentMethod"
-                               ng-change="changePaymentMethod('ewallet')">
-                        <span class="payment-label">
-                            <i class="fas fa-wallet"></i> E-Wallet
-                        </span>
-                    </label>
-                </div>
-                
-                <!-- Stripe Payment Element (only shown when stripe is selected) -->
-                <div class="payment-details" ng-if="selectedPaymentMethod === 'stripe'">
-                    <div id="stripe-payment-element" class="stripe-element-container">
+                <div class="payment-options">
+                    <div id="stripe-payment-element">
                         <!-- Stripe Elements will be inserted here -->
                     </div>
                     <div class="card-errors" role="alert"></div>
-                </div>
-                
-                <!-- Manual Bank Transfer Instructions (only shown when bank_transfer is selected) -->
-                <div class="payment-details" ng-if="selectedPaymentMethod === 'bank_transfer'">
-                    <div class="bank-info">
-                        <h4>Bank Transfer Details</h4>
-                        <p><strong>Bank:</strong> Maybank</p>
-                        <p><strong>Account Name:</strong> UTMeBook Sdn Bhd</p>
-                        <p><strong>Account Number:</strong> 1234 5678 9012</p>
-                        <p class="payment-note">Please include your username and book title in the transfer reference</p>
-                    </div>
-                </div>
-                
-                <!-- E-wallet Instructions (only shown when ewallet is selected) -->
-                <div class="payment-details" ng-if="selectedPaymentMethod === 'ewallet'">
-                    <div class="ewallet-info">
-                        <h4>E-Wallet Payment</h4>
-                        <div class="ewallet-options">
-                            <div class="ewallet-option">
-                                <i class="fas fa-qrcode"></i>
-                                <p>Boost</p>
-                            </div>
-                            <div class="ewallet-option">
-                                <i class="fas fa-qrcode"></i>
-                                <p>Touch 'n Go</p>
-                            </div>
-                            <div class="ewallet-option">
-                                <i class="fas fa-qrcode"></i>
-                                <p>GrabPay</p>
-                            </div>
-                        </div>
-                        <p class="payment-note">A QR code will be provided after order confirmation</p>
-                    </div>
                 </div>
             </div>
             
