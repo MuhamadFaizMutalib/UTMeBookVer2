@@ -72,9 +72,14 @@
                 
                 <!-- My Purchases Section -->
                 <div class="purchases-section">
-                    <h2 class="section-title">My Purchases</h2>
+                    <div class="section-header">
+                        <h2 class="section-title">My Purchases</h2>
+                        <button class="toggle-btn" ng-click="togglePurchases()">
+                            <i class="fas" ng-class="{'fa-chevron-down': !purchasesCollapsed, 'fa-chevron-right': purchasesCollapsed}"></i>
+                        </button>
+                    </div>
                     
-                    <div class="book-list">
+                    <div class="book-list" ng-class="{'collapsed': purchasesCollapsed}" ng-hide="purchasesCollapsed">
                         <div class="book-item" ng-repeat="purchase in myPurchases">
                             <div class="book-cover">
                                 <img ng-src="{{ purchase.coverUrl }}" alt="{{ purchase.title }}">
@@ -118,6 +123,7 @@
                         </div>
                     </div>
                 </div>
+                
                   
                   <!-- Add this modal for editing MAC address -->
                   <div class="modal" ng-class="{'show-modal': showEditMACModal}">
@@ -162,9 +168,14 @@
                 
                 <!-- My Sales Section -->
                 <div class="sales-section">
-                    <h2 class="section-title">My Sales</h2>
+                    <div class="section-header">
+                        <h2 class="section-title">My Sales</h2>
+                        <button class="toggle-btn" ng-click="toggleSales()">
+                            <i class="fas" ng-class="{'fa-chevron-down': !salesCollapsed, 'fa-chevron-right': salesCollapsed}"></i>
+                        </button>
+                    </div>
                     
-                    <div class="book-list">
+                    <div class="book-list" ng-class="{'collapsed': salesCollapsed}" ng-hide="salesCollapsed">
                         <div class="book-item" ng-repeat="book in mySales">
                             <div class="book-cover">
                                 <img ng-src="{{ book.coverUrl }}" alt="{{ book.title }}">
@@ -175,8 +186,8 @@
                                     <span class="book-category">{{ book.category }}</span>
                                     <span class="book-price">RM{{ book.price.toFixed(2) }}</span>
                                 </p>
-                                <p class="status">Status: {{ book.status }}</p>
-                                <p class="upload-date">Uploaded on: {{ book.uploadDate | date:'mediumDate' }}</p>
+                                <p class="status"><strong>Status:</strong> {{ book.status }}</p>
+                                <p class="upload-date"><strong>Uploaded on:</strong> {{ book.uploadDate | date:'mediumDate' }}</p>
                                 <div class="book-actions">
                                     <button class="btn-edit" ng-click="editBook(book)">
                                         <i class="fas fa-edit"></i> Edit

@@ -26,7 +26,18 @@ angular.module('orderApp', [])
     $scope.editBookFileName = null;
     $scope.successMessage = null;
     $scope.errorMessage = null;
-    
+    $scope.purchasesCollapsed = false;
+    $scope.salesCollapsed = false;
+
+    // Toggle functions
+    $scope.togglePurchases = function() {
+      $scope.purchasesCollapsed = !$scope.purchasesCollapsed;
+    };
+
+    $scope.toggleSales = function() {
+      $scope.salesCollapsed = !$scope.salesCollapsed;
+    };
+
     // Toggle mobile menu
     $scope.toggleMobileMenu = function() {
       $scope.mobileMenuOpen = !$scope.mobileMenuOpen;
