@@ -459,3 +459,128 @@ a {
   @keyframes spin {
     to { transform: rotate(360deg); }
   }
+
+
+  /* New styles for payment options */
+
+/* Test Mode Banner */
+.test-mode-banner {
+    background-color: #ffe082;
+    color: #7f6000;
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+  }
+  
+  .test-mode-banner i {
+    margin-right: 10px;
+    font-size: 18px;
+  }
+  
+  /* Payment Method Selection */
+  .payment-method-selection {
+    margin-bottom: 20px;
+  }
+  
+  .payment-option {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .payment-option:hover {
+    background-color: #f9f9f9;
+  }
+  
+  .payment-option input[type="radio"] {
+    margin-right: 15px;
+  }
+  
+  .payment-label {
+    display: flex;
+    align-items: center;
+    font-weight: 500;
+  }
+  
+  .payment-label i {
+    margin-right: 10px;
+    font-size: 18px;
+    color: #0066cc;
+  }
+  
+  /* Manual Payment Info Sections */
+  .manual-payment-info {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+  }
+  
+  .bank-info h4, .ewallet-info h4 {
+    margin-bottom: 15px;
+    color: #333;
+    font-size: 16px;
+  }
+  
+  .bank-info p, .ewallet-info p {
+    margin-bottom: 8px;
+  }
+  
+  .payment-note {
+    margin-top: 15px;
+    color: #666;
+    font-style: italic;
+  }
+  
+  /* E-Wallet Options */
+  .ewallet-options {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px 0;
+  }
+  
+  .ewallet-option {
+    text-align: center;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: white;
+    width: 30%;
+  }
+  
+  .ewallet-option i {
+    font-size: 24px;
+    color: #0066cc;
+    margin-bottom: 10px;
+  }
+  
+  .ewallet-option p {
+    margin: 0;
+  }
+  
+  /* Stripe Container */
+  #stripe-payment-container {
+    margin-top: 15px;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .ewallet-options {
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .ewallet-option {
+      width: 80%;
+      margin-bottom: 10px;
+    }
+  }

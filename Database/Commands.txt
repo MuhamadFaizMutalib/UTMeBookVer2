@@ -63,3 +63,8 @@ WHERE id = 123;
 
 UPDATE users SET role = 'admin' WHERE email = 'rafiqiadli11@gmail.com';
 
+########################################################################
+
+Key: STRIPE_SECRET_KEY 
+Key: STRIPE_PUBLISHABLE_KEY
+

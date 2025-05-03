@@ -39,49 +39,12 @@ angular.module('placeOrderApp', [])
     let elements = null;
     let paymentElement = null;
     
-    // Function to initialize Stripe
-    function initStripe() {
-      // Initialize Stripe with your publishable key from environment
-      // The publishable key is safe to include in client-side code
-      stripe = Stripe(stripePublishableKey); // This will be defined elsewhere
-      
-      // Create payment element options
-      const options = {
-        mode: 'payment',
-        amount: Math.round($scope.book.price * 100), // Convert to cents
-        currency: 'myr',
-        appearance: {
-          theme: 'stripe',
-          variables: {
-            colorPrimary: '#0066cc',
-          },
-        },
-      };
-      
-      // Create elements instance
-      elements = stripe.elements(options);
-      
-      // Create and mount the Payment Element
-      paymentElement = elements.create('payment');
-      paymentElement.mount('#stripe-payment-element');
-      
-      // Handle real-time validation errors
-      paymentElement.on('change', function(event) {
-        const displayError = document.querySelector('.card-errors');
-        if (event.error) {
-          displayError.textContent = event.error.message;
-        } else {
-          displayError.textContent = '';
-        }
-      });
-    }
+    // Add payment method selection
+    $scope.selectedPaymentMethod = 'stripe';
+    $scope.showStripeElement = true;
     
-    // Initialize MAC address
-    $scope.macAddress = '';
-    
-    // Initialize modal state
-    $scope.showInstructionModal = false;
-    $scope.instructionType = '';
+    // Test mode flag - Set to true for project assignments
+    $scope.testMode = true;
     
     // Function to set active tab and handle navigation
     $scope.setActiveTab = function(tab) {
@@ -116,25 +79,12 @@ angular.module('placeOrderApp', [])
       }
     };
     
-    // Function to fetch book details
-    // function loadBookDetails() {
-    //   $http.get('/api/books/' + bookId)
-    //     .then(function(response) {
-    //       if (response.data.success) {
-    //         $scope.book = response.data.book;
-    //         // Initialize Stripe after book details are loaded
-    //         initStripe();
-    //       } else {
-    //         console.error('Error loading book details:', response.data.message);
-    //         showToast('Error loading book details', 'error');
-    //       }
-    //     })
-    //     .catch(function(error) {
-    //       console.error('Error loading book details:', error);
-    //       showToast('Server error. Please try again later.', 'error');
-    //     });
-    // }
-
+    // Function to toggle payment method
+    $scope.changePaymentMethod = function(method) {
+      $scope.selectedPaymentMethod = method;
+      $scope.showStripeElement = method === 'stripe';
+    };
+  
     function loadBookDetails() {
       $http.get('/api/books/' + bookId)
         .then(function(response) {
@@ -153,7 +103,7 @@ angular.module('placeOrderApp', [])
           // Initialize Stripe with the publishable key from the server
           stripe = Stripe(response.data.publishableKey);
           
-          // Create payment element options
+          // Create payment element options with expanded payment methods
           const options = {
             mode: 'payment',
             amount: Math.round($scope.book.price * 100), // Convert to cents
@@ -164,6 +114,8 @@ angular.module('placeOrderApp', [])
                 colorPrimary: '#0066cc',
               },
             },
+            // Enable more payment methods
+            payment_method_types: ['card', 'fpx'], // 'fpx' is for Malaysian online banking
           };
           
           // Create elements instance
@@ -189,9 +141,6 @@ angular.module('placeOrderApp', [])
         });
     }
 
-
-    
-    
     // Function to show instructions modal
     $scope.showInstructions = function(type) {
       $scope.instructionType = type;
@@ -227,9 +176,41 @@ angular.module('placeOrderApp', [])
       }
       
       // Show loading state
-      showToast('Processing payment...', 'info');
+      showToast('Processing order...', 'info');
       
-      // Create payment intent on server
+      // Implementation of test mode for project assignments
+      if ($scope.testMode || $scope.selectedPaymentMethod !== 'stripe') {
+        // For test mode, bypass actual payment processing
+        const orderData = {
+          bookId: parseInt(bookId),
+          buyerId: $scope.user.id,
+          paymentMethod: $scope.selectedPaymentMethod,
+          macAddress: $scope.macAddress,
+          // No payment intent ID in test mode
+        };
+        
+        $http.post('/api/purchases/place-order', orderData)
+          .then(function(response) {
+            if (response.data.success) {
+              showToast('Order placed successfully! Order ID: ' + response.data.orderId, 'success');
+              
+              // Redirect to the orders page after a delay
+              setTimeout(function() {
+                $window.location.href = '/order';
+              }, 3000);
+            } else {
+              showToast('Error: ' + response.data.message, 'error');
+            }
+          })
+          .catch(function(error) {
+            console.error('Error placing order:', error);
+            showToast('Order processing failed. Please try again.', 'error');
+          });
+        
+        return;
+      }
+      
+      // Only continue with real Stripe payment if not in test mode
       createPaymentIntent()
         .then(function(response) {
           if (!response.data.clientSecret) {
