@@ -461,7 +461,7 @@ a {
   }
 
 
-  /* New styles for payment options */
+/* New styles for payment options */
 
 /* Test Mode Banner */
 .test-mode-banner {
@@ -501,6 +501,12 @@ a {
     background-color: #f9f9f9;
   }
   
+  .payment-option.selected {
+    border-color: #0066cc;
+    background-color: rgba(0, 102, 204, 0.05);
+    box-shadow: 0 0 5px rgba(0, 102, 204, 0.3);
+  }
+  
   .payment-option input[type="radio"] {
     margin-right: 15px;
   }
@@ -517,14 +523,35 @@ a {
     color: #0066cc;
   }
   
-  /* Manual Payment Info Sections */
-  .manual-payment-info {
+  /* Payment Details Container */
+  .payment-details {
     background-color: #f9f9f9;
     border: 1px solid #ddd;
     border-radius: 5px;
     padding: 15px;
+    margin-top: 15px;
   }
   
+  /* Stripe Element Container */
+  .stripe-element-container {
+    background-color: white;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    min-height: 120px; /* Ensure enough space for the Stripe element */
+  }
+  
+  #stripe-payment-element {
+    width: 100%;
+  }
+  
+  .card-errors {
+    color: #dc3545;
+    margin-top: 10px;
+    font-size: 14px;
+  }
+  
+  /* Bank Info Section */
   .bank-info h4, .ewallet-info h4 {
     margin-bottom: 15px;
     color: #333;
@@ -555,6 +582,12 @@ a {
     border-radius: 5px;
     background-color: white;
     width: 30%;
+    transition: all 0.3s ease;
+  }
+  
+  .ewallet-option:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
   
   .ewallet-option i {
@@ -567,9 +600,20 @@ a {
     margin: 0;
   }
   
-  /* Stripe Container */
-  #stripe-payment-container {
-    margin-top: 15px;
+  /* Loading spinner for payment processing */
+  .loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+    margin-right: 10px;
+  }
+  
+  @keyframes spin {
+    to { transform: rotate(360deg); }
   }
   
   /* Responsive adjustments */
@@ -582,5 +626,9 @@ a {
     .ewallet-option {
       width: 80%;
       margin-bottom: 10px;
+    }
+    
+    .stripe-element-container {
+      padding: 10px;
     }
   }

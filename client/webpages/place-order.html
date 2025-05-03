@@ -94,7 +94,7 @@
                 
                 <!-- Payment Method Selection -->
                 <div class="payment-method-selection">
-                    <label class="payment-option">
+                    <label class="payment-option" ng-class="{'selected': selectedPaymentMethod === 'stripe'}">
                         <input type="radio" name="paymentMethod" value="stripe" 
                                ng-model="selectedPaymentMethod" 
                                ng-change="changePaymentMethod('stripe')">
@@ -103,7 +103,7 @@
                         </span>
                     </label>
                     
-                    <label class="payment-option">
+                    <label class="payment-option" ng-class="{'selected': selectedPaymentMethod === 'bank_transfer'}">
                         <input type="radio" name="paymentMethod" value="bank_transfer" 
                                ng-model="selectedPaymentMethod"
                                ng-change="changePaymentMethod('bank_transfer')">
@@ -112,7 +112,7 @@
                         </span>
                     </label>
                     
-                    <label class="payment-option">
+                    <label class="payment-option" ng-class="{'selected': selectedPaymentMethod === 'ewallet'}">
                         <input type="radio" name="paymentMethod" value="ewallet" 
                                ng-model="selectedPaymentMethod"
                                ng-change="changePaymentMethod('ewallet')">
@@ -123,15 +123,15 @@
                 </div>
                 
                 <!-- Stripe Payment Element (only shown when stripe is selected) -->
-                <div id="stripe-payment-container" ng-if="showStripeElement">
-                    <div id="stripe-payment-element">
+                <div class="payment-details" ng-if="selectedPaymentMethod === 'stripe'">
+                    <div id="stripe-payment-element" class="stripe-element-container">
                         <!-- Stripe Elements will be inserted here -->
                     </div>
                     <div class="card-errors" role="alert"></div>
                 </div>
                 
                 <!-- Manual Bank Transfer Instructions (only shown when bank_transfer is selected) -->
-                <div class="manual-payment-info" ng-if="selectedPaymentMethod === 'bank_transfer'">
+                <div class="payment-details" ng-if="selectedPaymentMethod === 'bank_transfer'">
                     <div class="bank-info">
                         <h4>Bank Transfer Details</h4>
                         <p><strong>Bank:</strong> Maybank</p>
@@ -142,7 +142,7 @@
                 </div>
                 
                 <!-- E-wallet Instructions (only shown when ewallet is selected) -->
-                <div class="manual-payment-info" ng-if="selectedPaymentMethod === 'ewallet'">
+                <div class="payment-details" ng-if="selectedPaymentMethod === 'ewallet'">
                     <div class="ewallet-info">
                         <h4>E-Wallet Payment</h4>
                         <div class="ewallet-options">

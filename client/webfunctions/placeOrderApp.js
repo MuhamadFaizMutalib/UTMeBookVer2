@@ -41,7 +41,6 @@ angular.module('placeOrderApp', [])
     
     // Add payment method selection
     $scope.selectedPaymentMethod = 'stripe';
-    $scope.showStripeElement = true;
     
     // Test mode flag - Set to true for project assignments
     $scope.testMode = true;
@@ -82,8 +81,60 @@ angular.module('placeOrderApp', [])
     // Function to toggle payment method
     $scope.changePaymentMethod = function(method) {
       $scope.selectedPaymentMethod = method;
-      $scope.showStripeElement = method === 'stripe';
+      
+      // If Stripe is selected and initialized, mount the payment element
+      if (method === 'stripe' && stripe && elements && !paymentElement) {
+        initializeStripeElement();
+      }
     };
+    
+    // Initialize Stripe Element
+    function initializeStripeElement() {
+      if (!stripe || !elements) return;
+      
+      // Unmount existing payment element if it exists
+      if (paymentElement) {
+        paymentElement.unmount();
+        paymentElement = null;
+      }
+      
+      // Create payment element options with expanded payment methods
+      const options = {
+        mode: 'payment',
+        amount: Math.round($scope.book.price * 100), // Convert to cents
+        currency: 'myr',
+        appearance: {
+          theme: 'stripe',
+          variables: {
+            colorPrimary: '#0066cc',
+          },
+        },
+        // Enable more payment methods
+        payment_method_types: ['card', 'fpx'], // 'fpx' is for Malaysian online banking
+      };
+      
+      // Create and mount the Payment Element
+      paymentElement = elements.create('payment', options);
+      
+      setTimeout(() => {
+        const stripeElement = document.getElementById('stripe-payment-element');
+        if (stripeElement) {
+          paymentElement.mount('#stripe-payment-element');
+          
+          // Handle real-time validation errors
+          paymentElement.on('change', function(event) {
+            const displayError = document.querySelector('.card-errors');
+            if (displayError) {
+              if (event.error) {
+                displayError.textContent = event.error.message;
+              } else {
+                displayError.textContent = '';
+              }
+            }
+          });
+        }
+      }, 100);
+    }
   
     function loadBookDetails() {
       $http.get('/api/books/' + bookId)
@@ -103,37 +154,13 @@ angular.module('placeOrderApp', [])
           // Initialize Stripe with the publishable key from the server
           stripe = Stripe(response.data.publishableKey);
           
-          // Create payment element options with expanded payment methods
-          const options = {
-            mode: 'payment',
-            amount: Math.round($scope.book.price * 100), // Convert to cents
-            currency: 'myr',
-            appearance: {
-              theme: 'stripe',
-              variables: {
-                colorPrimary: '#0066cc',
-              },
-            },
-            // Enable more payment methods
-            payment_method_types: ['card', 'fpx'], // 'fpx' is for Malaysian online banking
-          };
+          // Create elements instance with default options
+          elements = stripe.elements();
           
-          // Create elements instance
-          elements = stripe.elements(options);
-          
-          // Create and mount the Payment Element
-          paymentElement = elements.create('payment');
-          paymentElement.mount('#stripe-payment-element');
-          
-          // Handle real-time validation errors
-          paymentElement.on('change', function(event) {
-            const displayError = document.querySelector('.card-errors');
-            if (event.error) {
-              displayError.textContent = event.error.message;
-            } else {
-              displayError.textContent = '';
-            }
-          });
+          // Initialize the payment element if stripe is the selected method
+          if ($scope.selectedPaymentMethod === 'stripe') {
+            initializeStripeElement();
+          }
         })
         .catch(function(error) {
           console.error('Error loading book details or initializing Stripe:', error);
