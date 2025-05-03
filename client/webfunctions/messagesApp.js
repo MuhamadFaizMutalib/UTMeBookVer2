@@ -236,61 +236,6 @@ angular.module('messagesApp', [])
     loadMessages();
     loadAllPurchases();
     
-    // Add API endpoint for admin to update purchase status
-    // This should be added to server.js
-    // app.put('/api/admin/purchases/update-status/:orderId', async (req, res) => {
-    //   const { orderId } = req.params;
-    //   const { userId, newStatus } = req.body;
-    //   
-    //   try {
-    //     // Verify user is an admin
-    //     const adminCheck = await pool.query(
-    //       'SELECT * FROM users WHERE id = $1 AND role = $2',
-    //       [userId, 'admin']
-    //     );
-    //     
-    //     if (adminCheck.rows.length === 0) {
-    //       return res.status(403).json({
-    //         success: false,
-    //         message: 'You do not have permission to update order status'
-    //       });
-    //     }
-    //     
-    //     // Update purchase status
-    //     await pool.query(
-    //       `UPDATE purchases SET order_status = $1 WHERE order_id = $2`,
-    //       [newStatus, orderId]
-    //     );
-    //     
-    //     // If status is changed to Canceled, update book status back to Available
-    //     if (newStatus === 'Canceled') {
-    //       const purchase = await pool.query(
-    //         'SELECT book_id FROM purchases WHERE order_id = $1',
-    //         [orderId]
-    //       );
-    //       
-    //       if (purchase.rows.length > 0) {
-    //         await pool.query(
-    //           `UPDATE books SET status = 'Available' WHERE id = $1`,
-    //           [purchase.rows[0].book_id]
-    //         );
-    //       }
-    //     }
-    //     
-    //     res.status(200).json({
-    //       success: true,
-    //       message: 'Status updated successfully'
-    //     });
-    //     
-    //   } catch (err) {
-    //     console.error(`Error updating status for order ${orderId}:`, err);
-    //     res.status(500).json({
-    //       success: false,
-    //       message: 'Error updating status',
-    //       details: process.env.NODE_ENV === 'development' ? err.message : undefined
-    //     });
-    //   }
-    // });
     
     // Adjust mobile menu on window resize
     angular.element($window).bind('resize', function() {
