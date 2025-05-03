@@ -384,6 +384,21 @@ async function initDB() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Create messages table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS messages (
+        id SERIAL PRIMARY KEY,
+        sender_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        recipient_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        subject VARCHAR(100) NOT NULL,
+        content TEXT NOT NULL,
+        related_order_id VARCHAR(15),
+        is_read BOOLEAN DEFAULT false,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     
     console.log('Database tables initialized');
   } catch (err) {
@@ -1023,20 +1038,6 @@ app.put('/api/purchases/update-mac/:orderId', async (req, res) => {
   }
 });
 
-// Create messages table
-// Add inside initDB function after the books table creation
-await pool.query(`
-  CREATE TABLE IF NOT EXISTS messages (
-    id SERIAL PRIMARY KEY,
-    sender_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-    recipient_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-    subject VARCHAR(100) NOT NULL,
-    content TEXT NOT NULL,
-    related_order_id VARCHAR(15),
-    is_read BOOLEAN DEFAULT false,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-  )
-`);
 
 // API endpoint to get user's messages
 app.get('/api/messages/:userId', async (req, res) => {
