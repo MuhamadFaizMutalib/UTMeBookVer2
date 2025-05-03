@@ -60,9 +60,6 @@ angular.module('orderApp', [])
             case 'add-ebook':
               $window.location.href = '/add-ebook';
               break;
-            case 'order':
-              $window.location.href = '/order';
-              break;
             case 'messages':
               $window.location.href = '/messages';
               break;
