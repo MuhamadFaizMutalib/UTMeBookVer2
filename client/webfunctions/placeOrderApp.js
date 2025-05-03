@@ -34,10 +34,46 @@ angular.module('placeOrderApp', [])
       $scope.mobileMenuOpen = !$scope.mobileMenuOpen;
     };
     
-    // Initialize payment method
-    $scope.payment = {
-      method: 'creditCard'
-    };
+    // Initialize Stripe elements
+    let stripe = null;
+    let elements = null;
+    let paymentElement = null;
+    
+    // Function to initialize Stripe
+    function initStripe() {
+      // Initialize Stripe with your publishable key
+      stripe = Stripe('pk_test_51RKh4n2cOYJReXIf397n8CUAKJ42VNC3C8Y92mi0R6dMx1M621JmSbyyQVc10tRAqfo1BoNFKanyvnOeVvV7A3Ht002ruFnFMD');
+      
+      // Create payment element options
+      const options = {
+        mode: 'payment',
+        amount: Math.round($scope.book.price * 100), // Convert to cents
+        currency: 'myr',
+        appearance: {
+          theme: 'stripe',
+          variables: {
+            colorPrimary: '#0066cc',
+          },
+        },
+      };
+      
+      // Create elements instance
+      elements = stripe.elements(options);
+      
+      // Create and mount the Payment Element
+      paymentElement = elements.create('payment');
+      paymentElement.mount('#stripe-payment-element');
+      
+      // Handle real-time validation errors
+      paymentElement.on('change', function(event) {
+        const displayError = document.querySelector('.card-errors');
+        if (event.error) {
+          displayError.textContent = event.error.message;
+        } else {
+          displayError.textContent = '';
+        }
+      });
+    }
     
     // Initialize MAC address
     $scope.macAddress = '';
@@ -85,6 +121,8 @@ angular.module('placeOrderApp', [])
         .then(function(response) {
           if (response.data.success) {
             $scope.book = response.data.book;
+            // Initialize Stripe after book details are loaded
+            initStripe();
           } else {
             console.error('Error loading book details:', response.data.message);
             showToast('Error loading book details', 'error');
@@ -107,6 +145,14 @@ angular.module('placeOrderApp', [])
       $scope.showInstructionModal = false;
     };
     
+    // Function to create payment intent on the server
+    function createPaymentIntent() {
+      return $http.post('/api/create-payment-intent', {
+        amount: Math.round($scope.book.price * 100),
+        currency: 'myr'
+      });
+    }
+    
     // Function to handle place order action
     $scope.placeOrder = function() {
       // Validate MAC address
@@ -122,31 +168,59 @@ angular.module('placeOrderApp', [])
         return;
       }
       
-      // Prepare order data
-      const orderData = {
-        bookId: parseInt(bookId),
-        buyerId: $scope.user.id,
-        paymentMethod: $scope.payment.method,
-        macAddress: $scope.macAddress
-      };
+      // Show loading state
+      showToast('Processing payment...', 'info');
       
-      // Send order to server
-      $http.post('/api/purchases/place-order', orderData)
+      // Create payment intent on server
+      createPaymentIntent()
         .then(function(response) {
-          if (response.data.success) {
+          if (!response.data.clientSecret) {
+            throw new Error('No client secret returned');
+          }
+          
+          // Confirm payment with Stripe
+          return stripe.confirmPayment({
+            elements,
+            clientSecret: response.data.clientSecret,
+            confirmParams: {
+              return_url: window.location.origin + '/order-confirmation',
+            },
+            redirect: 'if_required'
+          });
+        })
+        .then(function(result) {
+          if (result.error) {
+            // Show error to customer
+            showToast(result.error.message, 'error');
+            return;
+          }
+          
+          // Payment successful, now place the order
+          const orderData = {
+            bookId: parseInt(bookId),
+            buyerId: $scope.user.id,
+            paymentMethod: 'stripe',
+            macAddress: $scope.macAddress,
+            paymentIntentId: result.paymentIntent.id
+          };
+          
+          return $http.post('/api/purchases/place-order', orderData);
+        })
+        .then(function(response) {
+          if (response && response.data.success) {
             showToast('Order placed successfully! Order ID: ' + response.data.orderId, 'success');
             
             // Redirect to the orders page after a delay
             setTimeout(function() {
               $window.location.href = '/order';
             }, 3000);
-          } else {
+          } else if (response) {
             showToast('Error: ' + response.data.message, 'error');
           }
         })
         .catch(function(error) {
-          console.error('Error placing order:', error);
-          showToast('Server error. Please try again later.', 'error');
+          console.error('Error processing payment or placing order:', error);
+          showToast('Payment processing failed. Please try again.', 'error');
         });
     };
     

@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="../webstyles/css/mobile-styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="https://js.stripe.com/v3/"></script>
     <script src="../webfunctions/placeOrderApp.js"></script>
 </head>
 <body ng-app="placeOrderApp" ng-controller="PlaceOrderController">
@@ -69,57 +70,43 @@
         <section class="order-details-section">
             <h2 class="section-title">Place Order</h2>
             
-            <div class="order-layout">
-                <!-- Left Column: Book Details -->
-                <div class="book-details-card">
-                    <div class="book-cover">
-                        <img ng-src="{{ book.coverUrl }}" alt="{{ book.title }}">
-                    </div>
-                    <div class="book-info">
-                        <h3>{{ book.title }}</h3>
-                        <p class="seller">Seller: {{ book.sellerName }}</p>
-                        <p class="price">RM{{ book.price.toFixed(2) }}</p>
-                        <p class="upload-date">Upload Date: {{ book.uploadDate | date:'mediumDate' }}</p>
-                        <p class="description">{{ book.description }}</p>
-                    </div>
+            <div class="book-details-card">
+                <div class="book-cover">
+                    <img ng-src="{{ book.coverUrl }}" alt="{{ book.title }}">
                 </div>
+                <div class="book-info">
+                    <h3>{{ book.title }}</h3>
+                    <p class="seller">Seller: {{ book.sellerName }}</p>
+                    <p class="price">RM{{ book.price.toFixed(2) }}</p>
+                    <p class="upload-date">Upload Date: {{ book.uploadDate | date:'mediumDate' }}</p>
+                    <p class="description">{{ book.description }}</p>
+                </div>
+            </div>
+            
+            <!-- Payment Method Section -->
+            <div class="payment-section">
+                <h3>Payment Method</h3>
+                <div class="payment-options">
+                    <div id="stripe-payment-element">
+                        <!-- Stripe Elements will be inserted here -->
+                    </div>
+                    <div class="card-errors" role="alert"></div>
+                </div>
+            </div>
+            
+            <!-- MAC Address Section -->
+            <div class="mac-address-section">
+                <h3>Device Verification</h3>
+                <p>Please enter your device's MAC address for DRM verification:</p>
+                <input type="text" placeholder="Enter MAC Address (XX:XX:XX:XX:XX:XX)" ng-model="macAddress">
                 
-                <!-- Right Column: Payment and MAC sections -->
-                <div class="right-column">
-                    <!-- Payment Method Section -->
-                    <div class="payment-section">
-                        <h3>Payment Method</h3>
-                        <div class="payment-options">
-                            <label>
-                                <input type="radio" name="paymentMethod" value="creditCard" ng-model="payment.method">
-                                Credit Card
-                            </label>
-                            <label>
-                                <input type="radio" name="paymentMethod" value="paypal" ng-model="payment.method">
-                                PayPal
-                            </label>
-                            <label>
-                                <input type="radio" name="paymentMethod" value="bankTransfer" ng-model="payment.method">
-                                Bank Transfer
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <!-- MAC Address Section -->
-                    <div class="mac-address-section">
-                        <h3>Device Verification</h3>
-                        <p>Please enter your device's MAC address for DRM verification:</p>
-                        <input type="text" placeholder="Enter MAC Address (XX:XX:XX:XX:XX:XX)" ng-model="macAddress">
-                        
-                        <div class="instruction-buttons">
-                            <button class="btn-instruction" ng-click="showInstructions('desktop')">
-                                <i class="fa fa-laptop"></i> Desktop Instruction
-                            </button>
-                            <button class="btn-instruction" ng-click="showInstructions('mobile')">
-                                <i class="fa fa-mobile-alt"></i> Mobile Instruction
-                            </button>
-                        </div>
-                    </div>
+                <div class="instruction-buttons">
+                    <button class="btn-instruction" ng-click="showInstructions('desktop')">
+                        <i class="fa fa-laptop"></i> Desktop Instruction
+                    </button>
+                    <button class="btn-instruction" ng-click="showInstructions('mobile')">
+                        <i class="fa fa-mobile-alt"></i> Mobile Instruction
+                    </button>
                 </div>
             </div>
             

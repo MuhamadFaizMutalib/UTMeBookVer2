@@ -385,6 +385,11 @@ async function initDB() {
       )
     `);
 
+    await pool.query(`
+      ALTER TABLE IF EXISTS purchases 
+      ADD COLUMN IF NOT EXISTS payment_intent_id VARCHAR(255)
+    `);
+
     // Create messages table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS messages (
@@ -769,8 +774,9 @@ app.get('/api/books/:bookId', async (req, res) => {
 //////////////////////////////////// [END Add Book & Manage Order ] ///////////////////////////////////
 
 
-//////////////////////////////////// [PlaceOrder & Message Control ] ///////////////////////////////////
+//////////////////////////////////// [PlaceOrder(STRIPE) & Message Control ] ///////////////////////////////////
 
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY || 'sk_test_51RKh4n2cOYJReXIfZyD72JNVK6GU0o5NPiBZzq7sIJzl7zBNhC81KYEmkjNuF8qLYYo7TBRotgRARWNNOQAMGonm00fmmoNvLb');
 
 // API endpoint to place an order
 app.post('/api/purchases/place-order', async (req, res) => {
@@ -780,7 +786,8 @@ app.post('/api/purchases/place-order', async (req, res) => {
       bookId, 
       buyerId, 
       paymentMethod, 
-      macAddress 
+      macAddress,
+      paymentIntentId  // New field for Stripe integration
     } = req.body;
     
     // Fetch book information
@@ -803,13 +810,14 @@ app.post('/api/purchases/place-order', async (req, res) => {
     const randomDigits = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
     const orderId = `UTM${timestamp}${randomDigits}`;
     
-    // Insert purchase record
+    // Insert purchase record with payment intent ID if available
     const purchaseResult = await pool.query(
       `INSERT INTO purchases (
         order_id, title, category, price, payment_method, mac_address,
-        cover_image_path, book_file_path, buyer_id, book_id, seller_id
+        cover_image_path, book_file_path, buyer_id, book_id, seller_id,
+        payment_intent_id
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       RETURNING id`,
       [
         orderId,
@@ -822,7 +830,8 @@ app.post('/api/purchases/place-order', async (req, res) => {
         book.book_file_path,
         buyerId,
         bookId,
-        book.seller_id
+        book.seller_id,
+        paymentIntentId || null  // Store payment intent ID if provided
       ]
     );
     
@@ -848,7 +857,7 @@ app.post('/api/purchases/place-order', async (req, res) => {
           buyerId,
           admin.id,
           `New Order: ${orderId}`,
-          `A new purchase has been made:\n\nOrder ID: ${orderId}\nBook: ${book.title}\nPrice: RM${book.price}\nBuyer ID: ${buyerId}\nPayment Method: ${paymentMethod}`,
+          `A new purchase has been made:\n\nOrder ID: ${orderId}\nBook: ${book.title}\nPrice: RM${book.price}\nBuyer ID: ${buyerId}\nPayment Method: ${paymentMethod}${paymentIntentId ? '\nPayment Intent: ' + paymentIntentId : ''}`,
           orderId
         ]
       );
@@ -871,6 +880,41 @@ app.post('/api/purchases/place-order', async (req, res) => {
     });
   }
 });
+
+
+
+// Add this new endpoint below your existing API endpoints
+app.post('/api/create-payment-intent', async (req, res) => {
+  try {
+    const { amount, currency } = req.body;
+    
+    // Create a payment intent
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount,
+      currency,
+      automatic_payment_methods: {
+        enabled: true,
+      },
+    });
+    
+    // Send client secret to client
+    res.status(200).json({
+      success: true,
+      clientSecret: paymentIntent.client_secret
+    });
+  } catch (err) {
+    console.error('Error creating payment intent:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Error creating payment intent',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+
+
+
 
 // API endpoint to get user's purchases
 app.get('/api/purchases/my-purchases/:userId', async (req, res) => {
@@ -1180,7 +1224,7 @@ app.get('/api/admin/purchases', async (req, res) => {
 });
 
 
-//////////////////////////////////// [END PlaceOrder & Message Control ] ///////////////////////////////////
+//////////////////////////////////// [END PlaceOrder(STRIPE) & Message Control ] ///////////////////////////////////
 
 
 //////////////////////////////////// [ADMIN CONTROL ] ///////////////////////////////////
@@ -1241,7 +1285,6 @@ app.put('/api/admin/purchases/update-status/:orderId', async (req, res) => {
 });
 
 //////////////////////////////////// [ END ADMIN CONTROL ] ///////////////////////////////////
-
 
 
 // Serve static files from the uploads directory
