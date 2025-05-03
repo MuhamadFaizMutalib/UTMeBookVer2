@@ -21,3 +21,21 @@ CREATE TABLE IF NOT EXISTS books (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+
+CREATE TABLE IF NOT EXISTS purchases (
+  id SERIAL PRIMARY KEY,
+  order_id VARCHAR(15) NOT NULL,
+  title VARCHAR(100) NOT NULL,
+  category VARCHAR(50) NOT NULL,
+  price DECIMAL(10, 2) NOT NULL,
+  payment_method VARCHAR(20) NOT NULL,
+  mac_address VARCHAR(20) NOT NULL,
+  cover_image_path VARCHAR(255),
+  purchase_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  order_status VARCHAR(20) DEFAULT 'Pending',
+  book_file_path VARCHAR(255),
+  buyer_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  book_id INTEGER REFERENCES books(id) ON DELETE SET NULL,
+  seller_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

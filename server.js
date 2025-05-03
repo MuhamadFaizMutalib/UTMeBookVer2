@@ -272,7 +272,6 @@ app.post('/api/login', async (req, res) => {
 //////////////////////////////////// [END LOGIN & REGISTER ] ///////////////////////////////////
 
 
-
 //////////////////////////////////// [Add Book & Manage Order ] ///////////////////////////////////
 
 // Add these imports after the existing ones in server.js
@@ -365,7 +364,26 @@ async function initDB() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
-    
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS purchases (
+        id SERIAL PRIMARY KEY,
+        order_id VARCHAR(15) NOT NULL,
+        title VARCHAR(100) NOT NULL,
+        category VARCHAR(50) NOT NULL,
+        price DECIMAL(10, 2) NOT NULL,
+        payment_method VARCHAR(20) NOT NULL,
+        mac_address VARCHAR(20) NOT NULL,
+        cover_image_path VARCHAR(255),
+        purchase_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        order_status VARCHAR(20) DEFAULT 'Pending',
+        book_file_path VARCHAR(255),
+        buyer_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        book_id INTEGER REFERENCES books(id) ON DELETE SET NULL,
+        seller_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
     
     console.log('Database tables initialized');
   } catch (err) {
@@ -683,11 +701,6 @@ app.delete('/api/books/:bookId', async (req, res) => {
 });
 
 
-//////////////////////////////////// [END Add Book & Manage Order ] ///////////////////////////////////
-
-
-
-
 // Also add the API endpoint to fetch individual book details
 app.get('/api/books/:bookId', async (req, res) => {
   const { bookId } = req.params;
@@ -738,7 +751,495 @@ app.get('/api/books/:bookId', async (req, res) => {
   }
 });
 
+//////////////////////////////////// [END Add Book & Manage Order ] ///////////////////////////////////
 
+
+//////////////////////////////////// [PlaceOrder & Message Control ] ///////////////////////////////////
+
+
+// API endpoint to place an order
+app.post('/api/purchases/place-order', async (req, res) => {
+  try {
+    // Get order information
+    const { 
+      bookId, 
+      buyerId, 
+      paymentMethod, 
+      macAddress 
+    } = req.body;
+    
+    // Fetch book information
+    const bookResult = await pool.query(
+      `SELECT * FROM books WHERE id = $1 AND status = 'Available'`,
+      [bookId]
+    );
+    
+    if (bookResult.rows.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Book is not available for purchase'
+      });
+    }
+    
+    const book = bookResult.rows[0];
+    
+    // Generate order ID
+    const timestamp = Date.now().toString().slice(-6);
+    const randomDigits = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+    const orderId = `UTM${timestamp}${randomDigits}`;
+    
+    // Insert purchase record
+    const purchaseResult = await pool.query(
+      `INSERT INTO purchases (
+        order_id, title, category, price, payment_method, mac_address,
+        cover_image_path, book_file_path, buyer_id, book_id, seller_id
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      RETURNING id`,
+      [
+        orderId,
+        book.title,
+        book.category,
+        book.price,
+        paymentMethod,
+        macAddress,
+        book.cover_image_path,
+        book.book_file_path,
+        buyerId,
+        bookId,
+        book.seller_id
+      ]
+    );
+    
+    // Update book status to Sold
+    await pool.query(
+      `UPDATE books SET status = 'Sold' WHERE id = $1`,
+      [bookId]
+    );
+    
+    // Create message for admin users
+    const admins = await pool.query(
+      `SELECT id FROM users WHERE role = 'admin'`
+    );
+    
+    // Insert messages for all admin users
+    const messagePromises = admins.rows.map(admin => {
+      return pool.query(
+        `INSERT INTO messages (
+          sender_id, recipient_id, subject, content, related_order_id
+        )
+        VALUES ($1, $2, $3, $4, $5)`,
+        [
+          buyerId,
+          admin.id,
+          `New Order: ${orderId}`,
+          `A new purchase has been made:\n\nOrder ID: ${orderId}\nBook: ${book.title}\nPrice: RM${book.price}\nBuyer ID: ${buyerId}\nPayment Method: ${paymentMethod}`,
+          orderId
+        ]
+      );
+    });
+    
+    await Promise.all(messagePromises);
+    
+    res.status(201).json({
+      success: true,
+      message: 'Order placed successfully',
+      orderId: orderId
+    });
+    
+  } catch (err) {
+    console.error('Error placing order:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Error placing order',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+// API endpoint to get user's purchases
+app.get('/api/purchases/my-purchases/:userId', async (req, res) => {
+  const { userId } = req.params;
+  
+  try {
+    const result = await pool.query(
+      `SELECT p.id, p.order_id, p.title, p.category, p.price, p.payment_method,
+              p.mac_address, p.purchase_date, p.order_status, p.cover_image_path,
+              u.username as seller_name
+       FROM purchases p
+       JOIN users u ON p.seller_id = u.id
+       WHERE p.buyer_id = $1
+       ORDER BY p.purchase_date DESC`,
+      [userId]
+    );
+    
+    // Format the results
+    const purchases = result.rows.map(purchase => ({
+      id: purchase.id,
+      orderId: purchase.order_id,
+      title: purchase.title,
+      category: purchase.category,
+      price: parseFloat(purchase.price),
+      paymentMethod: purchase.payment_method,
+      macAddress: purchase.mac_address,
+      purchaseDate: purchase.purchase_date,
+      status: purchase.order_status,
+      coverUrl: `/uploads/${purchase.cover_image_path}`,
+      sellerName: purchase.seller_name
+    }));
+    
+    res.status(200).json({
+      success: true,
+      purchases: purchases
+    });
+    
+  } catch (err) {
+    console.error(`Error fetching purchases for user ${userId}:`, err);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching your purchases',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+// API endpoint to cancel an order
+app.put('/api/purchases/cancel/:orderId', async (req, res) => {
+  const { orderId } = req.params;
+  const { userId } = req.body;
+  
+  try {
+    // Verify the order belongs to the user
+    const orderCheck = await pool.query(
+      'SELECT * FROM purchases WHERE order_id = $1 AND buyer_id = $2',
+      [orderId, userId]
+    );
+    
+    if (orderCheck.rows.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to cancel this order'
+      });
+    }
+    
+    const purchase = orderCheck.rows[0];
+    
+    // Check if the order is already delivered or canceled
+    if (purchase.order_status === 'Delivered' || purchase.order_status === 'Canceled') {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot cancel order that is already ${purchase.order_status.toLowerCase()}`
+      });
+    }
+    
+    // Update purchase status to Canceled
+    await pool.query(
+      `UPDATE purchases SET order_status = 'Canceled' WHERE order_id = $1`,
+      [orderId]
+    );
+    
+    // Update book status back to Available
+    await pool.query(
+      `UPDATE books SET status = 'Available' WHERE id = $1`,
+      [purchase.book_id]
+    );
+    
+    // Create message for admin users about the cancellation
+    const admins = await pool.query(
+      `SELECT id FROM users WHERE role = 'admin'`
+    );
+    
+    // Insert messages for all admin users
+    const messagePromises = admins.rows.map(admin => {
+      return pool.query(
+        `INSERT INTO messages (
+          sender_id, recipient_id, subject, content, related_order_id
+        )
+        VALUES ($1, $2, $3, $4, $5)`,
+        [
+          userId,
+          admin.id,
+          `Order Canceled: ${orderId}`,
+          `An order has been canceled:\n\nOrder ID: ${orderId}\nBook: ${purchase.title}\nPrice: RM${purchase.price}\nBuyer ID: ${userId}`,
+          orderId
+        ]
+      );
+    });
+    
+    await Promise.all(messagePromises);
+    
+    res.status(200).json({
+      success: true,
+      message: 'Order canceled successfully'
+    });
+    
+  } catch (err) {
+    console.error(`Error canceling order ${orderId}:`, err);
+    res.status(500).json({
+      success: false,
+      message: 'Error canceling order',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+// API endpoint to update MAC address for a purchase
+app.put('/api/purchases/update-mac/:orderId', async (req, res) => {
+  const { orderId } = req.params;
+  const { userId, macAddress } = req.body;
+  
+  try {
+    // Verify the order belongs to the user
+    const orderCheck = await pool.query(
+      'SELECT * FROM purchases WHERE order_id = $1 AND buyer_id = $2',
+      [orderId, userId]
+    );
+    
+    if (orderCheck.rows.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to update this order'
+      });
+    }
+    
+    // Update MAC address
+    await pool.query(
+      `UPDATE purchases SET mac_address = $1 WHERE order_id = $2`,
+      [macAddress, orderId]
+    );
+    
+    res.status(200).json({
+      success: true,
+      message: 'MAC address updated successfully'
+    });
+    
+  } catch (err) {
+    console.error(`Error updating MAC address for order ${orderId}:`, err);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating MAC address',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+// Create messages table
+// Add inside initDB function after the books table creation
+await pool.query(`
+  CREATE TABLE IF NOT EXISTS messages (
+    id SERIAL PRIMARY KEY,
+    sender_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+    recipient_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    subject VARCHAR(100) NOT NULL,
+    content TEXT NOT NULL,
+    related_order_id VARCHAR(15),
+    is_read BOOLEAN DEFAULT false,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )
+`);
+
+// API endpoint to get user's messages
+app.get('/api/messages/:userId', async (req, res) => {
+  const { userId } = req.params;
+  
+  try {
+    const result = await pool.query(
+      `SELECT m.id, m.subject, m.content, m.related_order_id, m.is_read, m.created_at,
+              u.username as sender_name
+       FROM messages m
+       JOIN users u ON m.sender_id = u.id
+       WHERE m.recipient_id = $1
+       ORDER BY m.created_at DESC`,
+      [userId]
+    );
+    
+    // Format the results
+    const messages = result.rows.map(message => ({
+      id: message.id,
+      subject: message.subject,
+      content: message.content,
+      relatedOrderId: message.related_order_id,
+      isRead: message.is_read,
+      createdAt: message.created_at,
+      senderName: message.sender_name
+    }));
+    
+    res.status(200).json({
+      success: true,
+      messages: messages
+    });
+    
+  } catch (err) {
+    console.error(`Error fetching messages for user ${userId}:`, err);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching your messages',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+// API endpoint to mark a message as read
+app.put('/api/messages/:messageId/read', async (req, res) => {
+  const { messageId } = req.params;
+  const { userId } = req.body;
+  
+  try {
+    // Verify the message belongs to the user
+    const messageCheck = await pool.query(
+      'SELECT * FROM messages WHERE id = $1 AND recipient_id = $2',
+      [messageId, userId]
+    );
+    
+    if (messageCheck.rows.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to mark this message as read'
+      });
+    }
+    
+    // Update message as read
+    await pool.query(
+      `UPDATE messages SET is_read = true WHERE id = $1`,
+      [messageId]
+    );
+    
+    res.status(200).json({
+      success: true,
+      message: 'Message marked as read'
+    });
+    
+  } catch (err) {
+    console.error(`Error marking message ${messageId} as read:`, err);
+    res.status(500).json({
+      success: false,
+      message: 'Error marking message as read',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+// API endpoint to get purchase details for admin
+app.get('/api/admin/purchases', async (req, res) => {
+  const { userId } = req.query;
+  
+  try {
+    // Verify user is an admin
+    const adminCheck = await pool.query(
+      'SELECT * FROM users WHERE id = $1 AND role = $2',
+      [userId, 'admin']
+    );
+    
+    if (adminCheck.rows.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to view all purchases'
+      });
+    }
+    
+    const result = await pool.query(
+      `SELECT p.id, p.order_id, p.title, p.category, p.price, p.payment_method,
+              p.mac_address, p.purchase_date, p.order_status, p.cover_image_path,
+              b.username as buyer_name, s.username as seller_name
+       FROM purchases p
+       JOIN users b ON p.buyer_id = b.id
+       JOIN users s ON p.seller_id = s.id
+       ORDER BY p.purchase_date DESC`
+    );
+    
+    // Format the results
+    const purchases = result.rows.map(purchase => ({
+      id: purchase.id,
+      orderId: purchase.order_id,
+      title: purchase.title,
+      category: purchase.category,
+      price: parseFloat(purchase.price),
+      paymentMethod: purchase.payment_method,
+      macAddress: purchase.mac_address,
+      purchaseDate: purchase.purchase_date,
+      status: purchase.order_status,
+      coverUrl: `/uploads/${purchase.cover_image_path}`,
+      buyerName: purchase.buyer_name,
+      sellerName: purchase.seller_name
+    }));
+    
+    res.status(200).json({
+      success: true,
+      purchases: purchases
+    });
+    
+  } catch (err) {
+    console.error('Error fetching all purchases:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching purchases',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+
+//////////////////////////////////// [END PlaceOrder & Message Control ] ///////////////////////////////////
+
+
+//////////////////////////////////// [ADMIN CONTROL ] ///////////////////////////////////
+
+// API endpoint for admin to update purchase status
+app.put('/api/admin/purchases/update-status/:orderId', async (req, res) => {
+  const { orderId } = req.params;
+  const { userId, newStatus } = req.body;
+  
+  try {
+    // Verify user is an admin
+    const adminCheck = await pool.query(
+      'SELECT * FROM users WHERE id = $1 AND role = $2',
+      [userId, 'admin']
+    );
+    
+    if (adminCheck.rows.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to update order status'
+      });
+    }
+    
+    // Update purchase status
+    await pool.query(
+      `UPDATE purchases SET order_status = $1 WHERE order_id = $2`,
+      [newStatus, orderId]
+    );
+    
+    // If status is changed to Canceled, update book status back to Available
+    if (newStatus === 'Canceled') {
+      const purchase = await pool.query(
+        'SELECT book_id FROM purchases WHERE order_id = $1',
+        [orderId]
+      );
+      
+      if (purchase.rows.length > 0) {
+        await pool.query(
+          `UPDATE books SET status = 'Available' WHERE id = $1`,
+          [purchase.rows[0].book_id]
+        );
+      }
+    }
+    
+    res.status(200).json({
+      success: true,
+      message: 'Status updated successfully'
+    });
+    
+  } catch (err) {
+    console.error(`Error updating status for order ${orderId}:`, err);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating status',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+//////////////////////////////////// [ END ADMIN CONTROL ] ///////////////////////////////////
 
 
 
@@ -787,6 +1288,10 @@ app.get('/account', (req, res) => {
 
 app.get('/place-order', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/webpages/place-order.html'));
+});
+
+app.get('/messages', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/webpages/messages.html'));
 });
 
 // Start server and initialize database

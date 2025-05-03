@@ -115,9 +115,39 @@ angular.module('placeOrderApp', [])
         return;
       }
       
-      // Show confirmation message (placeholder)
-      showToast('Order placed successfully! This is a demo.', 'success');
+      // Validate MAC address format (XX:XX:XX:XX:XX:XX)
+      const macRegex = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/;
+      if (!macRegex.test($scope.macAddress)) {
+        showToast('Please enter a valid MAC address format (XX:XX:XX:XX:XX:XX)', 'error');
+        return;
+      }
       
+      // Prepare order data
+      const orderData = {
+        bookId: parseInt(bookId),
+        buyerId: $scope.user.id,
+        paymentMethod: $scope.payment.method,
+        macAddress: $scope.macAddress
+      };
+      
+      // Send order to server
+      $http.post('/api/purchases/place-order', orderData)
+        .then(function(response) {
+          if (response.data.success) {
+            showToast('Order placed successfully! Order ID: ' + response.data.orderId, 'success');
+            
+            // Redirect to the orders page after a delay
+            setTimeout(function() {
+              $window.location.href = '/order';
+            }, 3000);
+          } else {
+            showToast('Error: ' + response.data.message, 'error');
+          }
+        })
+        .catch(function(error) {
+          console.error('Error placing order:', error);
+          showToast('Server error. Please try again later.', 'error');
+        });
     };
     
     // Helper function to show toast notifications

@@ -75,16 +75,82 @@
                     <h2 class="section-title">My Purchases</h2>
                     
                     <div class="book-list">
-                        <div class="book-item" ng-repeat="purchase in myPurchases">
-
+                      <div class="book-item" ng-repeat="purchase in myPurchases">
+                        <div class="book-cover">
+                          <img ng-src="{{ purchase.coverUrl }}" alt="{{ purchase.title }}">
+                        </div>
+                        <div class="book-details">
+                          <h3>{{ purchase.title }}</h3>
+                          <p class="book-meta">
+                            <span class="book-category">{{ purchase.category }}</span>
+                            <span class="book-price">RM{{ purchase.price.toFixed(2) }}</span>
+                          </p>
+                          <p class="order-id">Order ID: {{ purchase.orderId }}</p>
+                          <p class="seller-info">Seller: {{ purchase.sellerName }}</p>
+                          <p class="status">Status: <span ng-class="{'status-pending': purchase.status === 'Pending', 'status-delivered': purchase.status === 'Delivered', 'status-canceled': purchase.status === 'Canceled'}">{{ purchase.status }}</span></p>
+                          <p class="mac-address">MAC Address: {{ purchase.macAddress }}</p>
+                          <p class="purchase-date">Purchased on: {{ purchase.purchaseDate | date:'mediumDate' }}</p>
+                          <div class="book-actions">
+                            <button class="btn-download" ng-if="purchase.status !== 'Canceled'">
+                              <i class="fas fa-download"></i> Download
+                            </button>
+                            <button class="btn-edit" ng-click="editMAC(purchase)" ng-if="purchase.status !== 'Canceled'">
+                              <i class="fas fa-edit"></i> Edit MAC
+                            </button>
+                            <button class="btn-cancel" ng-click="cancelOrder(purchase)" ng-if="purchase.status === 'Pending'">
+                              <i class="fas fa-times"></i> Cancel Order
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <!-- Empty Purchases Message -->
+                      <div class="empty-message" ng-if="myPurchases.length === 0">
+                        <p>You haven't purchased any books yet. Check out the <a href="/dashboard">Dashboard</a> to find books to purchase!</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Add this modal for editing MAC address -->
+                  <div class="modal" ng-class="{'show-modal': showEditMACModal}">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h2>Edit MAC Address</h2>
+                        <button class="close-button" ng-click="closeEditMACModal()">
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </div>
+                      
+                      <div class="modal-body">
+                        <div class="alert alert-success" ng-if="successMessage">
+                          <i class="fas fa-check-circle"></i> {{ successMessage }}
                         </div>
                         
-                        <!-- Empty Purchases Message -->
-                        <div class="empty-message" ng-if="myPurchases.length === 0">
-                            <p>You haven't purchased any books yet.</p>
+                        <div class="alert alert-danger" ng-if="errorMessage">
+                          <i class="fas fa-exclamation-circle"></i> {{ errorMessage }}
                         </div>
+                        
+                        <form class="edit-mac-form" ng-submit="updateMAC()">
+                          <div class="form-group">
+                            <label>Book: {{ editedPurchase.title }}</label>
+                          </div>
+                          
+                          <div class="form-group">
+                            <label for="edit-mac">MAC Address *</label>
+                            <input type="text" id="edit-mac" ng-model="editedPurchase.macAddress" placeholder="XX:XX:XX:XX:XX:XX" required>
+                            <p class="input-help">Format: XX:XX:XX:XX:XX:XX (where X is a hexadecimal digit)</p>
+                          </div>
+                          
+                          <div class="form-actions">
+                            <button type="button" class="btn-secondary" ng-click="closeEditMACModal()">Cancel</button>
+                            <button type="submit" class="btn-primary">
+                              <i class="fas fa-save"></i> Update MAC Address
+                            </button>
+                          </div>
+                        </form>
+                      </div>
                     </div>
-                </div>
+                  </div>
                 
                 <!-- My Sales Section -->
                 <div class="sales-section">

@@ -34,6 +34,7 @@ angular.module('orderApp', [])
     
     // Initialize arrays for the order page
     $scope.mySales = [];
+    $scope.myPurchases = [];
 
     
         // Function to set active tab and handle navigation
@@ -295,4 +296,121 @@ angular.module('orderApp', [])
         }
       }
     });
+
+
+    // Load user's purchases
+    function loadMyPurchases() {
+      $http.get('/api/purchases/my-purchases/' + $scope.user.id)
+        .then(function(response) {
+          if (response.data.success) {
+            $scope.myPurchases = response.data.purchases;
+          } else {
+            console.error('Error loading my purchases:', response.data.message);
+            showToast('Error loading your purchases', 'error');
+          }
+        })
+        .catch(function(error) {
+          console.error('Error loading my purchases:', error);
+          showToast('Server error. Please try again later.', 'error');
+        });
+    }
+
+    // Call loadMyPurchases after loadMySales
+    // Load data on page load
+    loadMySales();
+    loadMyPurchases();
+
+    // Add functions for purchase management
+    // Function to cancel an order
+    $scope.cancelOrder = function(purchase) {
+      if (confirm('Are you sure you want to cancel this order? This action cannot be undone.')) {
+        $http.put('/api/purchases/cancel/' + purchase.orderId, { userId: $scope.user.id })
+          .then(function(response) {
+            if (response.data.success) {
+              // Update the purchase in the list
+              for (var i = 0; i < $scope.myPurchases.length; i++) {
+                if ($scope.myPurchases[i].orderId === purchase.orderId) {
+                  $scope.myPurchases[i].status = 'Canceled';
+                  break;
+                }
+              }
+              
+              showToast('Order canceled successfully', 'success');
+            } else {
+              showToast('Error: ' + response.data.message, 'error');
+            }
+          })
+          .catch(function(error) {
+            console.error('Error canceling order:', error);
+            showToast('Server error. Please try again later.', 'error');
+          });
+      }
+    };
+
+    // Function to open edit MAC address modal
+    $scope.editMAC = function(purchase) {
+      $scope.successMessage = null;
+      $scope.errorMessage = null;
+      
+      $scope.editedPurchase = {
+        orderId: purchase.orderId,
+        title: purchase.title,
+        macAddress: purchase.macAddress
+      };
+      
+      $scope.showEditMACModal = true;
+    };
+
+    // Close edit MAC modal
+    $scope.closeEditMACModal = function() {
+      $scope.showEditMACModal = false;
+    };
+
+    // Update MAC address function
+    $scope.updateMAC = function() {
+      // Validate MAC address format
+      const macRegex = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/;
+      if (!macRegex.test($scope.editedPurchase.macAddress)) {
+        $scope.errorMessage = 'Please enter a valid MAC address format (XX:XX:XX:XX:XX:XX)';
+        return;
+      }
+      
+      // Clear previous messages
+      $scope.errorMessage = null;
+      $scope.successMessage = null;
+      
+      // Send update to server
+      $http.put('/api/purchases/update-mac/' + $scope.editedPurchase.orderId, {
+        userId: $scope.user.id,
+        macAddress: $scope.editedPurchase.macAddress
+      }).then(function(response) {
+        if (response.data.success) {
+          $scope.successMessage = 'MAC address updated successfully!';
+          
+          // Update the purchase in the list
+          for (var i = 0; i < $scope.myPurchases.length; i++) {
+            if ($scope.myPurchases[i].orderId === $scope.editedPurchase.orderId) {
+              $scope.myPurchases[i].macAddress = $scope.editedPurchase.macAddress;
+              break;
+            }
+          }
+          
+          // Close modal after a short delay
+          setTimeout(function() {
+            $scope.showEditMACModal = false;
+            $scope.$apply();
+          }, 1500);
+          
+        } else {
+          $scope.errorMessage = response.data.message || 'Error updating MAC address';
+        }
+      }).catch(function(error) {
+        console.error('Error updating MAC address:', error);
+        $scope.errorMessage = 'Server error. Please try again later.';
+      });
+    };
+
+
+
+
   }]);

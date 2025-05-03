@@ -4,18 +4,18 @@ UTMeBookVer2/
 │   ├── webpages/                    # HTML Files
 │   │   └── dashboard.html
 │   │   └── order.html
-│   │   └── add-ebook.html
+│   │   └── place-order.html
 │   │
 │   ├── webfunctions/                # JS Files
 │   │   └── dashboardApp.js
-│   │   └── addEbookApp.js
 │   │   └── orderApp.js
+│   │   └── placeOrderApp.js
 │   │
 │   ├── webstyles/                   # CSS Files and others
 │   │   ├── css/
 │   │   │   └── dashboard.css
 │   │   │   └── order.css
-│   │   │   └── add-ebook.css
+│   │   │   └── placeorder.css
 │   │   │   └── mobile-styles.css
 │   │   └── img/
 │   │       └── placeholder.svg
