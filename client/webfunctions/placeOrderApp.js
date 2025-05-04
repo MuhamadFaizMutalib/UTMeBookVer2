@@ -206,43 +206,18 @@ angular.module('placeOrderApp', [])
       }
       
       // Show loading state
-      showToast('Processing payment...', 'info');
+      showToast('Processing order...', 'info');
       
-      // Create payment intent on server
-      createPaymentIntent()
-        .then(function(response) {
-          if (!response.data.clientSecret) {
-            throw new Error('No client secret returned');
-          }
-          
-          // Confirm payment with Stripe
-          return stripe.confirmPayment({
-            elements,
-            clientSecret: response.data.clientSecret,
-            confirmParams: {
-              return_url: window.location.origin + '/order-confirmation',
-            },
-            redirect: 'if_required'
-          });
-        })
-        .then(function(result) {
-          if (result.error) {
-            // Show error to customer
-            showToast(result.error.message, 'error');
-            return;
-          }
-          
-          // Payment successful, now place the order
-          const orderData = {
-            bookId: parseInt(bookId),
-            buyerId: $scope.user.id,
-            paymentMethod: 'stripe',
-            macAddress: $scope.macAddress,
-            paymentIntentId: result.paymentIntent.id
-          };
-          
-          return $http.post('/api/purchases/place-order', orderData);
-        })
+      // Skip payment processing and go directly to placing the order
+      const orderData = {
+        bookId: parseInt(bookId),
+        buyerId: $scope.user.id,
+        paymentMethod: 'bypass', // Indicate this is a bypassed payment
+        macAddress: $scope.macAddress,
+        paymentIntentId: null    // No payment intent since we're bypassing
+      };
+      
+      $http.post('/api/purchases/place-order', orderData)
         .then(function(response) {
           if (response && response.data.success) {
             showToast('Order placed successfully! Order ID: ' + response.data.orderId, 'success');
@@ -256,8 +231,8 @@ angular.module('placeOrderApp', [])
           }
         })
         .catch(function(error) {
-          console.error('Error processing payment or placing order:', error);
-          showToast('Payment processing failed. Please try again.', 'error');
+          console.error('Error placing order:', error);
+          showToast('Failed to place order. Please try again.', 'error');
         });
     };
     

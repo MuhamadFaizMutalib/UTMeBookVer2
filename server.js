@@ -792,7 +792,7 @@ app.post('/api/purchases/place-order', async (req, res) => {
       buyerId, 
       paymentMethod, 
       macAddress,
-      paymentIntentId  // New field for Stripe integration
+      paymentIntentId 
     } = req.body;
     
     // Fetch book information
@@ -815,14 +815,14 @@ app.post('/api/purchases/place-order', async (req, res) => {
     const randomDigits = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
     const orderId = `UTM${timestamp}${randomDigits}`;
     
-    // Insert purchase record with payment intent ID if available
+    // Insert purchase record
     const purchaseResult = await pool.query(
       `INSERT INTO purchases (
         order_id, title, category, price, payment_method, mac_address,
         cover_image_path, book_file_path, buyer_id, book_id, seller_id,
-        payment_intent_id
+        payment_intent_id, order_status
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
       RETURNING id`,
       [
         orderId,
@@ -836,15 +836,18 @@ app.post('/api/purchases/place-order', async (req, res) => {
         buyerId,
         bookId,
         book.seller_id,
-        paymentIntentId || null  // Store payment intent ID if provided
+        paymentIntentId || null,
+        paymentMethod === 'bypass' ? 'Pending' : 'Processing'  // Different status for bypassed payments
       ]
     );
     
-    // Update book status to Sold
-    await pool.query(
-      `UPDATE books SET status = 'Sold' WHERE id = $1`,
-      [bookId]
-    );
+    // Don't update book status to Sold for bypassed payments (optional)
+    if (paymentMethod !== 'bypass') {
+      await pool.query(
+        `UPDATE books SET status = 'Sold' WHERE id = $1`,
+        [bookId]
+      );
+    }
     
     // Create message for admin users
     const admins = await pool.query(
@@ -861,8 +864,8 @@ app.post('/api/purchases/place-order', async (req, res) => {
         [
           buyerId,
           admin.id,
-          `New Order: ${orderId}`,
-          `A new purchase has been made:\n\nOrder ID: ${orderId}\nBook: ${book.title}\nPrice: RM${book.price}\nBuyer ID: ${buyerId}\nPayment Method: ${paymentMethod}${paymentIntentId ? '\nPayment Intent: ' + paymentIntentId : ''}`,
+          `New Order: ${orderId} ${paymentMethod === 'bypass' ? '(BYPASSED)' : ''}`,
+          `A new purchase has been made:\n\nOrder ID: ${orderId}\nBook: ${book.title}\nPrice: RM${book.price}\nBuyer ID: ${buyerId}\nPayment Method: ${paymentMethod}${paymentMethod === 'bypass' ? '\n⚠️ PAYMENT WAS BYPASSED' : ''}${paymentIntentId ? '\nPayment Intent: ' + paymentIntentId : ''}`,
           orderId
         ]
       );
