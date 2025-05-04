@@ -837,17 +837,15 @@ app.post('/api/purchases/place-order', async (req, res) => {
         bookId,
         book.seller_id,
         paymentIntentId || null,
-        paymentMethod === 'bypass' ? 'Pending' : 'Processing'  // Different status for bypassed payments
+        paymentMethod === 'bypass' ? 'Pending' : 'Processing'
       ]
     );
     
-    // Don't update book status to Sold for bypassed payments (optional)
-    if (paymentMethod !== 'bypass') {
-      await pool.query(
-        `UPDATE books SET status = 'Sold' WHERE id = $1`,
-        [bookId]
-      );
-    }
+    // Always update book status to Sold, regardless of payment method
+    await pool.query(
+      `UPDATE books SET status = 'Sold' WHERE id = $1`,
+      [bookId]
+    );
     
     // Create message for admin users
     const admins = await pool.query(
