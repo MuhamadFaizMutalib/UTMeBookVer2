@@ -116,7 +116,7 @@ angular.module('placeOrderApp', [])
       }
     };
 
-    
+
   
     function loadBookDetails() {
       $http.get('/api/books/' + bookId)
@@ -212,49 +212,9 @@ angular.module('placeOrderApp', [])
         return;
       }
       
-      // Check if Payment Element is filled
-      // We can check if Payment Element has a value by trying to submit
-      elements.submit()
-        .then(function() {
-          // Payment Element has valid data, proceed with real payment
-          showToast('Processing payment...', 'info');
-          
-          return createPaymentIntent();
-        })
-        .then(function(response) {
-          if (!response.data.clientSecret) {
-            throw new Error('No client secret returned');
-          }
-          
-          // Confirm payment with Stripe
-          return stripe.confirmPayment({
-            elements,
-            clientSecret: response.data.clientSecret,
-            confirmParams: {
-              return_url: window.location.origin + '/order-confirmation',
-            },
-            redirect: 'if_required'
-          });
-        })
-        .then(function(result) {
-          if (result.error) {
-            // Show error to customer
-            showToast(result.error.message, 'error');
-            return;
-          }
-          
-          // Payment successful, now place the order
-          return placeOrderWithPayment(result.paymentIntent.id);
-        })
-        .catch(function(error) {
-          console.error('Payment error:', error);
-          // If payment fails or no payment info provided, bypass payment
-          showToast('No payment information provided. Proceeding without payment...', 'info');
-          placeOrderWithoutPayment();
-        });
+      // Skip Stripe completely and place order
+      placeOrderWithoutPayment();
     };
-
-
 
     // Function to place order with successful payment
     function placeOrderWithPayment(paymentIntentId) {
@@ -309,7 +269,6 @@ angular.module('placeOrderApp', [])
           showToast('Failed to place order. Please try again.', 'error');
         });
     }
-
 
     
     // Helper function to show toast notifications
