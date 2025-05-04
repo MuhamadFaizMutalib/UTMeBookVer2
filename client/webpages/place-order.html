@@ -10,18 +10,6 @@
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
     <script src="https://js.stripe.com/v3/"></script>
     <script src="../webfunctions/placeOrderApp.js"></script>
-    <script>
-        // Check if we're in testing mode and add badge
-        document.addEventListener('DOMContentLoaded', function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('testing') === 'true') {
-                const badge = document.createElement('div');
-                badge.className = 'test-mode-badge';
-                badge.textContent = 'TEST MODE';
-                document.body.appendChild(badge);
-            }
-        });
-    </script>
 </head>
 <body ng-app="placeOrderApp" ng-controller="PlaceOrderController">
     <div class="place-order-container">

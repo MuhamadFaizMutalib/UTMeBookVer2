@@ -436,16 +436,16 @@ a {
 /* Stripe-specific styles */
 #stripe-payment-element {
     margin-bottom: 20px;
-}
-
-.card-errors {
+  }
+  
+  .card-errors {
     color: #dc3545;
     margin-top: 10px;
     font-size: 14px;
-}
-
-/* Loading spinner for payment processing */
-.loading-spinner {
+  }
+  
+  /* Loading spinner for payment processing */
+  .loading-spinner {
     display: inline-block;
     width: 20px;
     height: 20px;
@@ -454,46 +454,8 @@ a {
     border-top-color: white;
     animation: spin 1s ease-in-out infinite;
     margin-right: 10px;
-}
-
-@keyframes spin {
+  }
+  
+  @keyframes spin {
     to { transform: rotate(360deg); }
-}
-
-/* Mock payment element styles */
-.mock-payment-element {
-    background-color: #f9f9f9;
-    border-radius: 8px;
-}
-
-.mock-payment-element h4 {
-    color: #333;
-    font-size: 16px;
-    margin-bottom: 10px;
-}
-
-#mock-payment-method {
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    background-color: white;
-    font-size: 14px;
-}
-
-.mock-payment-element p {
-    margin-bottom: 10px;
-}
-
-/* Badge for test mode */
-.test-mode-badge {
-    position: fixed;
-    top: 10px;
-    right: 10px;
-    background-color: #ff6b6b;
-    color: white;
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-weight: bold;
-    z-index: 1000;
-    font-size: 14px;
-}
+  }
