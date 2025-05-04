@@ -30,7 +30,7 @@ angular.module('placeOrderApp', [])
     $scope.mobileMenuOpen = false;
     
     // Add Stripe payment link
-    $scope.stripePaymentLink = 'https://buy.stripe.com/test_eVadQQ97z4lWc125kk';
+    $scope.stripePaymentLink = 'https://buy.stripe.com/test_cN2bIIcjL8Cc1mofYZ';
     
     // Toggle mobile menu
     $scope.toggleMobileMenu = function() {
