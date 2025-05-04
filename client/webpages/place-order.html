@@ -10,6 +10,98 @@
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
     <script src="https://js.stripe.com/v3/"></script>
     <script src="../webfunctions/placeOrderApp.js"></script>
+    <style>
+        /* Additional styles for payment options */
+        .payment-options {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .payment-method {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .payment-method:hover {
+            border-color: #0066cc;
+            box-shadow: 0 2px 8px rgba(0, 102, 204, 0.1);
+        }
+        
+        .payment-method.selected {
+            border-color: #0066cc;
+            background-color: rgba(0, 102, 204, 0.05);
+        }
+        
+        .payment-method-icon {
+            flex: 0 0 40px;
+            font-size: 20px;
+            color: #0066cc;
+            text-align: center;
+        }
+        
+        .payment-method-details {
+            flex: 1;
+            margin-left: 15px;
+        }
+        
+        .payment-method-title {
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+        
+        .payment-method-description {
+            font-size: 0.85rem;
+            color: #666;
+        }
+        
+        .btn-place-order, .btn-stripe-payment {
+            min-width: 180px;
+            padding: 12px 25px;
+        }
+        
+        .btn-stripe-payment {
+            background: linear-gradient(135deg, #6772e5, #4350b8);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .btn-stripe-payment:hover {
+            background: linear-gradient(135deg, #5b66d9, #3a47ad);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(103, 114, 229, 0.25);
+        }
+        
+        .btn-place-order {
+            background-color: #ff9800;
+        }
+        
+        .btn-place-order:hover {
+            background-color: #f57c00;
+        }
+        
+        .order-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+    </style>
 </head>
 <body ng-app="placeOrderApp" ng-controller="PlaceOrderController">
     <div class="place-order-container">
@@ -85,17 +177,41 @@
             
             <!-- Payment Method Section -->
             <div class="payment-section">
-                <h3>Payment Method (Optional)</h3>
+                <h3>Payment Method</h3>
                 <p style="color: #666; margin-bottom: 15px;">
-                  Enter payment details for secure payment, or proceed without payment for testing.
+                  Choose your preferred payment method or proceed without payment for testing.
                 </p>
+                
                 <div class="payment-options">
-                  <div id="stripe-payment-element">
-                    <!-- Stripe Elements will be inserted here -->
-                  </div>
-                  <div class="card-errors" role="alert"></div>
+                    <!-- Stripe Payment Option -->
+                    <div class="payment-method" ng-class="{'selected': paymentMethod === 'stripe'}" 
+                         ng-click="paymentMethod = 'stripe'">
+                        <div class="payment-method-icon">
+                            <i class="fab fa-stripe-s"></i>
+                        </div>
+                        <div class="payment-method-details">
+                            <div class="payment-method-title">Pay with Stripe</div>
+                            <div class="payment-method-description">
+                                Secure payment with credit/debit card or digital wallet
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Bypass Payment Option -->
+                    <div class="payment-method" ng-class="{'selected': paymentMethod === 'bypass'}" 
+                         ng-click="paymentMethod = 'bypass'">
+                        <div class="payment-method-icon">
+                            <i class="fas fa-hand-holding-usd"></i>
+                        </div>
+                        <div class="payment-method-details">
+                            <div class="payment-method-title">Bypass Payment (Demo)</div>
+                            <div class="payment-method-description">
+                                Skip payment for testing purposes only
+                            </div>
+                        </div>
+                    </div>
                 </div>
-              </div>
+            </div>
             
             <!-- MAC Address Section -->
             <div class="mac-address-section">
@@ -115,8 +231,11 @@
             
             <!-- Place Order Button -->
             <div class="order-actions">
-                <button class="btn-place-order" ng-click="placeOrder()">
-                    Place Order
+                <button class="btn-stripe-payment" ng-if="paymentMethod === 'stripe'" ng-click="goToStripePayment()">
+                    <i class="fab fa-stripe-s"></i> Pay with Stripe
+                </button>
+                <button class="btn-place-order" ng-if="paymentMethod === 'bypass'" ng-click="placeOrder()">
+                    <i class="fas fa-bolt"></i> Bypass Payment
                 </button>
             </div>
         </section>

@@ -29,52 +29,13 @@ angular.module('placeOrderApp', [])
     // Mobile menu state
     $scope.mobileMenuOpen = false;
     
+    // Add Stripe payment link
+    $scope.stripePaymentLink = 'https://buy.stripe.com/test_eVadQQ97z4lWc125kk';
+    
     // Toggle mobile menu
     $scope.toggleMobileMenu = function() {
       $scope.mobileMenuOpen = !$scope.mobileMenuOpen;
     };
-    
-    // Initialize Stripe elements
-    let stripe = null;
-    let elements = null;
-    let paymentElement = null;
-    
-    // Function to initialize Stripe
-    function initStripe() {
-      // Initialize Stripe with your publishable key from environment
-      // The publishable key is safe to include in client-side code
-      stripe = Stripe(stripePublishableKey); // This will be defined elsewhere
-      
-      // Create payment element options
-      const options = {
-        mode: 'payment',
-        amount: Math.round($scope.book.price * 100), // Convert to cents
-        currency: 'myr',
-        appearance: {
-          theme: 'stripe',
-          variables: {
-            colorPrimary: '#0066cc',
-          },
-        },
-      };
-      
-      // Create elements instance
-      elements = stripe.elements(options);
-      
-      // Create and mount the Payment Element
-      paymentElement = elements.create('payment');
-      paymentElement.mount('#stripe-payment-element');
-      
-      // Handle real-time validation errors
-      paymentElement.on('change', function(event) {
-        const displayError = document.querySelector('.card-errors');
-        if (event.error) {
-          displayError.textContent = event.error.message;
-        } else {
-          displayError.textContent = '';
-        }
-      });
-    }
     
     // Initialize MAC address
     $scope.macAddress = '';
@@ -82,6 +43,9 @@ angular.module('placeOrderApp', [])
     // Initialize modal state
     $scope.showInstructionModal = false;
     $scope.instructionType = '';
+    
+    // Payment method selection
+    $scope.paymentMethod = 'bypass'; // Default to bypass
     
     // Function to set active tab and handle navigation
     $scope.setActiveTab = function(tab) {
@@ -116,67 +80,22 @@ angular.module('placeOrderApp', [])
       }
     };
 
-
-  
+    // Function to load book details
     function loadBookDetails() {
       $http.get('/api/books/' + bookId)
         .then(function(response) {
           if (response.data.success) {
             $scope.book = response.data.book;
-            return $http.get('/api/stripe-config');
           } else {
             console.error('Error loading book details:', response.data.message);
             showToast('Error loading book details', 'error');
-            throw new Error('Failed to load book details');
-          }
-        })
-        .then(function(response) {
-          if (response && response.data && response.data.publishableKey) {
-            try {
-              // Initialize Stripe with the publishable key from the server
-              stripe = Stripe(response.data.publishableKey);
-              
-              // Create payment element options
-              const options = {
-                mode: 'payment',
-                amount: Math.round($scope.book.price * 100), // Convert to cents
-                currency: 'myr',
-                appearance: {
-                  theme: 'stripe',
-                  variables: {
-                    colorPrimary: '#0066cc',
-                  },
-                },
-              };
-              
-              // Create elements instance
-              elements = stripe.elements(options);
-              
-              // Create and mount the Payment Element
-              paymentElement = elements.create('payment');
-              paymentElement.mount('#stripe-payment-element');
-              
-              // Handle real-time validation errors
-              paymentElement.on('change', function(event) {
-                const displayError = document.querySelector('.card-errors');
-                if (event.error) {
-                  displayError.textContent = event.error.message;
-                } else {
-                  displayError.textContent = '';
-                }
-              });
-            } catch (error) {
-              console.error('Error initializing Stripe:', error);
-              showToast('Payment system not available. You can still place the order.', 'info');
-            }
           }
         })
         .catch(function(error) {
-          console.error('Error loading book details or initializing Stripe:', error);
-          showToast('Payment system not available. You can still place the order.', 'info');
+          console.error('Error loading book details:', error);
+          showToast('Error loading book details', 'error');
         });
     }
-
 
     // Function to show instructions modal
     $scope.showInstructions = function(type) {
@@ -189,15 +108,30 @@ angular.module('placeOrderApp', [])
       $scope.showInstructionModal = false;
     };
     
-    // Function to create payment intent on the server
-    function createPaymentIntent() {
-      return $http.post('/api/create-payment-intent', {
-        amount: Math.round($scope.book.price * 100),
-        currency: 'myr'
-      });
-    }
+    // Function to handle place order action with Stripe payment
+    $scope.goToStripePayment = function() {
+      // Validate MAC address
+      if (!$scope.macAddress) {
+        showToast('Please enter your MAC address', 'error');
+        return;
+      }
+      
+      // Validate MAC address format (XX:XX:XX:XX:XX:XX)
+      const macRegex = /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/;
+      if (!macRegex.test($scope.macAddress)) {
+        showToast('Please enter a valid MAC address format (XX:XX:XX:XX:XX:XX)', 'error');
+        return;
+      }
+
+      // Store MAC address in localStorage for retrieval after payment
+      localStorage.setItem('pendingOrderMacAddress', $scope.macAddress);
+      localStorage.setItem('pendingOrderBookId', bookId);
+      
+      // Redirect to Stripe payment link
+      window.location.href = $scope.stripePaymentLink;
+    };
     
-    // Function to handle place order action
+    // Function to place order without payment (bypass)
     $scope.placeOrder = function() {
       // Validate MAC address
       if (!$scope.macAddress) {
@@ -215,33 +149,6 @@ angular.module('placeOrderApp', [])
       // Skip Stripe completely and place order
       placeOrderWithoutPayment();
     };
-
-    // Function to place order with successful payment
-    function placeOrderWithPayment(paymentIntentId) {
-      const orderData = {
-        bookId: parseInt(bookId),
-        buyerId: $scope.user.id,
-        paymentMethod: 'stripe',
-        macAddress: $scope.macAddress,
-        paymentIntentId: paymentIntentId
-      };
-      
-      $http.post('/api/purchases/place-order', orderData)
-        .then(function(response) {
-          if (response && response.data.success) {
-            showToast('Order placed successfully! Order ID: ' + response.data.orderId, 'success');
-            setTimeout(function() {
-              $window.location.href = '/order';
-            }, 3000);
-          } else if (response) {
-            showToast('Error: ' + response.data.message, 'error');
-          }
-        })
-        .catch(function(error) {
-          console.error('Error placing order:', error);
-          showToast('Failed to place order. Please try again.', 'error');
-        });
-    }
 
     // Function to place order without payment (bypass)
     function placeOrderWithoutPayment() {
@@ -270,6 +177,49 @@ angular.module('placeOrderApp', [])
         });
     }
 
+    // Check if returning from Stripe payment
+    function checkReturnFromStripe() {
+      const returnStatus = urlParams.get('stripe_status');
+      
+      if (returnStatus === 'success') {
+        // Get the previously stored MAC address and book ID
+        const macAddress = localStorage.getItem('pendingOrderMacAddress');
+        const storedBookId = localStorage.getItem('pendingOrderBookId');
+        
+        if (macAddress && storedBookId && storedBookId === bookId) {
+          // Clear stored data
+          localStorage.removeItem('pendingOrderMacAddress');
+          localStorage.removeItem('pendingOrderBookId');
+          
+          // Place the order with 'stripe' as payment method
+          const orderData = {
+            bookId: parseInt(bookId),
+            buyerId: $scope.user.id,
+            paymentMethod: 'stripe',
+            macAddress: macAddress,
+            paymentIntentId: urlParams.get('payment_intent') || 'stripe_hosted_checkout'
+          };
+          
+          $http.post('/api/purchases/place-order', orderData)
+            .then(function(response) {
+              if (response && response.data.success) {
+                showToast('Payment successful! Order placed. Order ID: ' + response.data.orderId, 'success');
+                setTimeout(function() {
+                  $window.location.href = '/order';
+                }, 3000);
+              } else if (response) {
+                showToast('Error: ' + response.data.message, 'error');
+              }
+            })
+            .catch(function(error) {
+              console.error('Error placing order:', error);
+              showToast('Failed to place order. Please try again.', 'error');
+            });
+        }
+      } else if (returnStatus === 'cancel') {
+        showToast('Payment was canceled. You can try again or use the bypass option.', 'info');
+      }
+    }
     
     // Helper function to show toast notifications
     function showToast(message, type) {
@@ -319,4 +269,7 @@ angular.module('placeOrderApp', [])
     
     // Load book details on page load
     loadBookDetails();
+    
+    // Check if returning from Stripe payment
+    checkReturnFromStripe();
   }]);
