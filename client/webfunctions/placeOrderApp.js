@@ -115,14 +115,14 @@ angular.module('placeOrderApp', [])
           break;
       }
     };
+
+    
   
     function loadBookDetails() {
       $http.get('/api/books/' + bookId)
         .then(function(response) {
           if (response.data.success) {
             $scope.book = response.data.book;
-            
-            // Get Stripe publishable key from server instead of hardcoding it
             return $http.get('/api/stripe-config');
           } else {
             console.error('Error loading book details:', response.data.message);
@@ -131,42 +131,49 @@ angular.module('placeOrderApp', [])
           }
         })
         .then(function(response) {
-          // Initialize Stripe with the publishable key from the server
-          stripe = Stripe(response.data.publishableKey);
-          
-          // Create payment element options
-          const options = {
-            mode: 'payment',
-            amount: Math.round($scope.book.price * 100), // Convert to cents
-            currency: 'myr',
-            appearance: {
-              theme: 'stripe',
-              variables: {
-                colorPrimary: '#0066cc',
-              },
-            },
-          };
-          
-          // Create elements instance
-          elements = stripe.elements(options);
-          
-          // Create and mount the Payment Element
-          paymentElement = elements.create('payment');
-          paymentElement.mount('#stripe-payment-element');
-          
-          // Handle real-time validation errors
-          paymentElement.on('change', function(event) {
-            const displayError = document.querySelector('.card-errors');
-            if (event.error) {
-              displayError.textContent = event.error.message;
-            } else {
-              displayError.textContent = '';
+          if (response && response.data && response.data.publishableKey) {
+            try {
+              // Initialize Stripe with the publishable key from the server
+              stripe = Stripe(response.data.publishableKey);
+              
+              // Create payment element options
+              const options = {
+                mode: 'payment',
+                amount: Math.round($scope.book.price * 100), // Convert to cents
+                currency: 'myr',
+                appearance: {
+                  theme: 'stripe',
+                  variables: {
+                    colorPrimary: '#0066cc',
+                  },
+                },
+              };
+              
+              // Create elements instance
+              elements = stripe.elements(options);
+              
+              // Create and mount the Payment Element
+              paymentElement = elements.create('payment');
+              paymentElement.mount('#stripe-payment-element');
+              
+              // Handle real-time validation errors
+              paymentElement.on('change', function(event) {
+                const displayError = document.querySelector('.card-errors');
+                if (event.error) {
+                  displayError.textContent = event.error.message;
+                } else {
+                  displayError.textContent = '';
+                }
+              });
+            } catch (error) {
+              console.error('Error initializing Stripe:', error);
+              showToast('Payment system not available. You can still place the order.', 'info');
             }
-          });
+          }
         })
         .catch(function(error) {
           console.error('Error loading book details or initializing Stripe:', error);
-          showToast('Server error. Please try again later.', 'error');
+          showToast('Payment system not available. You can still place the order.', 'info');
         });
     }
 
@@ -205,24 +212,64 @@ angular.module('placeOrderApp', [])
         return;
       }
       
-      // Show loading state
-      showToast('Processing order...', 'info');
-      
-      // Skip payment processing and go directly to placing the order
+      // Check if Payment Element is filled
+      // We can check if Payment Element has a value by trying to submit
+      elements.submit()
+        .then(function() {
+          // Payment Element has valid data, proceed with real payment
+          showToast('Processing payment...', 'info');
+          
+          return createPaymentIntent();
+        })
+        .then(function(response) {
+          if (!response.data.clientSecret) {
+            throw new Error('No client secret returned');
+          }
+          
+          // Confirm payment with Stripe
+          return stripe.confirmPayment({
+            elements,
+            clientSecret: response.data.clientSecret,
+            confirmParams: {
+              return_url: window.location.origin + '/order-confirmation',
+            },
+            redirect: 'if_required'
+          });
+        })
+        .then(function(result) {
+          if (result.error) {
+            // Show error to customer
+            showToast(result.error.message, 'error');
+            return;
+          }
+          
+          // Payment successful, now place the order
+          return placeOrderWithPayment(result.paymentIntent.id);
+        })
+        .catch(function(error) {
+          console.error('Payment error:', error);
+          // If payment fails or no payment info provided, bypass payment
+          showToast('No payment information provided. Proceeding without payment...', 'info');
+          placeOrderWithoutPayment();
+        });
+    };
+
+
+
+    // Function to place order with successful payment
+    function placeOrderWithPayment(paymentIntentId) {
       const orderData = {
         bookId: parseInt(bookId),
         buyerId: $scope.user.id,
-        paymentMethod: 'bypass', // Indicate this is a bypassed payment
+        paymentMethod: 'stripe',
         macAddress: $scope.macAddress,
-        paymentIntentId: null    // No payment intent since we're bypassing
+        paymentIntentId: paymentIntentId
       };
       
       $http.post('/api/purchases/place-order', orderData)
         .then(function(response) {
           if (response && response.data.success) {
             showToast('Order placed successfully! Order ID: ' + response.data.orderId, 'success');
-            
-            // Redirect to the orders page after a delay
             setTimeout(function() {
               $window.location.href = '/order';
             }, 3000);
@@ -234,7 +281,36 @@ angular.module('placeOrderApp', [])
           console.error('Error placing order:', error);
           showToast('Failed to place order. Please try again.', 'error');
         });
-    };
+    }
+
+    // Function to place order without payment (bypass)
+    function placeOrderWithoutPayment() {
+      const orderData = {
+        bookId: parseInt(bookId),
+        buyerId: $scope.user.id,
+        paymentMethod: 'bypass',
+        macAddress: $scope.macAddress,
+        paymentIntentId: null
+      };
+      
+      $http.post('/api/purchases/place-order', orderData)
+        .then(function(response) {
+          if (response && response.data.success) {
+            showToast('Order placed successfully (Payment Bypassed)! Order ID: ' + response.data.orderId, 'success');
+            setTimeout(function() {
+              $window.location.href = '/order';
+            }, 3000);
+          } else if (response) {
+            showToast('Error: ' + response.data.message, 'error');
+          }
+        })
+        .catch(function(error) {
+          console.error('Error placing order:', error);
+          showToast('Failed to place order. Please try again.', 'error');
+        });
+    }
+
+
     
     // Helper function to show toast notifications
     function showToast(message, type) {

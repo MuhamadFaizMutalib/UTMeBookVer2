@@ -85,19 +85,14 @@
             
             <!-- Payment Method Section -->
             <div class="payment-section">
-                <h3>Payment Method</h3>
+                <h3>Payment Method (Optional)</h3>
+                <p style="color: #666; margin-bottom: 15px;">
+                  Enter payment details for secure payment, or proceed without payment for testing.
+                </p>
                 <div class="payment-options">
-                  <!-- Hide the actual Stripe payment element -->
-                  <div id="stripe-payment-element" style="display: none;">
+                  <div id="stripe-payment-element">
                     <!-- Stripe Elements will be inserted here -->
                   </div>
-                  
-                  <!-- Add a message instead -->
-                  <div style="padding: 20px; background: #f0f0f0; border-radius: 5px; text-align: center;">
-                    <p>Payment processing has been bypassed for testing purposes.</p>
-                    <p>Your order will be placed without payment.</p>
-                  </div>
-                  
                   <div class="card-errors" role="alert"></div>
                 </div>
               </div>
