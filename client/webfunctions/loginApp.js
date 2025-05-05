@@ -38,8 +38,12 @@ angular.module('loginApp', [])
           // Store user data in localStorage (in a real app, use JWT)
           $window.localStorage.setItem('user', JSON.stringify(response.data.user));
           
-          // Redirect to dashboard
-          $window.location.href = '/dashboard';
+          // Redirect based on user role
+          if (response.data.user.role === 'admin') {
+            $window.location.href = '/user-book-manager';
+          } else {
+            $window.location.href = '/dashboard';
+          }
         }
       }).catch(function(error) {
         // Error
@@ -51,4 +55,5 @@ angular.module('loginApp', [])
         };
       });
     };
+    
   }]);

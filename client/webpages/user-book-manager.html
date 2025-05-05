@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTMeBook - User & Book Manager</title>
+    <link rel="stylesheet" href="../webstyles/css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="../webfunctions/adminApp.js"></script>
+</head>
+<body ng-app="adminApp" ng-controller="AdminController">
+    <header class="header">
+        <div class="logo">
+            <h1>UTMeBook Admin</h1>
+        </div>
+        <div class="user-info">
+            <span>Welcome, {{ user.username }}</span>
+            <button class="btn-logout" ng-click="logout()">Logout</button>
+        </div>
+        <button class="mobile-menu-toggle" ng-click="toggleMobileMenu()">
+            <i class="fas fa-bars"></i>
+        </button>
+    </header>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <ul ng-class="{'show-mobile': mobileMenuOpen}">
+            <li>
+                <a href="#" ng-click="setActiveTab('user-book-manager')" ng-class="{'active': activeTab === 'user-book-manager'}">
+                    <i class="fas fa-plus-circle"></i> User & Book Manager
+                </a>
+            </li>
+            <li>
+                <a href="#" ng-click="setActiveTab('messages')" ng-class="{'active': activeTab === 'messages'}">
+                    <i class="fas fa-envelope"></i> Messages
+                </a>
+            </li>
+            <li>
+                <a href="#" ng-click="setActiveTab('account')" ng-class="{'active': activeTab === 'account'}">
+                    <i class="fas fa-user"></i> Account
+                </a>
+            </li>
+            <li>
+                <a href="#" ng-click="setActiveTab('activity-report')" ng-class="{'active': activeTab === 'activity-report'}">
+                    <i class="fas fa-home"></i> Activity Report
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <main class="content">
+        <!-- User & Book Manager Tab -->
+        <div class="tab-content" ng-show="activeTab === 'user-book-manager'">
+            <div class="admin-container">
+                <!-- Books Section -->
+                <div class="section books-section">
+                    <h2>Books Management</h2>
+                    <div class="section-controls">
+                        <div class="search-bar">
+                            <input type="text" placeholder="Search books..." ng-model="bookSearch">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <button class="btn-add" ng-click="showAddBookModal()">
+                            <i class="fas fa-plus"></i> Add Book
+                        </button>
+                    </div>
+                    <div class="book-grid">
+                        <div class="book-card" ng-repeat="book in books | filter:bookSearch">
+                            <div class="book-cover" ng-click="showBookDetails(book)">
+                                <img ng-src="{{ book.coverUrl }}" alt="{{ book.title }}">
+                            </div>
+                            <div class="book-info">
+                                <h3>{{ book.title }}</h3>
+                                <p><strong>Seller:</strong> {{ book.sellerName }}</p>
+                                <p><strong>Price:</strong> RM {{ book.price.toFixed(2) }}</p>
+                                <p><strong>Date:</strong> {{ book.uploadDate | date:'MMM dd, yyyy' }}</p>
+                                <p><strong>Status:</strong> <span class="status-badge {{ book.status.toLowerCase() }}">{{ book.status }}</span></p>
+                                <button class="btn-delete" ng-click="confirmDeleteBook(book)">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Users Section -->
+                <div class="section users-section">
+                    <h2>Users Management</h2>
+                    <div class="section-controls">
+                        <div class="search-bar">
+                            <input type="text" placeholder="Search users..." ng-model="userSearch">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <button class="btn-add" ng-click="showAddUserModal()">
+                            <i class="fas fa-plus"></i> Add User
+                        </button>
+                    </div>
+                    <div class="user-list">
+                        <div class="user-card" ng-repeat="user in users | filter:userSearch | filter:{role: '!admin'}">
+                            <div class="user-icon">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="user-info">
+                                <h3>{{ user.username }}</h3>
+                                <p><strong>Email:</strong> {{ user.email }}</p>
+                                <p><strong>Role:</strong> {{ user.role }}</p>
+                                <p><strong>Joined:</strong> {{ user.created_at | date:'MMM dd, yyyy' }}</p>
+                                <button class="btn-delete" ng-click="confirmDeleteUser(user)">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Other tabs (placeholder for future implementation) -->
+        <div class="tab-content" ng-show="activeTab === 'messages'">
+            <h2>Messages</h2>
+            <p>Messages section coming soon...</p>
+        </div>
+
+        <div class="tab-content" ng-show="activeTab === 'account'">
+            <h2>Account</h2>
+            <p>Account section coming soon...</p>
+        </div>
+
+        <div class="tab-content" ng-show="activeTab === 'activity-report'">
+            <h2>Activity Report</h2>
+            <p>Activity Report section coming soon...</p>
+        </div>
+    </main>
+
+    <!-- Book Details Modal -->
+    <div class="modal" ng-show="showBookModal">
+        <div class="modal-content">
+            <span class="close" ng-click="closeBookModal()">&times;</span>
+            <h2>{{ selectedBook.title }}</h2>
+            <div class="modal-body">
+                <div class="book-details-grid">
+                    <div class="book-cover-large">
+                        <img ng-src="{{ selectedBook.coverUrl }}" alt="{{ selectedBook.title }}">
+                    </div>
+                    <div class="book-details">
+                        <p><strong>Seller:</strong> {{ selectedBook.sellerName }}</p>
+                        <p><strong>Price:</strong> RM {{ selectedBook.price.toFixed(2) }}</p>
+                        <p><strong>Category:</strong> {{ selectedBook.category }}</p>
+                        <p><strong>Status:</strong> <span class="status-badge {{ selectedBook.status.toLowerCase() }}">{{ selectedBook.status }}</span></p>
+                        <p><strong>Upload Date:</strong> {{ selectedBook.uploadDate | date:'MMM dd, yyyy' }}</p>
+                        <h3>Description:</h3>
+                        <p class="book-description">{{ selectedBook.description || 'No description available' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Book Modal -->
+    <div class="modal" ng-show="showAddBook">
+        <div class="modal-content">
+            <span class="close" ng-click="closeAddBookModal()">&times;</span>
+            <h2>Add New Book</h2>
+            <div class="modal-body">
+                <form ng-submit="addBook()">
+                    <div class="form-group">
+                        <label for="bookTitle">Title</label>
+                        <input type="text" id="bookTitle" ng-model="newBook.title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bookCategory">Category</label>
+                        <select id="bookCategory" ng-model="newBook.category" required>
+                            <option value="">Select a category</option>
+                            <option value="Computer Science">Computer Science</option>
+                            <option value="Engineering">Engineering</option>
+                            <option value="Mathematics">Mathematics</option>
+                            <option value="Science">Science</option>
+                            <option value="Business">Business</option>
+                            <option value="Arts">Arts</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="bookPrice">Price (RM)</label>
+                        <input type="number" id="bookPrice" ng-model="newBook.price" min="0" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bookDescription">Description</label>
+                        <textarea id="bookDescription" ng-model="newBook.description" rows="4"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="bookSeller">Seller</label>
+                        <select id="bookSeller" ng-model="newBook.sellerId" required>
+                            <option value="">Select a seller</option>
+                            <option ng-repeat="user in users" value="{{ user.id }}">{{ user.username }}</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="bookStatus">Status</label>
+                        <select id="bookStatus" ng-model="newBook.status" required>
+                            <option value="Available">Available</option>
+                            <option value="Sold">Sold</option>
+                            <option value="Pending">Pending</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="bookCover">Cover Image</label>
+                        <input type="file" id="bookCover" file-model="newBook.coverImage" accept="image/*" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bookFile">Book File (PDF)</label>
+                        <input type="file" id="bookFile" file-model="newBook.bookFile" accept="application/pdf" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" ng-click="closeAddBookModal()">Cancel</button>
+                        <button type="submit" class="btn-primary">Add Book</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div class="modal" ng-show="showAddUser">
+        <div class="modal-content">
+            <span class="close" ng-click="closeAddUserModal()">&times;</span>
+            <h2>Add New User</h2>
+            <div class="modal-body">
+                <form ng-submit="addUser()">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" ng-model="newUser.username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" ng-model="newUser.email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="role">Role</label>
+                        <select id="role" ng-model="newUser.role" required>
+                            <option value="public">Public</option>
+                            <option value="seller">Seller</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" ng-model="newUser.password" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-secondary" ng-click="closeAddUserModal()">Cancel</button>
+                        <button type="submit" class="btn-primary">Add User</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal" ng-show="showDeleteConfirm">
+        <div class="modal-content">
+            <span class="close" ng-click="closeDeleteConfirmModal()">&times;</span>
+            <h2>Confirm Delete</h2>
+            <div class="modal-body">
+                <p>{{ deleteConfirmMessage }}</p>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" ng-click="closeDeleteConfirmModal()">Cancel</button>
+                    <button type="button" class="btn-danger" ng-click="confirmDelete()">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

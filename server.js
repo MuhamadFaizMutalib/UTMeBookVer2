@@ -1292,8 +1292,174 @@ app.put('/api/admin/purchases/update-status/:orderId', async (req, res) => {
 //////////////////////////////////// [ END ADMIN CONTROL ] ///////////////////////////////////
 
 
+//////////////////////////////////// [ ADMIN UserBookManager ] ///////////////////////////////////
+
+// API endpoint to get all users
+app.get('/api/admin/users', async (req, res) => {
+  const { userId } = req.query;
+  
+  try {
+    // Verify user is an admin
+    const adminCheck = await pool.query(
+      'SELECT * FROM users WHERE id = $1 AND role = $2',
+      [userId, 'admin']
+    );
+    
+    if (adminCheck.rows.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to view users'
+      });
+    }
+    
+    // Get all users
+    const result = await pool.query(
+      `SELECT id, username, email, role, created_at FROM users ORDER BY created_at DESC`
+    );
+    
+    res.status(200).json({
+      success: true,
+      users: result.rows
+    });
+    
+  } catch (err) {
+    console.error('Error fetching users:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching users',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+// API endpoint to add a new user
+app.post('/api/admin/users/add', async (req, res) => {
+  const { username, email, role, password, adminId } = req.body;
+  
+  try {
+    // Verify user is an admin
+    const adminCheck = await pool.query(
+      'SELECT * FROM users WHERE id = $1 AND role = $2',
+      [adminId, 'admin']
+    );
+    
+    if (adminCheck.rows.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to add users'
+      });
+    }
+    
+    // Check if username or email already exists
+    const userCheck = await pool.query(
+      'SELECT * FROM users WHERE username = $1 OR email = $2',
+      [username, email]
+    );
+    
+    if (userCheck.rows.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Username or email already exists'
+      });
+    }
+    
+    // Hash password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    
+    // Insert new user
+    await pool.query(
+      'INSERT INTO users (username, email, role, password) VALUES ($1, $2, $3, $4)',
+      [username, email, role, hashedPassword]
+    );
+    
+    res.status(201).json({
+      success: true,
+      message: 'User added successfully'
+    });
+    
+  } catch (err) {
+    console.error('Error adding user:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Error adding user',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+// API endpoint to delete a user
+app.delete('/api/admin/users/:userId', async (req, res) => {
+  const { userId } = req.params;
+  const { adminId } = req.query;
+  
+  try {
+    // Verify user is an admin
+    const adminCheck = await pool.query(
+      'SELECT * FROM users WHERE id = $1 AND role = $2',
+      [adminId, 'admin']
+    );
+    
+    if (adminCheck.rows.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to delete users'
+      });
+    }
+    
+    // Check if user exists and is not an admin
+    const userCheck = await pool.query(
+      'SELECT * FROM users WHERE id = $1',
+      [userId]
+    );
+    
+    if (userCheck.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
+    const user = userCheck.rows[0];
+    
+    if (user.role === 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Cannot delete admin users'
+      });
+    }
+    
+    // Delete user
+    await pool.query(
+      'DELETE FROM users WHERE id = $1',
+      [userId]
+    );
+    
+    res.status(200).json({
+      success: true,
+      message: 'User deleted successfully'
+    });
+    
+  } catch (err) {
+    console.error('Error deleting user:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting user',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+//////////////////////////////////// [ END ADMIN UserBookManager ] ///////////////////////////////////
+
+
+
 // Serve static files from the uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+app.get('/user-book-manager', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/webpages/user-book-manager.html'));
+});
 
 // Add this endpoint to your server.js
 app.get('/api/stripe-config', (req, res) => {
