@@ -864,7 +864,7 @@ app.post('/api/purchases/place-order', async (req, res) => {
           buyerId,
           admin.id,
           `New Order: ${orderId} ${paymentMethod === 'bypass' ? '(BYPASSED)' : ''}`,
-          `A new purchase has been made:\n\nOrder ID: ${orderId}\nBook: ${book.title}\nPrice: RM${book.price}${paymentIntentId ? '\nPayment Intent: ' + paymentIntentId : ''}`,
+          `A new purchase has been made:\n\nOrder ID: ${orderId}\nBook: ${book.title}\nPayment Intent: ${paymentIntentId}`,
           orderId
         ]
       );
@@ -1025,7 +1025,7 @@ app.put('/api/purchases/cancel/:orderId', async (req, res) => {
           userId,
           admin.id,
           `Order Canceled: ${orderId}`,
-          `An order has been canceled:\n\nOrder ID: ${orderId}\nBook: ${purchase.title}\nPrice: RM${purchase.price}\nBuyer ID: ${userId}`,
+          `An order has been canceled:\n\nOrder ID: ${orderId}\nBook: ${purchase.title}\nPrice: RM${purchase.price}\n\nPayment Intent: ${paymentIntentId}`,
           orderId
         ]
       );
