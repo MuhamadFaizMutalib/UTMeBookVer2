@@ -92,15 +92,17 @@ angular.module('adminApp', [])
     
     // Load users from API
     function loadUsers() {
-      // This endpoint would need to be implemented on the server side
-      $http.get('/api/admin/users')
+      // Add userId parameter to the request
+      $http.get('/api/admin/users', {
+        params: { userId: $scope.user.id }
+      })
         .then(function(response) {
           if (response.data.success) {
             $scope.users = response.data.users;
           }
         })
         .catch(function(error) {
-          console.error('Error loading users:', error);
+          console.error('Error loading books:', error);
           alert('Error loading users. Please try again later.');
         });
     }
@@ -231,35 +233,36 @@ angular.module('adminApp', [])
     
     // Add book
     $scope.addBook = function() {
-        // Create form data
-        const formData = new FormData();
-        formData.append('title', $scope.newBook.title);
-        formData.append('category', $scope.newBook.category);
-        formData.append('price', $scope.newBook.price);
-        formData.append('description', $scope.newBook.description);
-        formData.append('status', $scope.newBook.status);
-        formData.append('sellerId', $scope.newBook.sellerId);
-        formData.append('coverImage', $scope.newBook.coverImage);
-        formData.append('bookFile', $scope.newBook.bookFile);
-        
-        $http({
-        method: 'POST',
-        url: '/api/books/add',
-        data: formData,
-        headers: {
-            'Content-Type': undefined // Let browser set content type with boundary
-        },
-        transformRequest: angular.identity
-        }).then(function(response) {
-        if (response.data.success) {
-            alert('Book added successfully');
-            loadBooks(); // Reload books
-            $scope.closeAddBookModal();
-        }
-        }).catch(function(error) {
-        console.error('Error adding book:', error);
-        alert('Error adding book. Please try again later.');
-        });
+      // Create form data
+      const formData = new FormData();
+      formData.append('title', $scope.newBook.title);
+      formData.append('category', $scope.newBook.category);
+      formData.append('price', $scope.newBook.price);
+      formData.append('description', $scope.newBook.description);
+      formData.append('status', $scope.newBook.status);
+      // Use the current user's ID as the seller
+      formData.append('sellerId', $scope.user.id);
+      formData.append('coverImage', $scope.newBook.coverImage);
+      formData.append('bookFile', $scope.newBook.bookFile);
+      
+      $http({
+      method: 'POST',
+      url: '/api/books/add',
+      data: formData,
+      headers: {
+          'Content-Type': undefined // Let browser set content type with boundary
+      },
+      transformRequest: angular.identity
+      }).then(function(response) {
+      if (response.data.success) {
+          alert('Book added successfully');
+          loadBooks(); // Reload books
+          $scope.closeAddBookModal();
+      }
+      }).catch(function(error) {
+      console.error('Error adding book:', error);
+      alert('Error adding book. Please try again later.');
+      });
     };
     
     // Add user

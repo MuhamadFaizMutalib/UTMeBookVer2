@@ -189,13 +189,13 @@
                         <label for="bookDescription">Description</label>
                         <textarea id="bookDescription" ng-model="newBook.description" rows="4"></textarea>
                     </div>
-                    <div class="form-group">
+                    <!-- <div class="form-group">
                         <label for="bookSeller">Seller</label>
                         <select id="bookSeller" ng-model="newBook.sellerId" required>
                             <option value="">Select a seller</option>
                             <option ng-repeat="user in users" value="{{ user.id }}">{{ user.username }}</option>
                         </select>
-                    </div>
+                    </div> -->
                     <div class="form-group">
                         <label for="bookStatus">Status</label>
                         <select id="bookStatus" ng-model="newBook.status" required>
@@ -240,7 +240,6 @@
                         <label for="role">Role</label>
                         <select id="role" ng-model="newUser.role" required>
                             <option value="public">Public</option>
-                            <option value="seller">Seller</option>
                             <option value="admin">Admin</option>
                         </select>
                     </div>
