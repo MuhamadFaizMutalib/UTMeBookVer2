@@ -1453,13 +1453,8 @@ app.delete('/api/admin/users/:userId', async (req, res) => {
 //////////////////////////////////// [ END ADMIN UserBookManager ] ///////////////////////////////////
 
 
-
 // Serve static files from the uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-app.get('/user-book-manager', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client/webpages/user-book-manager.html'));
-});
 
 // Add this endpoint to your server.js
 app.get('/api/stripe-config', (req, res) => {
@@ -1481,6 +1476,10 @@ app.get('/login', (req, res) => {
 app.get('/register', (req, res) => {
   console.log('Handling /register route');
   res.sendFile(path.join(__dirname, 'client/webpages/register.html'));
+});
+
+app.get('/user-book-manager', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/webpages/user-book-manager.html'));
 });
 
 app.get('/dashboard', (req, res) => {

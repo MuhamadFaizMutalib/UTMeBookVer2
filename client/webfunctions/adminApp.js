@@ -4,6 +4,36 @@ angular.module('adminApp', [])
     // Get user from localStorage
     const storedUser = $window.localStorage.getItem('user');
     $scope.user = storedUser ? JSON.parse(storedUser) : null;
+
+
+    // Function to set active tab and handle navigation
+    $scope.setActiveTab = function(tab) {
+      $scope.activeTab = tab;
+      
+      // If on mobile, close the menu after selecting an item
+      if (window.innerWidth <= 768) {
+        $scope.mobileMenuOpen = false;
+      }
+      
+      // Navigate to the appropriate page based on the tab
+      switch(tab) {
+        case 'user-book-manager':
+          $window.location.href = '/user-book-manager';
+          break;
+        case 'messages':
+          $window.location.href = '/messages';
+          break;
+        case 'report':
+          $window.location.href = '/report';
+          break;
+        case 'account':
+          $window.location.href = '/account';
+          break;
+        default:
+          // Stay on dashboard for other tabs
+          break;
+      }
+    };
     
     // Check if user is logged in and is admin
     if (!$scope.user) {
