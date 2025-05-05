@@ -194,22 +194,27 @@ angular.module('adminApp', [])
     
     // Delete book
     function deleteBook(book) {
-        $http.delete(`/api/books/${book.id}?sellerId=${$scope.user.id}`)
-        .then(function(response) {
-            if (response.data.success) {
-            // Remove book from array
-            const index = $scope.books.findIndex(b => b.id === book.id);
-            if (index !== -1) {
-                $scope.books.splice(index, 1);
-            }
-            alert('Book deleted successfully');
-            }
-        })
-        .catch(function(error) {
-            console.error('Error deleting book:', error);
-            alert('Error deleting book. Please try again later.');
-        });
-    }
+      console.log(`Attempting to delete book ID: ${book.id} by seller ID: ${$scope.user.id}`);
+      $http.delete(`/api/books/${book.id}?sellerId=${$scope.user.id}`)
+      .then(function(response) {
+          console.log('Delete response:', response);
+          if (response.data.success) {
+              // Remove book from array
+              const index = $scope.books.findIndex(b => b.id === book.id);
+              if (index !== -1) {
+                  $scope.books.splice(index, 1);
+              }
+              alert('Book deleted successfully');
+          }
+      })
+      .catch(function(error) {
+          console.error('Error deleting book:', error);
+          console.error('Status:', error.status);
+          console.error('Status text:', error.statusText);
+          console.error('Data:', error.data);
+          alert(`Error deleting book: ${error.status} ${error.statusText}`);
+      });
+  }
     
     // Delete user
     function deleteUser(user) {
