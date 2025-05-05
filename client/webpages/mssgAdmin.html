@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTMeBook - Messages</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="../webfunctions/mssgAdminAppApp.js"></script>
+</head>
+<body ng-app="messagesApp" ng-controller="MessagesController">
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="header">
+            <!-- Mobile Menu Toggle Button -->
+            <button class="mobile-menu-toggle" ng-click="toggleMobileMenu()">
+                <i class="fas" ng-class="{'fa-bars': !mobileMenuOpen, 'fa-times': mobileMenuOpen}"></i>
+            </button>
+            
+            <div class="logo">
+                <h1>UTMeBook</h1>
+            </div>
+            
+            <div class="user-menu">
+                <span class="username">{{ user.username }}</span>
+                <button class="btn-logout" ng-click="logout()">Logout</button>
+            </div>
+        </header>
+        
+        <!-- Navigation Bar -->
+        <nav class="navbar">
+            <ul ng-class="{'show-mobile': mobileMenuOpen}">
+                <li>
+                    <a href="#" ng-click="setActiveTab('user-book-manager')" ng-class="{'active': activeTab === 'user-book-manager'}">
+                        <i class="fas fa-plus-circle"></i> User & Book Manager
+                    </a>
+                </li>
+                <li>
+                    <a href="#" ng-click="setActiveTab('mssgAdmin')" ng-class="{'active': activeTab === 'mssgAdmin'}">
+                        <i class="fas fa-envelope"></i> Messages
+                    </a>
+                </li>
+                <li>
+                    <a href="#" ng-click="setActiveTab('account')" ng-class="{'active': activeTab === 'account'}">
+                        <i class="fas fa-user"></i> Account
+                    </a>
+                </li>
+                <li>
+                    <a href="#" ng-click="setActiveTab('activity-report')" ng-class="{'active': activeTab === 'activity-report'}">
+                        <i class="fas fa-home"></i> Activity Report
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        
+        <!-- Messages Page Content -->
+        <section class="messages-section">
+            <div class="messages-container">
+                <h2 class="section-title">My Messages</h2>
+                
+                <!-- Admin View: All Purchases Table -->
+                <div class="admin-panel" ng-if="user.role === 'admin'">
+                    <h3 class="subsection-title">All Purchases</h3>
+                    
+                    <div class="table-responsive">
+                        <table class="purchases-table">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Book</th>
+                                    <th>Buyer</th>
+                                    <th>Seller</th>
+                                    <th>Price</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr ng-repeat="purchase in allPurchases">
+                                    <td>{{ purchase.orderId }}</td>
+                                    <td>{{ purchase.title }}</td>
+                                    <td>{{ purchase.buyerName }}</td>
+                                    <td>{{ purchase.sellerName }}</td>
+                                    <td>RM{{ purchase.price.toFixed(2) }}</td>
+                                    <td>{{ purchase.purchaseDate | date:'mediumDate' }}</td>
+                                    <td>
+                                        <span class="status-badge" ng-class="{
+                                            'status-pending': purchase.status === 'Pending',
+                                            'status-delivered': purchase.status === 'Delivered',
+                                            'status-canceled': purchase.status === 'Canceled'
+                                        }">{{ purchase.status }}</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn-view" ng-click="viewPurchaseDetails(purchase)">
+                                            <i class="fas fa-eye"></i> View
+                                        </button>
+                                        <button class="btn-update" ng-click="updateOrderStatus(purchase)">
+                                            <i class="fas fa-edit"></i> Update
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Empty Table Message -->
+                    <div class="empty-message" ng-if="allPurchases.length === 0">
+                        <p>No purchases have been made yet.</p>
+                    </div>
+                </div>
+                
+                <!-- Messages List -->
+                <div class="messages-list-container">
+                    <div class="messages-list">
+                        <div class="message-item" ng-repeat="message in messages" ng-click="viewMessage(message)" ng-class="{'unread': !message.isRead}">
+                            <div class="message-header">
+                                <div class="message-meta">
+                                    <span class="message-sender">{{ message.senderName }}</span>
+                                    <span class="message-date">{{ message.createdAt | date:'medium' }}</span>
+                                </div>
+                                <div class="message-subject">{{ message.subject }}</div>
+                            </div>
+                            <div class="message-preview">{{ message.content | limitTo: 100 }}{{ message.content.length > 100 ? '...' : '' }}</div>
+                        </div>
+                        
+                        <!-- Empty Messages Message -->
+                        <div class="empty-message" ng-if="messages.length === 0">
+                            <p>You have no messages.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Message View Modal -->
+        <div class="modal" ng-class="{'show-modal': showMessageModal}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>{{ selectedMessage.subject }}</h2>
+                    <button class="close-button" ng-click="closeMessageModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="message-info">
+                        <p><strong>From:</strong> {{ selectedMessage.senderName }}</p>
+                        <p><strong>Date:</strong> {{ selectedMessage.createdAt | date:'medium' }}</p>
+                        <p ng-if="selectedMessage.relatedOrderId"><strong>Order ID:</strong> {{ selectedMessage.relatedOrderId }}</p>
+                    </div>
+                    
+                    <div class="message-content">
+                        <p ng-bind-html="selectedMessage.content | nl2br"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Purchase Details Modal for Admin -->
+        <div class="modal" ng-class="{'show-modal': showPurchaseModal}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Purchase Details</h2>
+                    <button class="close-button" ng-click="closePurchaseModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="purchase-details">
+                        <div class="purchase-header">
+                            <div class="book-cover">
+                                <img ng-src="{{ selectedPurchase.coverUrl }}" alt="{{ selectedPurchase.title }}">
+                            </div>
+                            <div class="purchase-info">
+                                <h3>{{ selectedPurchase.title }}</h3>
+                                <p class="purchase-meta">
+                                    <span class="book-category">{{ selectedPurchase.category }}</span>
+                                    <span class="book-price">RM{{ selectedPurchase.price.toFixed(2) }}</span>
+                                </p>
+                                <p><strong>Order ID:</strong> {{ selectedPurchase.orderId }}</p>
+                                <p><strong>Status:</strong> 
+                                    <span class="status-badge" ng-class="{
+                                        'status-pending': selectedPurchase.status === 'Pending',
+                                        'status-delivered': selectedPurchase.status === 'Delivered',
+                                        'status-canceled': selectedPurchase.status === 'Canceled'
+                                    }">{{ selectedPurchase.status }}</span>
+                                </p>
+                                <p><strong>Purchase Date:</strong> {{ selectedPurchase.purchaseDate | date:'medium' }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="details-section">
+                            <h4>Customer Information</h4>
+                            <p><strong>Buyer:</strong> {{ selectedPurchase.buyerName }}</p>
+                            <p><strong>Payment Method:</strong> {{ selectedPurchase.paymentMethod }}</p>
+                            <p><strong>MAC Address:</strong> {{ selectedPurchase.macAddress }}</p>
+                        </div>
+                        
+                        <div class="details-section">
+                            <h4>Seller Information</h4>
+                            <p><strong>Seller:</strong> {{ selectedPurchase.sellerName }}</p>
+                        </div>
+                        
+                        <div class="admin-actions" ng-if="user.role === 'admin'">
+                            <div class="form-group">
+                                <label for="order-status">Update Order Status</label>
+                                <select id="order-status" ng-model="selectedPurchase.newStatus">
+                                    <option value="Pending">Pending</option>
+                                    <option value="Processing">Processing</option>
+                                    <option value="Delivered">Delivered</option>
+                                    <option value="Canceled">Canceled</option>
+                                </select>
+                            </div>
+                            
+                            <button class="btn-primary" ng-click="updateStatus()">
+                                <i class="fas fa-save"></i> Update Status
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <p>&copy; 2025 UTMeBook. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

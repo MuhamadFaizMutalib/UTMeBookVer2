@@ -43,7 +43,7 @@
             </li>
             <li>
                 <a href="#" ng-click="setActiveTab('activity-report')" ng-class="{'active': activeTab === 'activity-report'}">
-                    <i class="fas fa-home"></i> Activity Report
+                    <i class="fa-solid fa-file"></i> Activity Report
                 </a>
             </li>
         </ul>
@@ -172,12 +172,9 @@
                         <label for="bookCategory">Category</label>
                         <select id="bookCategory" ng-model="newBook.category" required>
                             <option value="">Select a category</option>
-                            <option value="Computer Science">Computer Science</option>
-                            <option value="Engineering">Engineering</option>
-                            <option value="Mathematics">Mathematics</option>
-                            <option value="Science">Science</option>
-                            <option value="Business">Business</option>
-                            <option value="Arts">Arts</option>
+                            <option value="Computer Science">Texbook</option>
+                            <option value="Engineering">Research</option>
+                            <option value="Mathematics">Academic</option>
                             <option value="Other">Other</option>
                         </select>
                     </div>
@@ -189,19 +186,11 @@
                         <label for="bookDescription">Description</label>
                         <textarea id="bookDescription" ng-model="newBook.description" rows="4"></textarea>
                     </div>
-                    <!-- <div class="form-group">
-                        <label for="bookSeller">Seller</label>
-                        <select id="bookSeller" ng-model="newBook.sellerId" required>
-                            <option value="">Select a seller</option>
-                            <option ng-repeat="user in users" value="{{ user.id }}">{{ user.username }}</option>
-                        </select>
-                    </div> -->
+
                     <div class="form-group">
                         <label for="bookStatus">Status</label>
                         <select id="bookStatus" ng-model="newBook.status" required>
                             <option value="Available">Available</option>
-                            <option value="Sold">Sold</option>
-                            <option value="Pending">Pending</option>
                         </select>
                     </div>
                     <div class="form-group">
