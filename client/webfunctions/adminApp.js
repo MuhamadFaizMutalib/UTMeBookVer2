@@ -194,8 +194,8 @@ angular.module('adminApp', [])
     
     // Delete book
     function deleteBook(book) {
-      console.log(`Attempting to delete book ID: ${book.id} by seller ID: ${$scope.user.id}`);
-      $http.delete(`/api/books/${book.id}?sellerId=${$scope.user.id}`)
+      console.log(`Attempting to delete book ID: ${book.id} as admin ID: ${$scope.user.id}`);
+      $http.delete(`/api/admin/books/${book.id}?adminId=${$scope.user.id}`)
       .then(function(response) {
           console.log('Delete response:', response);
           if (response.data.success) {
@@ -209,12 +209,9 @@ angular.module('adminApp', [])
       })
       .catch(function(error) {
           console.error('Error deleting book:', error);
-          console.error('Status:', error.status);
-          console.error('Status text:', error.statusText);
-          console.error('Data:', error.data);
           alert(`Error deleting book: ${error.status} ${error.statusText}`);
       });
-  }
+    }
     
     // Delete user
     function deleteUser(user) {
@@ -247,26 +244,58 @@ angular.module('adminApp', [])
       formData.append('status', $scope.newBook.status);
       // Use the current user's ID as the seller
       formData.append('sellerId', $scope.user.id);
+      
+      // Validate file inputs
+      if (!$scope.newBook.coverImage) {
+        alert('Please select a cover image');
+        return;
+      }
+      
+      if (!$scope.newBook.bookFile) {
+        alert('Please select a book file (PDF)');
+        return;
+      }
+      
       formData.append('coverImage', $scope.newBook.coverImage);
       formData.append('bookFile', $scope.newBook.bookFile);
       
       $http({
-      method: 'POST',
-      url: '/api/books/add',
-      data: formData,
-      headers: {
+        method: 'POST',
+        url: '/api/books/add',
+        data: formData,
+        headers: {
           'Content-Type': undefined // Let browser set content type with boundary
-      },
-      transformRequest: angular.identity
+        },
+        transformRequest: angular.identity
       }).then(function(response) {
-      if (response.data.success) {
+        if (response.data.success) {
           alert('Book added successfully');
           loadBooks(); // Reload books
           $scope.closeAddBookModal();
-      }
+          
+          // Reset the form completely
+          $scope.newBook = {
+            title: '',
+            category: '',
+            price: '',
+            description: '',
+            status: 'Available',
+            sellerId: '',
+            coverImage: null,
+            bookFile: null
+          };
+          
+          // Reset file inputs (AngularJS won't reset them automatically)
+          document.getElementById('bookCover').value = '';
+          document.getElementById('bookFile').value = '';
+        }
       }).catch(function(error) {
-      console.error('Error adding book:', error);
-      alert('Error adding book. Please try again later.');
+        console.error('Error adding book:', error);
+        if (error.data && error.data.message) {
+          alert('Error: ' + error.data.message);
+        } else {
+          alert('Error adding book. Please try again later.');
+        }
       });
     };
     

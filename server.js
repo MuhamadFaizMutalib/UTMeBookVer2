@@ -1451,6 +1451,71 @@ app.delete('/api/admin/users/:userId', async (req, res) => {
   }
 });
 
+// API endpoint for admin to delete any book
+app.delete('/api/admin/books/:bookId', async (req, res) => {
+  const { bookId } = req.params;
+  const { adminId } = req.query;
+  
+  try {
+    // Verify user is an admin
+    const adminCheck = await pool.query(
+      'SELECT * FROM users WHERE id = $1 AND role = $2',
+      [adminId, 'admin']
+    );
+    
+    if (adminCheck.rows.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to delete this book'
+      });
+    }
+    
+    // Get book info before deletion (for file cleanup)
+    const bookCheck = await pool.query(
+      'SELECT * FROM books WHERE id = $1',
+      [bookId]
+    );
+    
+    if (bookCheck.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Book not found'
+      });
+    }
+    
+    const book = bookCheck.rows[0];
+    
+    // Delete the book from the database
+    await pool.query('DELETE FROM books WHERE id = $1', [bookId]);
+    
+    // Delete files
+    if (book.cover_image_path) {
+      fs.unlink(path.join(UPLOAD_DIR, book.cover_image_path), (err) => {
+        if (err) console.error('Error deleting cover image:', err);
+      });
+    }
+    
+    if (book.book_file_path) {
+      fs.unlink(path.join(UPLOAD_DIR, book.book_file_path), (err) => {
+        if (err) console.error('Error deleting book file:', err);
+      });
+    }
+    
+    res.status(200).json({
+      success: true,
+      message: 'Book deleted successfully'
+    });
+    
+  } catch (err) {
+    console.error('Error deleting book:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting book',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
 //////////////////////////////////// [ END ADMIN UserBookManager ] ///////////////////////////////////
 
 
