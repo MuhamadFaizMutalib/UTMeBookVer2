@@ -65,12 +65,6 @@ angular.module('adminApp', [])
     loadBooks();
     loadUsers();
     
-    // Tab navigation
-    $scope.setActiveTab = function(tab) {
-      $scope.activeTab = tab;
-      $scope.mobileMenuOpen = false;
-    };
-    
     // Toggle mobile menu
     $scope.toggleMobileMenu = function() {
       $scope.mobileMenuOpen = !$scope.mobileMenuOpen;
