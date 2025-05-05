@@ -1576,6 +1576,10 @@ app.get('/messages', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/webpages/messages.html'));
 });
 
+app.get('/mssgAdmin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/webpages/mssgAdmin.html'));
+});
+
 // Start server and initialize database
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
