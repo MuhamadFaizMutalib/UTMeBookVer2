@@ -7,25 +7,22 @@
     <link rel="stylesheet" href="../webstyles/css/mssgAdmin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
-    <script src="../webfunctions/mssgAdminAppApp.js"></script>
+    <script src="../webfunctions/mssgAdminApp.js"></script>
 </head>
 <body ng-app="messagesApp" ng-controller="MessagesController">
     <div class="dashboard-container">
         <!-- Header -->
         <header class="header">
-            <!-- Mobile Menu Toggle Button -->
-            <button class="mobile-menu-toggle" ng-click="toggleMobileMenu()">
-                <i class="fas" ng-class="{'fa-bars': !mobileMenuOpen, 'fa-times': mobileMenuOpen}"></i>
-            </button>
-            
             <div class="logo">
-                <h1>UTMeBook</h1>
+                <h1>UTMeBook Admin</h1>
             </div>
-            
-            <div class="user-menu">
-                <span class="username">{{ user.username }}</span>
+            <div class="user-info">
+                <span>Welcome, {{ user.username }}</span>
                 <button class="btn-logout" ng-click="logout()">Logout</button>
             </div>
+            <button class="mobile-menu-toggle" ng-click="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
         </header>
         
         <!-- Navigation Bar -->
