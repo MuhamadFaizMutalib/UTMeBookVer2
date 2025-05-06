@@ -1039,7 +1039,7 @@ app.put('/api/purchases/cancel/:orderId', async (req, res) => {
           userId,
           admin.id,
           `Order Canceled: ${orderId}`,
-          `An order has been canceled:\n\nOrder ID: ${orderId}\nBook: ${purchase.title}\nPrice: RM${purchase.price}\n\nPayment Intent: ${paymentIntentId}`,
+          `An order has been canceled:\n\nOrder ID: ${orderId}\nBook: ${purchase.title}\nPrice: RM${purchase.price}`,
           orderId
         ]
       );
