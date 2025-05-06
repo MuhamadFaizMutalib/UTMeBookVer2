@@ -1663,6 +1663,53 @@ app.get('/api/books/download/:bookId', async (req, res) => {
 //////////////////////////////////// [ END DOWNLOAD & ENCRYPT ] ///////////////////////////////////
 
 
+//////////////////////////////////// [ DOWNLOAD ORDERS & MyBOOK ] ///////////////////////////////////
+// API endpoint to download an encrypted book
+app.get('/api/encrypted/download/:orderId', async (req, res) => {
+  const { orderId } = req.params;
+  
+  try {
+    // Get encrypted book info
+    const encryptedResult = await pool.query(
+      'SELECT * FROM encrypted WHERE order_id = $1',
+      [orderId]
+    );
+    
+    if (encryptedResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Encrypted book not found'
+      });
+    }
+    
+    const encryptedBook = encryptedResult.rows[0];
+    const filePath = path.join(UPLOAD_DIR, encryptedBook.encrypted_book_path);
+    
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({
+        success: false,
+        message: 'Encrypted book file not found'
+      });
+    }
+    
+    // Return download URL
+    res.json({
+      success: true,
+      downloadUrl: `/uploads/${encryptedBook.encrypted_book_path}`
+    });
+    
+  } catch (err) {
+    console.error('Error downloading encrypted book:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Error downloading encrypted book',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+//////////////////////////////////// [ END DOWNLOAD ORDERS & MyBOOK ] ///////////////////////////////////
 
 
 // Serve static files from the uploads directory
@@ -1724,6 +1771,11 @@ app.get('/messages', (req, res) => {
 
 app.get('/mssgAdmin', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/webpages/mssgAdmin.html'));
+});
+
+// Update the mybook route in server.js
+app.get('/mybook', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/webpages/mybook.html'));
 });
 
 // Start server and initialize database

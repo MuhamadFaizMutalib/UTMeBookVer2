@@ -225,6 +225,31 @@ angular.module('orderApp', [])
         $scope.errorMessage = 'Server error. Please try again later.';
       });
     };
+
+    // Function to download a book
+    $scope.downloadBook = function(purchase) {
+      $http.get('/api/encrypted/download/' + purchase.orderId)
+        .then(function(response) {
+          if (response.data.success) {
+            // Create a link element and trigger download
+            const downloadUrl = response.data.downloadUrl;
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = purchase.title + '.pdf';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showToast('Download started', 'success');
+          } else {
+            showToast('Error: ' + response.data.message, 'error');
+          }
+        })
+        .catch(function(error) {
+          console.error('Error downloading book:', error);
+          showToast('Server error. Please try again later.', 'error');
+        });
+    };
     
     // Function to delete book
     $scope.deleteBook = function(book) {
