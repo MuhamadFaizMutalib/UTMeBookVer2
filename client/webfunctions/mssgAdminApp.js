@@ -135,6 +135,29 @@ angular.module('messagesApp', [])
     $scope.closePurchaseModal = function() {
       $scope.showPurchaseModal = false;
     };
+
+
+    // Function to download book
+    $scope.downloadBook = function(purchase) {
+      $http.get('/api/books/download/' + purchase.bookId)
+        .then(function(response) {
+          if (response.data.success) {
+            // Create a download link and trigger it
+            var link = document.createElement('a');
+            link.href = response.data.downloadUrl;
+            link.download = purchase.title + '.pdf';
+            link.click();
+            showToast('Download started', 'success');
+          } else {
+            showToast('Error: ' + response.data.message, 'error');
+          }
+        })
+        .catch(function(error) {
+          console.error('Error downloading book:', error);
+          showToast('Server error. Please try again later.', 'error');
+        });
+    };
+
     
     // Update purchase status
     $scope.updateStatus = function() {
@@ -144,10 +167,16 @@ angular.module('messagesApp', [])
         return;
       }
       
-      // Send update to server
+      // Show encryption loading message if status is being set to Delivered
+      if ($scope.selectedPurchase.newStatus === 'Delivered') {
+        showToast('Encrypting book file with buyer MAC address...', 'info');
+      }
+      
+      // Send update to server with encryption request
       $http.put('/api/admin/purchases/update-status/' + $scope.selectedPurchase.orderId, {
         userId: $scope.user.id,
-        newStatus: $scope.selectedPurchase.newStatus
+        newStatus: $scope.selectedPurchase.newStatus,
+        encryptFile: $scope.selectedPurchase.newStatus === 'Delivered' // Encrypt if status is Delivered
       }).then(function(response) {
         if (response.data.success) {
           // Update status in the list
@@ -161,7 +190,12 @@ angular.module('messagesApp', [])
           // Update selected purchase
           $scope.selectedPurchase.status = $scope.selectedPurchase.newStatus;
           
-          showToast('Status updated successfully', 'success');
+          // Show success message with encryption info if applicable
+          if ($scope.selectedPurchase.newStatus === 'Delivered' && response.data.encrypted) {
+            showToast('Status updated and book encrypted successfully', 'success');
+          } else {
+            showToast('Status updated successfully', 'success');
+          }
         } else {
           showToast('Error: ' + response.data.message, 'error');
         }

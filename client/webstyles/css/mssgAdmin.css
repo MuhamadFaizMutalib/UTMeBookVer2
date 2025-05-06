@@ -570,3 +570,26 @@ body {
         width: 95%;
     }
 }
+
+/* Download Button Style */
+.btn-download {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    font-weight: 500;
+    transition: background-color 0.3s;
+    display: inline-flex;
+    align-items: center;
+}
+
+.btn-download:hover {
+    background-color: #43a047;
+}
+
+.btn-download i {
+    margin-right: 0.5rem;
+}

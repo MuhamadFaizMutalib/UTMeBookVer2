@@ -409,6 +409,20 @@ async function initDB() {
       )
     `);
 
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS encrypted (
+        id SERIAL PRIMARY KEY,
+        order_id VARCHAR(15) NOT NULL,
+        title VARCHAR(100) NOT NULL,
+        category VARCHAR(50) NOT NULL,
+        price DECIMAL(10, 2) NOT NULL,
+        cover_image_path VARCHAR(255),
+        purchase_date TIMESTAMP,
+        encrypted_book_path VARCHAR(255),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
     
     console.log('Database tables initialized');
   } catch (err) {
@@ -1238,7 +1252,7 @@ app.get('/api/admin/purchases', async (req, res) => {
 // API endpoint for admin to update purchase status
 app.put('/api/admin/purchases/update-status/:orderId', async (req, res) => {
   const { orderId } = req.params;
-  const { userId, newStatus } = req.body;
+  const { userId, newStatus, encryptFile } = req.body;
   
   try {
     // Verify user is an admin
@@ -1254,30 +1268,90 @@ app.put('/api/admin/purchases/update-status/:orderId', async (req, res) => {
       });
     }
     
+    // Get purchase details
+    const purchaseResult = await pool.query(
+      'SELECT * FROM purchases WHERE order_id = $1',
+      [orderId]
+    );
+    
+    if (purchaseResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Purchase not found'
+      });
+    }
+    
+    const purchase = purchaseResult.rows[0];
+    
     // Update purchase status
     await pool.query(
       `UPDATE purchases SET order_status = $1 WHERE order_id = $2`,
       [newStatus, orderId]
     );
     
+    // If status is changed to Delivered and encryption is requested, encrypt the file
+    let encrypted = false;
+    if (newStatus === 'Delivered' && encryptFile) {
+      // Get the book file path
+      const bookFilePath = path.join(UPLOAD_DIR, purchase.book_file_path);
+      
+      // Check if file exists
+      if (fs.existsSync(bookFilePath)) {
+        // Read the PDF file
+        const pdfData = fs.readFileSync(bookFilePath);
+        
+        // Get MAC address for encryption
+        const macAddress = purchase.mac_address;
+        
+        // Encrypt the PDF using the MAC address as the key
+        const cipher = crypto.createCipher('aes-256-cbc', macAddress);
+        let encryptedData = cipher.update(pdfData);
+        encryptedData = Buffer.concat([encryptedData, cipher.final()]);
+        
+        // Generate encrypted file path
+        const encryptedFileName = `encrypted-${orderId}-${Date.now()}.pdf`;
+        const encryptedFilePath = path.join(UPLOAD_DIR, 'encrypted', encryptedFileName);
+        
+        // Create encrypted directory if it doesn't exist
+        fs.mkdirSync(path.join(UPLOAD_DIR, 'encrypted'), { recursive: true });
+        
+        // Write encrypted data to file
+        fs.writeFileSync(encryptedFilePath, encryptedData);
+        
+        // Save encrypted file info to database
+        await pool.query(
+          `INSERT INTO encrypted (
+            order_id, title, category, price, cover_image_path,
+            purchase_date, encrypted_book_path
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [
+            orderId,
+            purchase.title,
+            purchase.category,
+            purchase.price,
+            purchase.cover_image_path,
+            purchase.purchase_date,
+            `encrypted/${encryptedFileName}`
+          ]
+        );
+        
+        encrypted = true;
+      }
+    }
+    
     // If status is changed to Canceled, update book status back to Available
     if (newStatus === 'Canceled') {
-      const purchase = await pool.query(
-        'SELECT book_id FROM purchases WHERE order_id = $1',
-        [orderId]
+      await pool.query(
+        `UPDATE books SET status = 'Available' WHERE id = $1`,
+        [purchase.book_id]
       );
-      
-      if (purchase.rows.length > 0) {
-        await pool.query(
-          `UPDATE books SET status = 'Available' WHERE id = $1`,
-          [purchase.rows[0].book_id]
-        );
-      }
     }
     
     res.status(200).json({
       success: true,
-      message: 'Status updated successfully'
+      message: 'Status updated successfully',
+      encrypted: encrypted
     });
     
   } catch (err) {
@@ -1517,6 +1591,61 @@ app.delete('/api/admin/books/:bookId', async (req, res) => {
 });
 
 //////////////////////////////////// [ END ADMIN UserBookManager ] ///////////////////////////////////
+
+
+
+//////////////////////////////////// [ DOWNLOAD & ENCRYPT ] ///////////////////////////////////
+
+
+// API endpoint to download a book
+app.get('/api/books/download/:bookId', async (req, res) => {
+  const { bookId } = req.params;
+  
+  try {
+    // Get book info
+    const bookResult = await pool.query(
+      'SELECT * FROM books WHERE id = $1',
+      [bookId]
+    );
+    
+    if (bookResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Book not found'
+      });
+    }
+    
+    const book = bookResult.rows[0];
+    const filePath = path.join(UPLOAD_DIR, book.book_file_path);
+    
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({
+        success: false,
+        message: 'Book file not found'
+      });
+    }
+    
+    // Return download URL
+    res.json({
+      success: true,
+      downloadUrl: `/uploads/${book.book_file_path}`
+    });
+    
+  } catch (err) {
+    console.error('Error downloading book:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Error downloading book',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+
+//////////////////////////////////// [ END DOWNLOAD & ENCRYPT ] ///////////////////////////////////
+
+
 
 
 // Serve static files from the uploads directory

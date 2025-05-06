@@ -183,6 +183,11 @@
                                     }">{{ selectedPurchase.status }}</span>
                                 </p>
                                 <p><strong>Purchase Date:</strong> {{ selectedPurchase.purchaseDate | date:'medium' }}</p>
+                                
+                                <!-- Add Download Button -->
+                                <button class="btn-download" ng-click="downloadBook(selectedPurchase)">
+                                    <i class="fas fa-download"></i> Download Book
+                                </button>
                             </div>
                         </div>
                         
