@@ -133,22 +133,32 @@ angular.module('messagesApp', [])
     
     // Function to view purchase details
     $scope.viewPurchaseDetails = function(purchase) {
-      // Make sure bookId is included
-      $http.get('/api/books/' + purchase.book_id)
-        .then(function(response) {
-          if (response.data.success) {
-            $scope.selectedPurchase = {
-              ...purchase, 
-              newStatus: purchase.status,
-              bookId: purchase.book_id  // Add this line
-            };
-            $scope.showPurchaseModal = true;
-          }
-        })
-        .catch(function(error) {
-          console.error('Error fetching book details:', error);
-          showToast('Error loading book details', 'error');
-        });
+      // Set basic information first to show the modal right away
+      $scope.selectedPurchase = {
+        ...purchase,
+        newStatus: purchase.status
+      };
+      $scope.showPurchaseModal = true;
+      
+      // Then try to get additional book details if bookId is available
+      const bookId = purchase.bookId || purchase.book_id;
+      
+      if (bookId) {
+        $http.get('/api/books/' + bookId)
+          .then(function(response) {
+            if (response.data.success) {
+              // Update with additional book details
+              $scope.selectedPurchase = {
+                ...$scope.selectedPurchase,
+                ...response.data.book
+              };
+            }
+          })
+          .catch(function(error) {
+            console.error('Error fetching book details:', error);
+            showToast('Unable to load additional book details', 'info');
+          });
+      }
     };
     
     // Close purchase modal
@@ -159,12 +169,12 @@ angular.module('messagesApp', [])
 
     // Function to download book
     $scope.downloadBook = function(purchase) {
-      if (!purchase.bookId && !purchase.book_id) {
+      const bookId = purchase.bookId || purchase.book_id;
+      
+      if (!bookId) {
         showToast('Book ID is missing', 'error');
         return;
       }
-      
-      const bookId = purchase.bookId || purchase.book_id;
       
       $http.get('/api/books/download/' + bookId)
         .then(function(response) {
@@ -173,7 +183,9 @@ angular.module('messagesApp', [])
             var link = document.createElement('a');
             link.href = response.data.downloadUrl;
             link.download = purchase.title + '.pdf';
+            document.body.appendChild(link);
             link.click();
+            document.body.removeChild(link);
             showToast('Download started', 'success');
           } else {
             showToast('Error: ' + response.data.message, 'error');

@@ -1205,6 +1205,7 @@ app.get('/api/admin/purchases', async (req, res) => {
     const result = await pool.query(
       `SELECT p.id, p.order_id, p.title, p.category, p.price, p.payment_method,
               p.mac_address, p.purchase_date, p.order_status, p.cover_image_path,
+              p.book_id, p.book_file_path,
               b.username as buyer_name, s.username as seller_name
        FROM purchases p
        JOIN users b ON p.buyer_id = b.id
@@ -1224,6 +1225,8 @@ app.get('/api/admin/purchases', async (req, res) => {
       purchaseDate: purchase.purchase_date,
       status: purchase.order_status,
       coverUrl: `/uploads/${purchase.cover_image_path}`,
+      bookId: purchase.book_id,
+      bookFilePath: purchase.book_file_path,
       buyerName: purchase.buyer_name,
       sellerName: purchase.seller_name
     }));
@@ -1292,51 +1295,58 @@ app.put('/api/admin/purchases/update-status/:orderId', async (req, res) => {
     // If status is changed to Delivered and encryption is requested, encrypt the file
     let encrypted = false;
     if (newStatus === 'Delivered' && encryptFile) {
-      // Get the book file path
-      const bookFilePath = path.join(UPLOAD_DIR, purchase.book_file_path);
-      
-      // Check if file exists
-      if (fs.existsSync(bookFilePath)) {
-        // Read the PDF file
-        const pdfData = fs.readFileSync(bookFilePath);
+      try {
+        // Get the book file path
+        const bookFilePath = path.join(UPLOAD_DIR, purchase.book_file_path);
         
-        // Get MAC address for encryption
-        const macAddress = purchase.mac_address;
-        
-        // Encrypt the PDF using the MAC address as the key
-        const cipher = crypto.createCipher('aes-256-cbc', macAddress);
-        let encryptedData = cipher.update(pdfData);
-        encryptedData = Buffer.concat([encryptedData, cipher.final()]);
-        
-        // Generate encrypted file path - UPDATE THIS PATH
-        const encryptedFileName = `encrypted-${orderId}-${Date.now()}.pdf`;
-        
-        // Create encryptedPDF directory if it doesn't exist - UPDATE THIS PATH
-        fs.mkdirSync(path.join(UPLOAD_DIR, 'encryptedPDF'), { recursive: true });
-        
-        // Write encrypted data to file - UPDATE THIS PATH
-        const encryptedFilePath = path.join(UPLOAD_DIR, 'encryptedPDF', encryptedFileName);
-        fs.writeFileSync(encryptedFilePath, encryptedData);
-        
-        // Save encrypted file info to database - UPDATE THIS PATH
-        await pool.query(
-          `INSERT INTO encrypted (
-            order_id, title, category, price, cover_image_path,
-            purchase_date, encrypted_book_path
-          )
-          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-          [
-            orderId,
-            purchase.title,
-            purchase.category,
-            purchase.price,
-            purchase.cover_image_path,
-            purchase.purchase_date,
-            `encryptedPDF/${encryptedFileName}`  // Update this path
-          ]
-        );
-        
-        encrypted = true;
+        // Check if file exists
+        if (fs.existsSync(bookFilePath)) {
+          // Read the PDF file
+          const pdfData = fs.readFileSync(bookFilePath);
+          
+          // Get MAC address for encryption
+          const macAddress = purchase.mac_address;
+          
+          // Encrypt the PDF using the MAC address as the key
+          const cipher = crypto.createCipher('aes-256-cbc', macAddress);
+          let encryptedData = cipher.update(pdfData);
+          encryptedData = Buffer.concat([encryptedData, cipher.final()]);
+          
+          // Create encryptedPDF directory if it doesn't exist
+          const encryptedPDFDir = path.join(UPLOAD_DIR, 'encryptedPDF');
+          fs.mkdirSync(encryptedPDFDir, { recursive: true });
+          
+          // Generate encrypted file path
+          const encryptedFileName = `encrypted-${orderId}-${Date.now()}.pdf`;
+          const encryptedFilePath = path.join(encryptedPDFDir, encryptedFileName);
+          
+          // Write encrypted data to file
+          fs.writeFileSync(encryptedFilePath, encryptedData);
+          
+          // Save encrypted file info to database
+          await pool.query(
+            `INSERT INTO encrypted (
+              order_id, title, category, price, cover_image_path,
+              purchase_date, encrypted_book_path
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            [
+              orderId,
+              purchase.title,
+              purchase.category,
+              purchase.price,
+              purchase.cover_image_path,
+              purchase.purchase_date,
+              `encryptedPDF/${encryptedFileName}`
+            ]
+          );
+          
+          encrypted = true;
+        } else {
+          console.error(`Book file not found at path: ${bookFilePath}`);
+        }
+      } catch (err) {
+        console.error('Error encrypting file:', err);
       }
     }
     
