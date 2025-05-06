@@ -1664,9 +1664,11 @@ app.get('/api/books/download/:bookId', async (req, res) => {
 
 
 //////////////////////////////////// [ DOWNLOAD ORDERS & MyBOOK ] ///////////////////////////////////
-// API endpoint to download an encrypted book
+// Improved API endpoint to download an encrypted book
 app.get('/api/encrypted/download/:orderId', async (req, res) => {
   const { orderId } = req.params;
+  
+  console.log(`Download request for order ID: ${orderId}`); // Add logging
   
   try {
     // Get encrypted book info
@@ -1676,24 +1678,95 @@ app.get('/api/encrypted/download/:orderId', async (req, res) => {
     );
     
     if (encryptedResult.rows.length === 0) {
+      console.log(`No encrypted record found for order ID: ${orderId}`);
       return res.status(404).json({
         success: false,
-        message: 'Encrypted book not found'
+        message: 'Encrypted book not found in database'
       });
     }
     
     const encryptedBook = encryptedResult.rows[0];
     const filePath = path.join(UPLOAD_DIR, encryptedBook.encrypted_book_path);
+    console.log(`Looking for file at path: ${filePath}`);
     
     // Check if file exists
     if (!fs.existsSync(filePath)) {
+      console.log(`File not found at path: ${filePath}`);
+      
+      // If the encrypted file doesn't exist, try to encrypt it now
+      try {
+        // Get the purchase record to get the book file path and MAC address
+        const purchaseResult = await pool.query(
+          'SELECT * FROM purchases WHERE order_id = $1',
+          [orderId]
+        );
+        
+        if (purchaseResult.rows.length > 0) {
+          const purchase = purchaseResult.rows[0];
+          
+          // Only attempt to encrypt if the purchase is in 'Delivered' status
+          if (purchase.order_status === 'Delivered') {
+            // Get the book file path
+            const bookFilePath = path.join(UPLOAD_DIR, purchase.book_file_path);
+            
+            if (fs.existsSync(bookFilePath)) {
+              // Read the PDF file
+              const pdfData = fs.readFileSync(bookFilePath);
+              
+              // Get MAC address for encryption
+              const macAddress = purchase.mac_address;
+              
+              // Modern encryption using createCipheriv
+              const algorithm = 'aes-256-cbc';
+              // Create a key of the correct length (32 bytes for aes-256)
+              const key = crypto.scryptSync(macAddress, 'salt', 32);
+              // Generate a random initialization vector
+              const iv = crypto.randomBytes(16);
+              
+              // Create cipher with key and iv
+              const cipher = crypto.createCipheriv(algorithm, key, iv);
+              let encrypted = cipher.update(pdfData);
+              encrypted = Buffer.concat([iv, encrypted, cipher.final()]); // Prepend IV to encrypted data
+              
+              // Create encryptedPDF directory if it doesn't exist
+              const encryptedPDFDir = path.join(UPLOAD_DIR, 'encryptedPDF');
+              fs.mkdirSync(encryptedPDFDir, { recursive: true });
+              
+              // Generate encrypted file path
+              const encryptedFileName = `encrypted-${orderId}-${Date.now()}.pdf`;
+              const encryptedFilePath = path.join(encryptedPDFDir, encryptedFileName);
+              
+              // Write encrypted data to file
+              fs.writeFileSync(encryptedFilePath, encrypted);
+              
+              // Update database record with new path
+              const relativeEncryptedPath = `encryptedPDF/${encryptedFileName}`;
+              await pool.query(
+                `UPDATE encrypted SET encrypted_book_path = $1 WHERE order_id = $2`,
+                [relativeEncryptedPath, orderId]
+              );
+              
+              console.log(`File re-encrypted successfully at: ${encryptedFilePath}`);
+              
+              // Return download URL for the newly encrypted file
+              return res.json({
+                success: true,
+                downloadUrl: `/uploads/${relativeEncryptedPath}`
+              });
+            }
+          }
+        }
+      } catch (encryptErr) {
+        console.error('Error re-encrypting file:', encryptErr);
+      }
+      
       return res.status(404).json({
         success: false,
-        message: 'Encrypted book file not found'
+        message: 'Encrypted book file not found and could not be recreated'
       });
     }
     
-    // Return download URL
+    // Return download URL if file exists
     res.json({
       success: true,
       downloadUrl: `/uploads/${encryptedBook.encrypted_book_path}`
