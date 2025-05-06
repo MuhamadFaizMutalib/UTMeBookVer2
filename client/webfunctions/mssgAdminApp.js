@@ -1,5 +1,11 @@
 // Angular.js application for the messages page
 angular.module('messagesApp', [])
+  .filter('nl2br', function($sce) {
+    return function(text) {
+      if (!text) return '';
+      return $sce.trustAsHtml(text.replace(/\n/g, '<br>'));
+    };
+  })
   .controller('MessagesController', ['$scope', '$http', '$window', '$sce', function($scope, $http, $window, $sce) {
     // Get user information from localStorage
     try {
@@ -127,8 +133,22 @@ angular.module('messagesApp', [])
     
     // Function to view purchase details
     $scope.viewPurchaseDetails = function(purchase) {
-      $scope.selectedPurchase = {...purchase, newStatus: purchase.status};
-      $scope.showPurchaseModal = true;
+      // Make sure bookId is included
+      $http.get('/api/books/' + purchase.book_id)
+        .then(function(response) {
+          if (response.data.success) {
+            $scope.selectedPurchase = {
+              ...purchase, 
+              newStatus: purchase.status,
+              bookId: purchase.book_id  // Add this line
+            };
+            $scope.showPurchaseModal = true;
+          }
+        })
+        .catch(function(error) {
+          console.error('Error fetching book details:', error);
+          showToast('Error loading book details', 'error');
+        });
     };
     
     // Close purchase modal
@@ -139,7 +159,14 @@ angular.module('messagesApp', [])
 
     // Function to download book
     $scope.downloadBook = function(purchase) {
-      $http.get('/api/books/download/' + purchase.bookId)
+      if (!purchase.bookId && !purchase.book_id) {
+        showToast('Book ID is missing', 'error');
+        return;
+      }
+      
+      const bookId = purchase.bookId || purchase.book_id;
+      
+      $http.get('/api/books/download/' + bookId)
         .then(function(response) {
           if (response.data.success) {
             // Create a download link and trigger it

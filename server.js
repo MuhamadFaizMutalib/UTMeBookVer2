@@ -1308,17 +1308,17 @@ app.put('/api/admin/purchases/update-status/:orderId', async (req, res) => {
         let encryptedData = cipher.update(pdfData);
         encryptedData = Buffer.concat([encryptedData, cipher.final()]);
         
-        // Generate encrypted file path
+        // Generate encrypted file path - UPDATE THIS PATH
         const encryptedFileName = `encrypted-${orderId}-${Date.now()}.pdf`;
-        const encryptedFilePath = path.join(UPLOAD_DIR, 'encrypted', encryptedFileName);
         
-        // Create encrypted directory if it doesn't exist
-        fs.mkdirSync(path.join(UPLOAD_DIR, 'encrypted'), { recursive: true });
+        // Create encryptedPDF directory if it doesn't exist - UPDATE THIS PATH
+        fs.mkdirSync(path.join(UPLOAD_DIR, 'encryptedPDF'), { recursive: true });
         
-        // Write encrypted data to file
+        // Write encrypted data to file - UPDATE THIS PATH
+        const encryptedFilePath = path.join(UPLOAD_DIR, 'encryptedPDF', encryptedFileName);
         fs.writeFileSync(encryptedFilePath, encryptedData);
         
-        // Save encrypted file info to database
+        // Save encrypted file info to database - UPDATE THIS PATH
         await pool.query(
           `INSERT INTO encrypted (
             order_id, title, category, price, cover_image_path,
@@ -1332,7 +1332,7 @@ app.put('/api/admin/purchases/update-status/:orderId', async (req, res) => {
             purchase.price,
             purchase.cover_image_path,
             purchase.purchase_date,
-            `encrypted/${encryptedFileName}`
+            `encryptedPDF/${encryptedFileName}`  // Update this path
           ]
         );
         

@@ -5,22 +5,25 @@ UTMeBookVer2/
 │   │   └── dashboard.html
 │   │   └── order.html
 │   │   └── place-order.html
+│   │   └── mssgAdmin.html
 │   │
 │   ├── webfunctions/                # JS Files
 │   │   └── dashboardApp.js
 │   │   └── orderApp.js
 │   │   └── placeOrderApp.js
+│   │   └── mssgAdminApp.js
 │   │
 │   ├── webstyles/                   # CSS Files and others
 │   │   ├── css/
 │   │   │   └── dashboard.css
 │   │   │   └── order.css
 │   │   │   └── placeorder.css
-│   │   │   └── mobile-styles.css
+│   │   │   └── mssgAdmin.css
 │   │   └── img/
 │   │       └── placeholder.svg
 │   │
 ├──  uploads/ 
+│   │       └── encryptedPDF/
 │   │       └── books/
 │   │       └── covers/
 │   │       └── apps/
