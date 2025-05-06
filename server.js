@@ -1307,10 +1307,17 @@ app.put('/api/admin/purchases/update-status/:orderId', async (req, res) => {
           // Get MAC address for encryption
           const macAddress = purchase.mac_address;
           
-          // Encrypt the PDF using the MAC address as the key
-          const cipher = crypto.createCipher('aes-256-cbc', macAddress);
-          let encryptedData = cipher.update(pdfData);
-          encryptedData = Buffer.concat([encryptedData, cipher.final()]);
+          // Modern encryption using createCipheriv
+          const algorithm = 'aes-256-cbc';
+          // Create a key of the correct length (32 bytes for aes-256)
+          const key = crypto.scryptSync(macAddress, 'salt', 32);
+          // Generate a random initialization vector
+          const iv = crypto.randomBytes(16);
+          
+          // Create cipher with key and iv
+          const cipher = crypto.createCipheriv(algorithm, key, iv);
+          let encrypted = cipher.update(pdfData);
+          encrypted = Buffer.concat([iv, encrypted, cipher.final()]); // Prepend IV to encrypted data
           
           // Create encryptedPDF directory if it doesn't exist
           const encryptedPDFDir = path.join(UPLOAD_DIR, 'encryptedPDF');
@@ -1321,9 +1328,9 @@ app.put('/api/admin/purchases/update-status/:orderId', async (req, res) => {
           const encryptedFilePath = path.join(encryptedPDFDir, encryptedFileName);
           
           // Write encrypted data to file
-          fs.writeFileSync(encryptedFilePath, encryptedData);
+          fs.writeFileSync(encryptedFilePath, encrypted);
           
-          // Save encrypted file info to database
+          // Save encrypted file info to database (also store algorithm and salt info for future decryption)
           await pool.query(
             `INSERT INTO encrypted (
               order_id, title, category, price, cover_image_path,
