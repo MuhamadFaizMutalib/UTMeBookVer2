@@ -1753,8 +1753,9 @@ app.get('/order', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/webpages/order.html'));
 });
 
+// Update the mybook route in server.js
 app.get('/mybook', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client/webpages/dashboard.html')); // Temporary redirect until implemented
+  res.sendFile(path.join(__dirname, 'client/webpages/mybook.html'));
 });
 
 app.get('/account', (req, res) => {
@@ -1773,10 +1774,6 @@ app.get('/mssgAdmin', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/webpages/mssgAdmin.html'));
 });
 
-// Update the mybook route in server.js
-app.get('/mybook', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client/webpages/mybook.html'));
-});
 
 // Start server and initialize database
 app.listen(PORT, () => {
