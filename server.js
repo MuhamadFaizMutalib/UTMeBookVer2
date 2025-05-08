@@ -553,6 +553,15 @@ async function initDB() {
       )
     `);
 
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS user_profiles (
+        user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+        phone VARCHAR(20),
+        address TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
     
     console.log('Database tables initialized');
   } catch (err) {
@@ -1915,6 +1924,210 @@ app.get('/api/encrypted/download/:orderId', async (req, res) => {
 //////////////////////////////////// [ END DOWNLOAD ORDERS & MyBOOK ] ///////////////////////////////////
 
 
+//////////////////////////////////// [ Users & Admin Account ] ///////////////////////////////////
+
+// API endpoint to get user profile
+app.get('/api/users/:userId/profile', async (req, res) => {
+  const { userId } = req.params;
+  
+  try {
+    // First check if the user exists
+    const userResult = await pool.query(
+      'SELECT id, username, email, role FROM users WHERE id = $1',
+      [userId]
+    );
+    
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
+    // Then get the profile data
+    const profileResult = await pool.query(
+      'SELECT phone, address FROM user_profiles WHERE user_id = $1',
+      [userId]
+    );
+    
+    const userData = userResult.rows[0];
+    let profileData = {};
+    
+    if (profileResult.rows.length > 0) {
+      profileData = profileResult.rows[0];
+    }
+    
+    res.status(200).json({
+      success: true,
+      profile: {
+        username: userData.username,
+        email: userData.email,
+        role: userData.role,
+        phone: profileData.phone || '',
+        address: profileData.address || ''
+      }
+    });
+    
+  } catch (err) {
+    console.error(`Error fetching profile for user ${userId}:`, err);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching user profile',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+// API endpoint to update user profile
+app.put('/api/users/:userId/profile', async (req, res) => {
+  const { userId } = req.params;
+  const { username, email, phone, address } = req.body;
+  
+  try {
+    // First check if the user exists
+    const userCheck = await pool.query(
+      'SELECT id FROM users WHERE id = $1',
+      [userId]
+    );
+    
+    if (userCheck.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
+    // Check if username is already taken by another user
+    if (username) {
+      const usernameCheck = await pool.query(
+        'SELECT id FROM users WHERE username = $1 AND id != $2',
+        [username, userId]
+      );
+      
+      if (usernameCheck.rows.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Username is already taken'
+        });
+      }
+    }
+    
+    // Check if email is already taken by another user
+    if (email) {
+      const emailCheck = await pool.query(
+        'SELECT id FROM users WHERE email = $1 AND id != $2',
+        [email, userId]
+      );
+      
+      if (emailCheck.rows.length > 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email is already associated with another account'
+        });
+      }
+    }
+    
+    // Update user data
+    await pool.query(
+      'UPDATE users SET username = $1, email = $2 WHERE id = $3',
+      [username, email, userId]
+    );
+    
+    // Check if profile exists
+    const profileCheck = await pool.query(
+      'SELECT user_id FROM user_profiles WHERE user_id = $1',
+      [userId]
+    );
+    
+    if (profileCheck.rows.length === 0) {
+      // Insert new profile
+      await pool.query(
+        'INSERT INTO user_profiles (user_id, phone, address) VALUES ($1, $2, $3)',
+        [userId, phone, address]
+      );
+    } else {
+      // Update existing profile
+      await pool.query(
+        'UPDATE user_profiles SET phone = $1, address = $2, updated_at = CURRENT_TIMESTAMP WHERE user_id = $3',
+        [phone, address, userId]
+      );
+    }
+    
+    res.status(200).json({
+      success: true,
+      message: 'Profile updated successfully'
+    });
+    
+  } catch (err) {
+    console.error(`Error updating profile for user ${userId}:`, err);
+    res.status(500).json({
+      success: false,
+      message: 'Error updating user profile',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+// API endpoint to change password
+app.put('/api/users/:userId/change-password', async (req, res) => {
+  const { userId } = req.params;
+  const { currentPassword, newPassword } = req.body;
+  
+  try {
+    // First check if the user exists and get current password
+    const userResult = await pool.query(
+      'SELECT password FROM users WHERE id = $1',
+      [userId]
+    );
+    
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
+    const user = userResult.rows[0];
+    
+    // Verify current password
+    const passwordMatch = await bcrypt.compare(currentPassword, user.password);
+    
+    if (!passwordMatch) {
+      return res.status(400).json({
+        success: false,
+        message: 'Current password is incorrect'
+      });
+    }
+    
+    // Hash new password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+    
+    // Update password
+    await pool.query(
+      'UPDATE users SET password = $1 WHERE id = $2',
+      [hashedPassword, userId]
+    );
+    
+    res.status(200).json({
+      success: true,
+      message: 'Password updated successfully'
+    });
+    
+  } catch (err) {
+    console.error(`Error changing password for user ${userId}:`, err);
+    res.status(500).json({
+      success: false,
+      message: 'Error changing password',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+//////////////////////////////////// [ END Users & Admin Account ] ///////////////////////////////////
+
+
+
 // Serve static files from the uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -1967,7 +2180,7 @@ app.get('/mybook', (req, res) => {
 });
 
 app.get('/account', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client/webpages/dashboard.html')); // Temporary redirect until implemented
+  res.sendFile(path.join(__dirname, 'client/webpages/userAccount.html'));
 });
 
 app.get('/place-order', (req, res) => {

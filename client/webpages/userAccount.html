@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTMeBook - My Account</title>
+    <link rel="stylesheet" href="../webstyles/css/dashboard.css">
+    <link rel="stylesheet" href="../webstyles/css/userAccount.css">
+    <link rel="stylesheet" href="../webstyles/css/mobile-styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="../webfunctions/userAccountApp.js"></script>
+ 
+</head>
+<body ng-app="accountApp" ng-controller="AccountController">
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="header">
+            <!-- Mobile Menu Toggle Button -->
+            <button class="mobile-menu-toggle" ng-click="toggleMobileMenu()">
+                <i class="fas" ng-class="{'fa-bars': !mobileMenuOpen, 'fa-times': mobileMenuOpen}"></i>
+            </button>
+            
+            <div class="logo">
+                <h1>UTMeBook</h1>
+            </div>
+            
+            <div class="user-menu">
+                <span class="username">{{ user.username }}</span>
+                <button class="btn-logout" ng-click="logout()">Logout</button>
+            </div>
+        </header>
+        
+        <!-- Navigation Bar -->
+        <nav class="navbar">
+            <ul ng-class="{'show-mobile': mobileMenuOpen}">
+                <li>
+                    <a href="#" ng-click="setActiveTab('add-ebook')">
+                        <i class="fas fa-plus-circle"></i> Add eBook
+                    </a>
+                </li>
+                <li>
+                    <a href="#" ng-click="setActiveTab('order')">
+                        <i class="fas fa-clipboard-list"></i> Order
+                    </a>
+                </li>
+                <li>
+                    <a href="#" ng-click="setActiveTab('messages')">
+                        <i class="fas fa-envelope"></i> Messages
+                    </a>
+                </li>
+                <li>
+                    <a href="#" ng-click="setActiveTab('mybook')">
+                        <i class="fas fa-book"></i> MyBook
+                    </a>
+                </li>
+                <li class="active">
+                    <a href="#" ng-click="setActiveTab('account')">
+                        <i class="fas fa-user"></i> Account
+                    </a>
+                </li>
+                <li>
+                    <a href="#" ng-click="setActiveTab('dashboard')">
+                        <i class="fas fa-home"></i> Dashboard
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        
+        <!-- Account Section -->
+        <section class="account-section">
+            <div class="profile-card">
+                <div class="profile-header">
+                    <div class="profile-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="profile-title">
+                        <h2>My Account</h2>
+                        <p>Manage your account information and settings</p>
+                    </div>
+                </div>
+                
+                <!-- Account Information Form -->
+                <form ng-submit="saveProfile()" name="profileForm">
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <input 
+                            type="text" 
+                            id="username" 
+                            ng-model="profile.username" 
+                            required
+                            ng-disabled="!editMode" 
+                            ng-class="{'error': profileForm.username.$invalid && profileForm.username.$touched}"
+                        >
+                        <div class="error-message" ng-show="usernameError">{{ usernameError }}</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            ng-model="profile.email" 
+                            required
+                            ng-disabled="!editMode"
+                            ng-class="{'error': profileForm.email.$invalid && profileForm.email.$touched}"
+                        >
+                        <div class="error-message" ng-show="emailError">{{ emailError }}</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone">Phone Number</label>
+                        <input 
+                            type="tel" 
+                            id="phone" 
+                            ng-model="profile.phone" 
+                            ng-disabled="!editMode"
+                            placeholder="Enter your phone number"
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="address">Address</label>
+                        <input 
+                            type="text" 
+                            id="address" 
+                            ng-model="profile.address" 
+                            ng-disabled="!editMode"
+                            placeholder="Enter your address"
+                        >
+                    </div>
+                    
+                    <div class="edit-mode-controls" ng-if="!editMode">
+                        <button type="button" class="btn-edit" ng-click="enableEditMode()">
+                            <i class="fas fa-edit"></i> Edit Profile
+                        </button>
+                    </div>
+                    
+                    <div class="edit-mode-controls" ng-if="editMode">
+                        <button type="button" class="btn-cancel" ng-click="cancelEdit()">Cancel</button>
+                        <button type="submit" class="btn-save">Save Changes</button>
+                    </div>
+                    
+                    <div class="success-message" ng-show="profileUpdateSuccess">{{ profileUpdateSuccess }}</div>
+                </form>
+                
+                <!-- Password Change Section -->
+                <div class="password-section">
+                    <h3>Password Management</h3>
+                    <p>Use this section to change your account password</p>
+                    <div style="margin-top: 15px;">
+                        <button type="button" class="btn-change-password" ng-click="openPasswordModal()">
+                            <i class="fas fa-key"></i> Change Password
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Password Change Modal -->
+        <div class="modal" id="passwordModal">
+            <div class="modal-content">
+                <span class="close-modal" ng-click="closePasswordModal()">&times;</span>
+                <h3 class="modal-title">Change Password</h3>
+                
+                <form ng-submit="changePassword()" name="passwordForm">
+                    <div class="form-group">
+                        <label for="currentPassword">Current Password</label>
+                        <input 
+                            type="password" 
+                            id="currentPassword" 
+                            ng-model="passwordData.currentPassword" 
+                            required
+                        >
+                        <div class="error-message" ng-show="currentPasswordError">{{ currentPasswordError }}</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="newPassword">New Password</label>
+                        <input 
+                            type="password" 
+                            id="newPassword" 
+                            ng-model="passwordData.newPassword" 
+                            required
+                            minlength="8"
+                        >
+                        <div class="error-message" ng-show="passwordForm.newPassword.$error.minlength">
+                            Password must be at least 8 characters
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm New Password</label>
+                        <input 
+                            type="password" 
+                            id="confirmPassword" 
+                            ng-model="passwordData.confirmPassword" 
+                            required
+                        >
+                        <div class="error-message" ng-show="passwordMismatch">
+                            Passwords do not match
+                        </div>
+                    </div>
+                    
+                    <div class="error-message" ng-show="passwordChangeError">{{ passwordChangeError }}</div>
+                    <div class="success-message" ng-show="passwordChangeSuccess">{{ passwordChangeSuccess }}</div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn-cancel" ng-click="closePasswordModal()">Cancel</button>
+                        <button type="submit" class="btn-save">Change Password</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <p>&copy; 2025 UTMeBook. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>
