@@ -157,53 +157,55 @@
                 <span class="close-modal" ng-click="closePasswordModal()">&times;</span>
                 <h3 class="modal-title">Change Password</h3>
                 
-                <form ng-submit="changePassword()" name="passwordForm">
-                    <div class="form-group">
-                        <label for="currentPassword">Current Password</label>
-                        <input 
-                            type="password" 
-                            id="currentPassword" 
-                            ng-model="passwordData.currentPassword" 
-                            required
-                        >
-                        <div class="error-message" ng-show="currentPasswordError">{{ currentPasswordError }}</div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="newPassword">New Password</label>
-                        <input 
-                            type="password" 
-                            id="newPassword" 
-                            ng-model="passwordData.newPassword" 
-                            required
-                            minlength="8"
-                        >
-                        <div class="error-message" ng-show="passwordForm.newPassword.$error.minlength">
-                            Password must be at least 8 characters
+                <div class="modal-body">
+                    <form ng-submit="changePassword()" name="passwordForm">
+                        <div class="form-group">
+                            <label for="currentPassword">Current Password</label>
+                            <input 
+                                type="password" 
+                                id="currentPassword" 
+                                ng-model="passwordData.currentPassword" 
+                                required
+                            >
+                            <div class="error-message" ng-show="currentPasswordError">{{ currentPasswordError }}</div>
                         </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="confirmPassword">Confirm New Password</label>
-                        <input 
-                            type="password" 
-                            id="confirmPassword" 
-                            ng-model="passwordData.confirmPassword" 
-                            required
-                        >
-                        <div class="error-message" ng-show="passwordMismatch">
-                            Passwords do not match
+                        
+                        <div class="form-group">
+                            <label for="newPassword">New Password</label>
+                            <input 
+                                type="password" 
+                                id="newPassword" 
+                                ng-model="passwordData.newPassword" 
+                                required
+                                minlength="8"
+                            >
+                            <div class="error-message" ng-show="passwordForm.newPassword.$error.minlength">
+                                Password must be at least 8 characters
+                            </div>
                         </div>
-                    </div>
-                    
-                    <div class="error-message" ng-show="passwordChangeError">{{ passwordChangeError }}</div>
-                    <div class="success-message" ng-show="passwordChangeSuccess">{{ passwordChangeSuccess }}</div>
-                    
-                    <div class="modal-footer">
-                        <button type="button" class="btn-cancel" ng-click="closePasswordModal()">Cancel</button>
-                        <button type="submit" class="btn-save">Change Password</button>
-                    </div>
-                </form>
+                        
+                        <div class="form-group">
+                            <label for="confirmPassword">Confirm New Password</label>
+                            <input 
+                                type="password" 
+                                id="confirmPassword" 
+                                ng-model="passwordData.confirmPassword" 
+                                required
+                            >
+                            <div class="error-message" ng-show="passwordMismatch">
+                                Passwords do not match
+                            </div>
+                        </div>
+                        
+                        <div class="error-message" ng-show="passwordChangeError">{{ passwordChangeError }}</div>
+                        <div class="success-message" ng-show="passwordChangeSuccess">{{ passwordChangeSuccess }}</div>
+                    </form>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" ng-click="closePasswordModal()">Cancel</button>
+                    <button type="submit" class="btn-save" ng-click="changePassword()">Change Password</button>
+                </div>
             </div>
         </div>
         

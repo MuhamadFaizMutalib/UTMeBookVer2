@@ -148,7 +148,10 @@
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
-    overflow-y: auto; /* Enable scrolling */
+    overflow-y: auto; /* Enable scrolling on the backdrop */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .close-modal {
@@ -166,7 +169,7 @@
 
 .modal-content {
     background-color: white;
-    margin: 50px auto; /* Adjusted from percentage to fixed pixels */
+    margin: 20px auto; /* Reduced from 50px to 20px */
     padding: 30px;
     border-radius: 10px;
     width: 90%;
@@ -174,10 +177,13 @@
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
     position: relative;
     
-    /* These are the key changes to ensure the full modal is visible */
-    max-height: calc(100vh - 100px); /* Limit height to viewport minus margins */
-    overflow-y: auto; /* Allow scrolling within the modal if content is too tall */
+    /* Improved height management */
+    max-height: 90vh; /* Use 90% of viewport height */
+    overflow-y: auto; /* Allow scrolling within the modal */
+    display: flex;
+    flex-direction: column;
 }
+
 
 /* Ensure the modal title stays at the top */
 .modal-title {
@@ -193,10 +199,10 @@
 
 /* Ensure the modal footer stays visible */
 .modal-footer {
-    margin-top: 30px;
+    margin-top: 20px;
     display: flex;
     justify-content: flex-end;
-    gap: 10px; /* Add space between buttons */
+    gap: 10px;
     position: sticky;
     bottom: 0;
     background-color: white;
@@ -207,7 +213,7 @@
 /* Make the buttons more visible */
 .modal-footer .btn-save,
 .modal-footer .btn-cancel {
-    min-width: 100px; /* Ensure buttons have a minimum width */
+    min-width: 100px;
 }
 
 /* Add a small animation for better user experience */
@@ -218,4 +224,11 @@
 
 .modal-content {
     animation: modalFadeIn 0.3s ease-out;
+}
+
+
+.modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 5px; /* Add some padding for scrollbar */
 }

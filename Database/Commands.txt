@@ -73,4 +73,5 @@ DROP TABLE messages;
 DROP TABLE purchases;
 DROP TABLE encrypted;
 DROP TABLE books;
-
+DROP TABLE user_profiles;
+DROP TABLE publicmessages;
