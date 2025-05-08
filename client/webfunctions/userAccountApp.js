@@ -203,6 +203,29 @@ angular.module('accountApp', [])
       $scope.passwordChangeError = '';
       $scope.passwordChangeSuccess = '';
     };
+
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      var modal = document.getElementById('passwordModal');
+      if (event.target == modal) {
+        $scope.closePasswordModal();
+        if (!$scope.$phase) {
+          $scope.$apply();
+        }
+      }
+    };
+
+    // Prevent modal content clicks from closing the modal
+    document.addEventListener('DOMContentLoaded', function() {
+      var modalContent = document.querySelector('.modal-content');
+      if (modalContent) {
+        modalContent.addEventListener('click', function(event) {
+          event.stopPropagation();
+        });
+      }
+    });
+
     
     // Initialize password data
     $scope.passwordData = {
