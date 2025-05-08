@@ -2183,6 +2183,10 @@ app.get('/account', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/webpages/userAccount.html'));
 });
 
+app.get('/adminAccount', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/webpages/adminAccount.html'));
+});
+
 app.get('/place-order', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/webpages/place-order.html'));
 });

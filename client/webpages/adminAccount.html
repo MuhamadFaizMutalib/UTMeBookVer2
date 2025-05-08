@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTMeBook - Admin Account</title>
+    <link rel="stylesheet" href="../webstyles/css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <style>
+        /* Additional styles for account page */
+        .account-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        .account-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .account-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        
+        .account-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: #1e88e5;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            margin-right: 1.5rem;
+        }
+        
+        .account-title h2 {
+            margin: 0;
+            color: #0d47a1;
+        }
+        
+        .account-title p {
+            margin: 0.5rem 0 0;
+            color: #616161;
+        }
+        
+        .account-form {
+            margin-top: 1.5rem;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .btn-save {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-save:hover {
+            background-color: #43a047;
+        }
+        
+        .divider {
+            margin: 2rem 0;
+            border: none;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .form-group.password-group {
+            position: relative;
+        }
+        
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 45px;
+            cursor: pointer;
+            color: #757575;
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+        }
+        
+        .success-message, .error-message {
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+        
+        .success-message {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #c8e6c9;
+        }
+        
+        .error-message {
+            background-color: #ffebee;
+            color: #c62828;
+            border: 1px solid #ffcdd2;
+        }
+    </style>
+</head>
+<body ng-app="adminApp" ng-controller="AdminAccountController">
+    <div class="dashboard-container">
+        <header class="header">
+            <div class="logo">
+                <h1>UTMeBook Admin</h1>
+            </div>
+            <div class="user-info">
+                <span>Welcome, {{ user.username }}</span>
+                <button class="btn-logout" ng-click="logout()">Logout</button>
+            </div>
+            <button class="mobile-menu-toggle" ng-click="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </header>
+
+        <!-- Navigation Bar -->
+        <nav class="navbar">
+            <ul ng-class="{'show-mobile': mobileMenuOpen}">
+                <li>
+                    <a href="#" ng-click="setActiveTab('user-book-manager')" ng-class="{'active': activeTab === 'user-book-manager'}">
+                        <i class="fas fa-plus-circle"></i> User & Book Manager
+                    </a>
+                </li>
+                <li>
+                    <a href="#" ng-click="setActiveTab('mssgAdmin')" ng-class="{'active': activeTab === 'mssgAdmin'}">
+                        <i class="fas fa-envelope"></i> Messages
+                    </a>
+                </li>
+                <li>
+                    <a href="#" ng-click="setActiveTab('adminAccount')" ng-class="{'active': activeTab === 'adminAccount'}">
+                        <i class="fas fa-user"></i> Account
+                    </a>
+                </li>
+                <li>
+                    <a href="#" ng-click="setActiveTab('activity-report')" ng-class="{'active': activeTab === 'activity-report'}">
+                        <i class="fa-solid fa-file"></i> Activity Report
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <main class="content">
+            <div class="account-container">
+                <!-- Profile Information -->
+                <div class="account-card">
+                    <div class="account-header">
+                        <div class="account-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="account-title">
+                            <h2>Account Profile</h2>
+                            <p>Manage your account information</p>
+                        </div>
+                    </div>
+
+                    <!-- Success/Error Messages -->
+                    <div class="success-message" ng-if="profileUpdateSuccess">
+                        <i class="fas fa-check-circle"></i> {{ profileUpdateSuccess }}
+                    </div>
+                    
+                    <div class="error-message" ng-if="profileUpdateError">
+                        <i class="fas fa-exclamation-circle"></i> {{ profileUpdateError }}
+                    </div>
+
+                    <form class="account-form" ng-submit="updateProfile()">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="username">Username</label>
+                                <input type="text" id="username" ng-model="profile.username" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email Address</label>
+                                <input type="email" id="email" ng-model="profile.email" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="phone">Phone Number</label>
+                                <input type="tel" id="phone" ng-model="profile.phone" placeholder="e.g., +60123456789">
+                            </div>
+                            <div class="form-group">
+                                <label for="role">Role</label>
+                                <input type="text" id="role" ng-model="profile.role" readonly>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="address">Address</label>
+                            <textarea id="address" ng-model="profile.address" rows="3" placeholder="Enter your address"></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-save">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Change Password -->
+                <div class="account-card">
+                    <div class="account-header">
+                        <div class="account-avatar">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <div class="account-title">
+                            <h2>Change Password</h2>
+                            <p>Update your password to maintain security</p>
+                        </div>
+                    </div>
+
+                    <!-- Success/Error Messages -->
+                    <div class="success-message" ng-if="passwordUpdateSuccess">
+                        <i class="fas fa-check-circle"></i> {{ passwordUpdateSuccess }}
+                    </div>
+                    
+                    <div class="error-message" ng-if="passwordUpdateError">
+                        <i class="fas fa-exclamation-circle"></i> {{ passwordUpdateError }}
+                    </div>
+
+                    <form class="account-form" ng-submit="changePassword()">
+                        <div class="form-group password-group">
+                            <label for="currentPassword">Current Password</label>
+                            <input type="{{ showCurrentPassword ? 'text' : 'password' }}" id="currentPassword" ng-model="passwordForm.currentPassword" required>
+                            <span class="toggle-password" ng-click="toggleCurrentPassword()">
+                                <i class="fas" ng-class="showCurrentPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+                            </span>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group password-group">
+                                <label for="newPassword">New Password</label>
+                                <input type="{{ showNewPassword ? 'text' : 'password' }}" id="newPassword" ng-model="passwordForm.newPassword" required>
+                                <span class="toggle-password" ng-click="toggleNewPassword()">
+                                    <i class="fas" ng-class="showNewPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+                                </span>
+                            </div>
+                            <div class="form-group password-group">
+                                <label for="confirmPassword">Confirm New Password</label>
+                                <input type="{{ showConfirmPassword ? 'text' : 'password' }}" id="confirmPassword" ng-model="passwordForm.confirmPassword" required>
+                                <span class="toggle-password" ng-click="toggleConfirmPassword()">
+                                    <i class="fas" ng-class="showConfirmPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+                                </span>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-save">
+                                <i class="fas fa-key"></i> Update Password
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Angular.js application for the admin account page
+        angular.module('adminApp', [])
+            .controller('AdminAccountController', ['$scope', '$http', '$window', '$timeout', function($scope, $http, $window, $timeout) {
+                // Get user from localStorage
+                const storedUser = $window.localStorage.getItem('user');
+                $scope.user = storedUser ? JSON.parse(storedUser) : null;
+                
+                // Check if user is logged in
+                if (!$scope.user) {
+                    $window.location.href = '/login';
+                    return;
+                }
+                
+                // Initialize variables
+                $scope.activeTab = 'adminAccount';
+                $scope.mobileMenuOpen = false;
+                
+                // Profile data
+                $scope.profile = {
+                    username: '',
+                    email: '',
+                    phone: '',
+                    address: '',
+                    role: ''
+                };
+                
+                // Password form
+                $scope.passwordForm = {
+                    currentPassword: '',
+                    newPassword: '',
+                    confirmPassword: ''
+                };
+                
+                // Password visibility toggles
+                $scope.showCurrentPassword = false;
+                $scope.showNewPassword = false;
+                $scope.showConfirmPassword = false;
+                
+                // Message flags
+                $scope.profileUpdateSuccess = '';
+                $scope.profileUpdateError = '';
+                $scope.passwordUpdateSuccess = '';
+                $scope.passwordUpdateError = '';
+                
+                // Load user profile
+                loadUserProfile();
+                
+                // Function to load user profile
+                function loadUserProfile() {
+                    $http.get(`/api/users/${$scope.user.id}/profile`)
+                        .then(function(response) {
+                            if (response.data.success) {
+                                $scope.profile = response.data.profile;
+                            }
+                        })
+                        .catch(function(error) {
+                            console.error('Error loading profile:', error);
+                            $scope.profileUpdateError = 'Failed to load profile. Please try again later.';
+                        });
+                }
+                
+                // Function to set active tab and handle navigation
+                $scope.setActiveTab = function(tab) {
+                    $scope.activeTab = tab;
+                    
+                    // If on mobile, close the menu after selecting an item
+                    if (window.innerWidth <= 768) {
+                        $scope.mobileMenuOpen = false;
+                    }
+                    
+                    // Navigate to the appropriate page based on the tab
+                    switch(tab) {
+                        case 'user-book-manager':
+                            $window.location.href = '/user-book-manager';
+                            break;
+                        case 'mssgAdmin':
+                            $window.location.href = '/mssgAdmin';
+                            break;
+                        case 'report':
+                            $window.location.href = '/report';
+                            break;
+                        case 'adminAccount':
+                            $window.location.href = '/adminAccount';
+                            break;
+                        default:
+                            // Stay on current page for other tabs
+                            break;
+                    }
+                };
+                
+                // Toggle mobile menu
+                $scope.toggleMobileMenu = function() {
+                    $scope.mobileMenuOpen = !$scope.mobileMenuOpen;
+                };
+                
+                // Logout function
+                $scope.logout = function() {
+                    $window.localStorage.removeItem('user');
+                    $window.location.href = '/login';
+                };
+                
+                // Toggle password visibility
+                $scope.toggleCurrentPassword = function() {
+                    $scope.showCurrentPassword = !$scope.showCurrentPassword;
+                };
+                
+                $scope.toggleNewPassword = function() {
+                    $scope.showNewPassword = !$scope.showNewPassword;
+                };
+                
+                $scope.toggleConfirmPassword = function() {
+                    $scope.showConfirmPassword = !$scope.showConfirmPassword;
+                };
+                
+                // Update profile
+                $scope.updateProfile = function() {
+                    // Clear previous messages
+                    $scope.profileUpdateSuccess = '';
+                    $scope.profileUpdateError = '';
+                    
+                    $http.put(`/api/users/${$scope.user.id}/profile`, {
+                        username: $scope.profile.username,
+                        email: $scope.profile.email,
+                        phone: $scope.profile.phone,
+                        address: $scope.profile.address
+                    })
+                    .then(function(response) {
+                        if (response.data.success) {
+                            $scope.profileUpdateSuccess = 'Profile updated successfully!';
+                            
+                            // Update stored user data
+                            $scope.user.username = $scope.profile.username;
+                            $scope.user.email = $scope.profile.email;
+                            $window.localStorage.setItem('user', JSON.stringify($scope.user));
+                            
+                            // Clear success message after 3 seconds
+                            $timeout(function() {
+                                $scope.profileUpdateSuccess = '';
+                            }, 3000);
+                        }
+                    })
+                    .catch(function(error) {
+                        console.error('Error updating profile:', error);
+                        $scope.profileUpdateError = error.data && error.data.message ? 
+                            error.data.message : 'Failed to update profile. Please try again later.';
+                    });
+                };
+                
+                // Change password
+                $scope.changePassword = function() {
+                    // Clear previous messages
+                    $scope.passwordUpdateSuccess = '';
+                    $scope.passwordUpdateError = '';
+                    
+                    // Validate passwords match
+                    if ($scope.passwordForm.newPassword !== $scope.passwordForm.confirmPassword) {
+                        $scope.passwordUpdateError = 'New passwords do not match!';
+                        return;
+                    }
+                    
+                    $http.put(`/api/users/${$scope.user.id}/change-password`, {
+                        currentPassword: $scope.passwordForm.currentPassword,
+                        newPassword: $scope.passwordForm.newPassword
+                    })
+                    .then(function(response) {
+                        if (response.data.success) {
+                            $scope.passwordUpdateSuccess = 'Password updated successfully!';
+                            
+                            // Reset password form
+                            $scope.passwordForm = {
+                                currentPassword: '',
+                                newPassword: '',
+                                confirmPassword: ''
+                            };
+                            
+                            // Clear success message after 3 seconds
+                            $timeout(function() {
+                                $scope.passwordUpdateSuccess = '';
+                            }, 3000);
+                        }
+                    })
+                    .catch(function(error) {
+                        console.error('Error changing password:', error);
+                        $scope.passwordUpdateError = error.data && error.data.message ? 
+                            error.data.message : 'Failed to update password. Please try again later.';
+                    });
+                };
+            }]);
+    </script>
+</body>
+</html>

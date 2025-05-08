@@ -26,8 +26,8 @@ angular.module('adminApp', [])
         case 'report':
           $window.location.href = '/report';
           break;
-        case 'account':
-          $window.location.href = '/account';
+        case 'adminAccount':
+          $window.location.href = '/adminAccount';
           break;
         default:
           // Stay on dashboard for other tabs
