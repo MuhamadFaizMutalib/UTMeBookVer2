@@ -75,10 +75,26 @@
             cursor: pointer;
             font-weight: 500;
             transition: background-color 0.3s;
+            margin-right: 10px;
         }
         
         .btn-save:hover {
             background-color: #43a047;
+        }
+        
+        .btn-password {
+            background-color: #1e88e5;
+            color: white;
+            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-password:hover {
+            background-color: #1565c0;
         }
         
         .divider {
@@ -214,14 +230,15 @@
                         </div>
                     </div>
 
-                    <!-- Success/Error Messages -->
-                    <div class="success-message" ng-if="profileUpdateSuccess">
-                        <i class="fas fa-check-circle"></i> {{ profileUpdateSuccess }}
-                    </div>
-                    
-                    <div class="error-message" ng-if="profileUpdateError">
-                        <i class="fas fa-exclamation-circle"></i> {{ profileUpdateError }}
-                    </div>
+                <!-- Success Messages for both profile and password -->
+                <div class="success-message" ng-if="profileUpdateSuccess || passwordUpdateSuccess">
+                    <i class="fas fa-check-circle"></i> {{ profileUpdateSuccess || passwordUpdateSuccess }}
+                </div>
+                
+                <!-- Error Messages for profile -->
+                <div class="error-message" ng-if="profileUpdateError">
+                    <i class="fas fa-exclamation-circle"></i> {{ profileUpdateError }}
+                </div>
 
                     <form class="account-form" ng-submit="updateProfile()">
                         <div class="form-row">
@@ -252,36 +269,14 @@
                             <button type="submit" class="btn-save">
                                 <i class="fas fa-save"></i> Save Changes
                             </button>
+                            <button type="button" class="btn-password" ng-click="showPasswordModal = true">
+                                <i class="fas fa-key"></i> Change Password
+                            </button>
                         </div>
                     </form>
                 </div>
 
-                <!-- Change Password Card -->
-                <div class="account-card">
-                    <div class="account-header">
-                        <div class="account-avatar">
-                            <i class="fas fa-lock"></i>
-                        </div>
-                        <div class="account-title">
-                            <h2>Security Settings</h2>
-                            <p>Manage your account security</p>
-                        </div>
-                    </div>
 
-                    <!-- Success Messages -->
-                    <div class="success-message" ng-if="passwordUpdateSuccess">
-                        <i class="fas fa-check-circle"></i> {{ passwordUpdateSuccess }}
-                    </div>
-                    
-                    <div class="security-options">
-                        <p>Protect your account with a strong password that you update periodically.</p>
-                        <div class="form-actions">
-                            <button type="button" class="btn-save" ng-click="showPasswordModal = true">
-                                <i class="fas fa-key"></i> Change Password
-                            </button>
-                        </div>
-                    </div>
-                </div>
                 
                 <!-- Password Change Modal -->
                 <div class="modal" ng-show="showPasswordModal">
