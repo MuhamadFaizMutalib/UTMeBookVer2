@@ -180,7 +180,7 @@ body {
 /* Books Section */
 .book-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    grid-template-columns: repeat(2, 1fr); /* Two equal columns */
     gap: 1.5rem;
     max-height: 600px;
     overflow-y: auto;
@@ -491,7 +491,7 @@ body {
 }
 
 /* Responsive Design */
-@media (max-width: 1024px) {
+@media (max-width: 576px) {
     .admin-container {
         grid-template-columns: 1fr;
     }
@@ -520,7 +520,7 @@ body {
     }
     
     .book-grid {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        grid-template-columns: 1fr; /* Single column on very small screens */
     }
     
     .modal-content {

@@ -186,7 +186,10 @@
                                     <span class="book-category">{{ book.category }}</span>
                                     <span class="book-price">RM{{ book.price.toFixed(2) }}</span>
                                 </p>
-                                <p class="status"><strong>Status:</strong> {{ book.status }}</p>
+                                <p class="status"><strong style="color: black;">Status:</strong> <span ng-class="{
+                                    'status-sold': book.status === 'Sold',
+                                    'status-available': book.status === 'Available'
+                                }">{{ book.status }}</span></p>
                                 <p class="upload-date"><strong>Uploaded on:</strong> {{ book.uploadDate | date:'mediumDate' }}</p>
                                 <div class="book-actions">
                                     <button class="btn-edit" ng-click="editBook(book)">

@@ -210,7 +210,21 @@
 }
 
 .status {
-    color: #28a745;
+    margin: 5px 0;
+    font-size: 14px;
+}
+
+.status strong {
+    color: black;
+}
+
+.status-sold {
+    color: #d32f2f;
+    font-weight: bold;
+}
+
+.status-available {
+    color: #388e3c;
     font-weight: bold;
 }
 
