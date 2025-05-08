@@ -121,3 +121,27 @@ a {
         width: 100%;
     }
 }
+
+
+/* Forgot Password Link Styling */
+.forgot-password {
+    text-align: right;
+    font-size: 0.85em;
+    margin-top: 5px;
+}
+
+.forgot-password a {
+    color: #0066cc;
+    text-decoration: none;
+}
+
+.forgot-password a:hover {
+    text-decoration: underline;
+}
+
+/* Info Alert Style - Make sure this is added */
+.info {
+    background-color: #d9edf7;
+    color: #31708f;
+    border: 1px solid #bce8f1;
+}

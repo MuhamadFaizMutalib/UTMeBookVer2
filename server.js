@@ -274,6 +274,136 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
+
+// Add these endpoints after your existing login endpoints in server.js
+
+// Request password reset
+app.post('/api/forgot-password', async (req, res) => {
+  const { email } = req.body;
+  
+  console.log(`Received password reset request for email: ${email}`);
+  
+  try {
+    // Check if email exists in the database
+    const userCheck = await pool.query(
+      'SELECT * FROM users WHERE email = $1',
+      [email]
+    );
+    
+    if (userCheck.rows.length === 0) {
+      console.log(`No user found with email: ${email}`);
+      return res.status(404).json({ 
+        success: false, 
+        message: 'No account found with that email address' 
+      });
+    }
+    
+    // Generate 6-digit OTP
+    const otp = crypto.randomInt(100000, 999999).toString();
+    console.log(`Generated password reset OTP for ${email}: ${otp}`);
+    
+    // Store OTP with expiration (5 minutes)
+    otpStore[email] = {
+      otp,
+      type: 'password-reset',
+      expires: Date.now() + 5 * 60 * 1000
+    };
+    
+    // Send email with OTP
+    const mailOptions = {
+      from: process.env.EMAIL_USER || 'gengcangkui@gmail.com',
+      to: email,
+      subject: 'UTMeBook Password Reset',
+      text: `Your OTP for UTMeBook password reset is: ${otp}. This code will expire in 5 minutes.`
+    };
+    
+    console.log(`Attempting to send password reset email to: ${email}`);
+    
+    try {
+      const info = await transporter.sendMail(mailOptions);
+      console.log('Password reset email sent successfully:', info.response);
+      
+      res.status(200).json({ 
+        success: true, 
+        message: 'Password reset OTP sent successfully' 
+      });
+    } catch (emailError) {
+      console.error('Error sending password reset email:', emailError);
+      
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to send password reset email',
+        details: process.env.NODE_ENV === 'development' ? emailError.message : undefined
+      });
+    }
+    
+  } catch (err) {
+    console.error('Server error in forgot-password:', err);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+// Verify OTP and reset password
+app.post('/api/reset-password', async (req, res) => {
+  const { email, otp, newPassword } = req.body;
+  
+  console.log(`Received password reset verification for email: ${email}`);
+  
+  try {
+    // Check if OTP exists and is valid
+    const otpData = otpStore[email];
+    
+    if (!otpData || otpData.otp !== otp || otpData.type !== 'password-reset') {
+      console.log(`Invalid OTP for password reset email: ${email}`);
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Invalid OTP' 
+      });
+    }
+    
+    if (Date.now() > otpData.expires) {
+      console.log(`Expired OTP for password reset email: ${email}`);
+      delete otpStore[email];
+      return res.status(400).json({ 
+        success: false, 
+        message: 'OTP expired' 
+      });
+    }
+    
+    // Hash new password
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+    
+    // Update user's password in the database
+    await pool.query(
+      'UPDATE users SET password = $1 WHERE email = $2',
+      [hashedPassword, email]
+    );
+    
+    console.log(`Password reset successfully for email: ${email}`);
+    
+    // Clear OTP
+    delete otpStore[email];
+    
+    res.status(200).json({ 
+      success: true, 
+      message: 'Password reset successfully' 
+    });
+    
+  } catch (err) {
+    console.error('Server error in reset-password:', err);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Server error',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
 //////////////////////////////////// [END LOGIN & REGISTER ] ///////////////////////////////////
 
 
@@ -1803,6 +1933,11 @@ app.get('/', (req, res) => {
 // Define all specific routes first
 app.get('/login', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/webpages/login.html'));
+});
+
+
+app.get('/forgot-password', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/webpages/forgot-password.html'));
 });
 
 app.get('/register', (req, res) => {
