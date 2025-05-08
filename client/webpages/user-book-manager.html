@@ -11,18 +11,19 @@
 </head>
 <body ng-app="adminApp" ng-controller="AdminController">
     <div class="dashboard-container">
-    <header class="header">
-        <div class="logo">
-            <h1>UTMeBook Admin</h1>
-        </div>
-        <div class="user-info">
-            <span>Welcome, {{ user.username }}</span>
-            <button class="btn-logout" ng-click="logout()">Logout</button>
-        </div>
-        <button class="mobile-menu-toggle" ng-click="toggleMobileMenu()">
-            <i class="fas fa-bars"></i>
-        </button>
-    </header>
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <h1>UTMeBook Admin</h1>
+            </div>
+            <div class="user-info">
+                <span>Welcome, {{ user.username }}</span>
+                <button class="btn-logout" ng-click="logout()">Logout</button>
+            </div>
+            <button class="mobile-menu-toggle" ng-click="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </header>
 
     <!-- Navigation Bar -->
     <nav class="navbar">
