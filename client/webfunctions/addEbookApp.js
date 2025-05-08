@@ -33,8 +33,8 @@ angular.module('addEbookApp', [])
             case 'order':
               $window.location.href = '/order';
               break;
-            case 'messages':
-              $window.location.href = '/messages';
+            case 'notifications':
+              $window.location.href = '/public-messages';
               break;
             case 'mybook':
               $window.location.href = '/mybook';

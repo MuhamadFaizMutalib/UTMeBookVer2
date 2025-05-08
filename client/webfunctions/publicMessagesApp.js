@@ -54,23 +54,23 @@ angular.module('publicMessagesApp', [])
       
       // Navigate to the appropriate page based on the tab
       switch(tab) {
-        case 'dashboard':
-          $window.location.href = '/dashboard';
-          break;
-        case 'add-book':
+        case 'add-ebook':
           $window.location.href = '/add-ebook';
-          break;
-        case 'mybook':
-          $window.location.href = '/mybook';
           break;
         case 'order':
           $window.location.href = '/order';
+          break;
+        case 'dashboard':
+          $window.location.href = '/dashboard';
+          break;
+        case 'mybook':
+          $window.location.href = '/mybook';
           break;
         case 'account':
           $window.location.href = '/account';
           break;
         default:
-          // Stay on current page for other tabs
+          // Stay on dashboard for other tabs
           break;
       }
     };

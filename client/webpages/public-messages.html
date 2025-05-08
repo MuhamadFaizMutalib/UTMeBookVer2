@@ -31,23 +31,13 @@
         <nav class="navbar">
             <ul ng-class="{'show-mobile': mobileMenuOpen}">
                 <li>
-                    <a href="#" ng-click="setActiveTab('dashboard')" ng-class="{'active': activeTab === 'dashboard'}">
-                        <i class="fas fa-home"></i> Home
+                    <a href="#" ng-click="setActiveTab('add-ebook')">
+                        <i class="fas fa-plus-circle"></i> Add eBook
                     </a>
                 </li>
                 <li>
-                    <a href="#" ng-click="setActiveTab('add-book')" ng-class="{'active': activeTab === 'add-book'}">
-                        <i class="fas fa-plus-circle"></i> Add Book
-                    </a>
-                </li>
-                <li>
-                    <a href="#" ng-click="setActiveTab('mybook')" ng-class="{'active': activeTab === 'mybook'}">
-                        <i class="fas fa-book"></i> My Book
-                    </a>
-                </li>
-                <li>
-                    <a href="#" ng-click="setActiveTab('order')" ng-class="{'active': activeTab === 'order'}">
-                        <i class="fas fa-shopping-cart"></i> My Order
+                    <a href="#" ng-click="setActiveTab('order')">
+                        <i class="fas fa-clipboard-list"></i> Order
                     </a>
                 </li>
                 <li>
@@ -57,8 +47,18 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#" ng-click="setActiveTab('account')" ng-class="{'active': activeTab === 'account'}">
+                    <a href="#" ng-click="setActiveTab('mybook')">
+                        <i class="fas fa-book"></i> MyBook
+                    </a>
+                </li>
+                <li>
+                    <a href="#" ng-click="setActiveTab('account')">
                         <i class="fas fa-user"></i> Account
+                    </a>
+                </li>
+                <li class="active">
+                    <a href="#" ng-click="setActiveTab('dashboard')">
+                        <i class="fas fa-home"></i> Dashboard
                     </a>
                 </li>
             </ul>
