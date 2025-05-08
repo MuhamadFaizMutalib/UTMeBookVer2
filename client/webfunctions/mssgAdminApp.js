@@ -215,7 +215,8 @@ angular.module('messagesApp', [])
       $http.put('/api/admin/purchases/update-status/' + $scope.selectedPurchase.orderId, {
         userId: $scope.user.id,
         newStatus: $scope.selectedPurchase.newStatus,
-        encryptFile: $scope.selectedPurchase.newStatus === 'Delivered' // Encrypt if status is Delivered
+        encryptFile: $scope.selectedPurchase.newStatus === 'Delivered', // Encrypt if status is Delivered
+        sendNotification: true // Add this flag to indicate we want to send a notification to the buyer
       }).then(function(response) {
         if (response.data.success) {
           // Update status in the list
@@ -231,9 +232,9 @@ angular.module('messagesApp', [])
           
           // Show success message with encryption info if applicable
           if ($scope.selectedPurchase.newStatus === 'Delivered' && response.data.encrypted) {
-            showToast('Status updated and book encrypted successfully', 'success');
+            showToast('Status updated, book encrypted, and buyer notified successfully', 'success');
           } else {
-            showToast('Status updated successfully', 'success');
+            showToast('Status updated and buyer notified successfully', 'success');
           }
         } else {
           showToast('Error: ' + response.data.message, 'error');

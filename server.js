@@ -562,6 +562,19 @@ async function initDB() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS publicMessages (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        message_type VARCHAR(20) NOT NULL,
+        title VARCHAR(100) NOT NULL,
+        content TEXT NOT NULL,
+        related_order_id VARCHAR(15),
+        is_read BOOLEAN DEFAULT false,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
     
     console.log('Database tables initialized');
   } catch (err) {
@@ -1394,7 +1407,7 @@ app.get('/api/admin/purchases', async (req, res) => {
 // API endpoint for admin to update purchase status
 app.put('/api/admin/purchases/update-status/:orderId', async (req, res) => {
   const { orderId } = req.params;
-  const { userId, newStatus, encryptFile } = req.body;
+  const { userId, newStatus, encryptFile, sendNotification } = req.body;
   
   try {
     // Verify user is an admin
@@ -1502,6 +1515,50 @@ app.put('/api/admin/purchases/update-status/:orderId', async (req, res) => {
         `UPDATE books SET status = 'Available' WHERE id = $1`,
         [purchase.book_id]
       );
+    }
+    
+    // If sendNotification is true, send a notification to the buyer
+    if (sendNotification) {
+      // Get the buyer's name
+      const buyerResult = await pool.query(
+        'SELECT username FROM users WHERE id = $1',
+        [purchase.buyer_id]
+      );
+      
+      if (buyerResult.rows.length > 0) {
+        const buyerName = buyerResult.rows[0].username;
+        
+        // Prepare notification content based on the new status
+        let title = '';
+        let content = '';
+        
+        switch (newStatus) {
+          case 'Processing':
+            title = `Order ${orderId} is being processed`;
+            content = `Dear ${buyerName},\n\nYour order for "${purchase.title}" is now being processed. We'll notify you when your order is ready for download.\n\nOrder ID: ${orderId}\nBook: ${purchase.title}\nPrice: RM${purchase.price}\n\nThank you for your purchase!`;
+            break;
+          case 'Delivered':
+            title = `Order ${orderId} is ready for download`;
+            content = `Dear ${buyerName},\n\nGreat news! Your order for "${purchase.title}" is now ready for download. You can access your purchase from the "My Book" section or directly from your orders page.\n\nOrder ID: ${orderId}\nBook: ${purchase.title}\nPrice: RM${purchase.price}\n\nThe book has been encrypted with your device's MAC address for security. Thank you for your purchase!`;
+            break;
+          case 'Canceled':
+            title = `Order ${orderId} has been canceled`;
+            content = `Dear ${buyerName},\n\nYour order for "${purchase.title}" has been canceled.\n\nOrder ID: ${orderId}\nBook: ${purchase.title}\nPrice: RM${purchase.price}\n\nIf you did not request this cancellation or have any questions, please contact our support team.`;
+            break;
+          default:
+            title = `Order ${orderId} status updated`;
+            content = `Dear ${buyerName},\n\nYour order for "${purchase.title}" has been updated to status: ${newStatus}.\n\nOrder ID: ${orderId}\nBook: ${purchase.title}\nPrice: RM${purchase.price}\n\nThank you for your purchase!`;
+        }
+        
+        // Insert notification into publicMessages table
+        await pool.query(
+          `INSERT INTO publicMessages (
+            user_id, message_type, title, content, related_order_id, is_read
+          )
+          VALUES ($1, $2, $3, $4, $5, $6)`,
+          [purchase.buyer_id, 'order', title, content, orderId, false]
+        );
+      }
     }
     
     res.status(200).json({
@@ -2127,6 +2184,143 @@ app.put('/api/users/:userId/change-password', async (req, res) => {
 //////////////////////////////////// [ END Users & Admin Account ] ///////////////////////////////////
 
 
+//////////////////////////////////// [PUBLIC MESSAGES ENDPOINTS] ///////////////////////////////////
+
+// API endpoint to get user's public messages (notifications)
+app.get('/api/public-messages/:userId', async (req, res) => {
+  const { userId } = req.params;
+  
+  try {
+    const result = await pool.query(
+      `SELECT id, user_id, message_type, title, content, related_order_id, 
+              is_read, created_at
+       FROM publicMessages
+       WHERE user_id = $1
+       ORDER BY created_at DESC`,
+      [userId]
+    );
+    
+    // Format the results
+    const notifications = result.rows.map(notification => ({
+      id: notification.id,
+      userId: notification.user_id,
+      messageType: notification.message_type,
+      title: notification.title,
+      content: notification.content,
+      relatedOrderId: notification.related_order_id,
+      isRead: notification.is_read,
+      createdAt: notification.created_at
+    }));
+    
+    res.status(200).json({
+      success: true,
+      notifications: notifications
+    });
+    
+  } catch (err) {
+    console.error(`Error fetching public messages for user ${userId}:`, err);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching your notifications',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+// API endpoint to mark a public message as read
+app.put('/api/public-messages/:messageId/read', async (req, res) => {
+  const { messageId } = req.params;
+  const { userId } = req.body;
+  
+  try {
+    // Verify the message belongs to the user
+    const messageCheck = await pool.query(
+      'SELECT * FROM publicMessages WHERE id = $1 AND user_id = $2',
+      [messageId, userId]
+    );
+    
+    if (messageCheck.rows.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to mark this message as read'
+      });
+    }
+    
+    // Update message as read
+    await pool.query(
+      `UPDATE publicMessages SET is_read = true WHERE id = $1`,
+      [messageId]
+    );
+    
+    res.status(200).json({
+      success: true,
+      message: 'Message marked as read'
+    });
+    
+  } catch (err) {
+    console.error(`Error marking public message ${messageId} as read:`, err);
+    res.status(500).json({
+      success: false,
+      message: 'Error marking message as read',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+// API endpoint to mark all public messages as read
+app.put('/api/public-messages/mark-all-read', async (req, res) => {
+  const { userId } = req.body;
+  
+  try {
+    // Update all messages as read
+    await pool.query(
+      `UPDATE publicMessages SET is_read = true WHERE user_id = $1 AND is_read = false`,
+      [userId]
+    );
+    
+    res.status(200).json({
+      success: true,
+      message: 'All messages marked as read'
+    });
+    
+  } catch (err) {
+    console.error(`Error marking all public messages as read for user ${userId}:`, err);
+    res.status(500).json({
+      success: false,
+      message: 'Error marking all messages as read',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+// API endpoint to get unread message count
+app.get('/api/public-messages/:userId/unread-count', async (req, res) => {
+  const { userId } = req.params;
+  
+  try {
+    const result = await pool.query(
+      `SELECT COUNT(*) FROM publicMessages WHERE user_id = $1 AND is_read = false`,
+      [userId]
+    );
+    
+    res.status(200).json({
+      success: true,
+      count: parseInt(result.rows[0].count)
+    });
+    
+  } catch (err) {
+    console.error(`Error getting unread count for user ${userId}:`, err);
+    res.status(500).json({
+      success: false,
+      message: 'Error getting unread count',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+//////////////////////////////////// [END PUBLIC MESSAGES ENDPOINTS] ///////////////////////////////////
+
+
 
 // Serve static files from the uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -2191,8 +2385,12 @@ app.get('/place-order', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/webpages/place-order.html'));
 });
 
-app.get('/messages', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client/webpages/messages.html'));
+// app.get('/messages', (req, res) => {
+//   res.sendFile(path.join(__dirname, 'client/webpages/messages.html'));
+// });
+
+app.get('/public-messages', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/webpages/public-messages.html'));
 });
 
 app.get('/mssgAdmin', (req, res) => {

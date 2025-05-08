@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>UTMeBook - Messages</title>
+        <link rel="stylesheet" href="../webstyles/css/dashboard.css">
+        <link rel="stylesheet" href="../webstyles/css/mobile-styles.css">
+        <link rel="stylesheet" href="../webstyles/css/public-messages.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+        <script src="../webfunctions/publicMessagesApp.js"></script>
+    </head>
+<body ng-app="publicMessagesApp" ng-controller="PublicMessagesController">
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <h1>UTMeBook</h1>
+            </div>
+            <div class="user-info">
+                <span>Welcome, {{ user.username }}</span>
+                <button class="btn-logout" ng-click="logout()">Logout</button>
+            </div>
+            <button class="mobile-menu-toggle" ng-click="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </header>
+        
+        <!-- Navigation Bar -->
+        <nav class="navbar">
+            <ul ng-class="{'show-mobile': mobileMenuOpen}">
+                <li>
+                    <a href="#" ng-click="setActiveTab('dashboard')" ng-class="{'active': activeTab === 'dashboard'}">
+                        <i class="fas fa-home"></i> Home
+                    </a>
+                </li>
+                <li>
+                    <a href="#" ng-click="setActiveTab('add-book')" ng-class="{'active': activeTab === 'add-book'}">
+                        <i class="fas fa-plus-circle"></i> Add Book
+                    </a>
+                </li>
+                <li>
+                    <a href="#" ng-click="setActiveTab('mybook')" ng-class="{'active': activeTab === 'mybook'}">
+                        <i class="fas fa-book"></i> My Book
+                    </a>
+                </li>
+                <li>
+                    <a href="#" ng-click="setActiveTab('order')" ng-class="{'active': activeTab === 'order'}">
+                        <i class="fas fa-shopping-cart"></i> My Order
+                    </a>
+                </li>
+                <li>
+                    <a href="#" ng-click="setActiveTab('notifications')" ng-class="{'active': activeTab === 'notifications'}">
+                        <i class="fas fa-bell"></i> Notifications
+                        <span class="notification-badge" ng-if="unreadCount > 0">{{ unreadCount }}</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#" ng-click="setActiveTab('account')" ng-class="{'active': activeTab === 'account'}">
+                        <i class="fas fa-user"></i> Account
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        
+        <!-- Notifications Page Content -->
+        <section class="notifications-section">
+            <div class="notifications-container">
+                <h2 class="section-title">My Notifications</h2>
+                
+                <!-- Filter Controls -->
+                <div class="notifications-controls">
+                    <div class="filter-controls">
+                        <button class="filter-btn" ng-class="{'active': filter === 'all'}" ng-click="setFilter('all')">
+                            All
+                        </button>
+                        <button class="filter-btn" ng-class="{'active': filter === 'unread'}" ng-click="setFilter('unread')">
+                            Unread
+                        </button>
+                        <button class="filter-btn" ng-class="{'active': filter === 'orders'}" ng-click="setFilter('orders')">
+                            Orders
+                        </button>
+                        <button class="filter-btn" ng-class="{'active': filter === 'system'}" ng-click="setFilter('system')">
+                            System
+                        </button>
+                    </div>
+                    
+                    <button class="mark-all-read-btn" ng-click="markAllAsRead()" ng-disabled="!hasUnread">
+                        <i class="fas fa-check-double"></i> Mark All as Read
+                    </button>
+                </div>
+                
+                <!-- Notifications List -->
+                <div class="notifications-list">
+                    <div class="notification-item" ng-repeat="notification in filteredNotifications" ng-click="viewNotification(notification)" ng-class="{'unread': !notification.isRead}">
+                        <div class="notification-icon" ng-class="{
+                            'order-notification': notification.messageType === 'order',
+                            'system-notification': notification.messageType === 'system'
+                        }">
+                            <i class="fas" ng-class="{
+                                'fa-shopping-bag': notification.messageType === 'order',
+                                'fa-info-circle': notification.messageType === 'system'
+                            }"></i>
+                        </div>
+                        <div class="notification-content">
+                            <div class="notification-header">
+                                <h3 class="notification-title">{{ notification.title }}</h3>
+                                <span class="notification-date">{{ notification.createdAt | date:'medium' }}</span>
+                            </div>
+                            <div class="notification-preview">{{ notification.content | limitTo: 100 }}{{ notification.content.length > 100 ? '...' : '' }}</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Empty Notifications Message -->
+                    <div class="empty-message" ng-if="filteredNotifications.length === 0">
+                        <p>{{ getEmptyMessage() }}</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Notification View Modal -->
+        <div class="modal" ng-class="{'show-modal': showNotificationModal}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>{{ selectedNotification.title }}</h2>
+                    <button class="close-button" ng-click="closeNotificationModal()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="notification-info">
+                        <p><strong>Date:</strong> {{ selectedNotification.createdAt | date:'medium' }}</p>
+                        <p ng-if="selectedNotification.relatedOrderId"><strong>Order ID:</strong> {{ selectedNotification.relatedOrderId }}</p>
+                        <p><strong>Type:</strong> {{ selectedNotification.messageType === 'order' ? 'Order Notification' : 'System Notification' }}</p>
+                    </div>
+                    
+                    <div class="notification-content">
+                        <p ng-bind-html="selectedNotification.content | nl2br"></p>
+                    </div>
+                    
+                    <!-- Action Buttons for Order Notifications -->
+                    <div class="notification-actions" ng-if="selectedNotification.messageType === 'order' && selectedNotification.relatedOrderId">
+                        <button class="btn-primary" ng-click="viewOrder(selectedNotification.relatedOrderId)">
+                            <i class="fas fa-eye"></i> View Order
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <p>&copy; 2025 UTMeBook. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

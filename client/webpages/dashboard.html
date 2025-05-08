@@ -43,8 +43,9 @@
                     </a>
                 </li>
                 <li>
-                    <a href="#" ng-click="setActiveTab('messages')">
-                        <i class="fas fa-envelope"></i> Messages
+                    <a href="#" ng-click="setActiveTab('notifications')" ng-class="{'active': activeTab === 'notifications'}">
+                        <i class="fas fa-bell"></i> Notifications
+                        <span class="notification-badge" ng-if="unreadCount > 0">{{ unreadCount }}</span>
                     </a>
                 </li>
                 <li>
