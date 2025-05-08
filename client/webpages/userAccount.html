@@ -134,6 +134,9 @@
                         <button type="button" class="btn-edit" ng-click="enableEditMode()">
                             <i class="fas fa-edit"></i> Edit Profile
                         </button>
+                        <button type="button" class="btn-change-password" ng-click="openPasswordModal()">
+                            <i class="fas fa-key"></i> Change Password
+                        </button>
                     </div>
                     
                     <div class="edit-mode-controls" ng-if="editMode">
@@ -144,16 +147,7 @@
                     <div class="success-message" ng-show="profileUpdateSuccess">{{ profileUpdateSuccess }}</div>
                 </form>
                 
-                <!-- Password Change Section -->
-                <div class="password-section">
-                    <h3>Password Management</h3>
-                    <p>Use this section to change your account password</p>
-                    <div style="margin-top: 15px;">
-                        <button type="button" class="btn-change-password" ng-click="openPasswordModal()">
-                            <i class="fas fa-key"></i> Change Password
-                        </button>
-                    </div>
-                </div>
+                <!-- Password Change Section - Removed text heading -->
             </div>
         </section>
         

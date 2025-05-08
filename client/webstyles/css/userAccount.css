@@ -1,4 +1,3 @@
-
 .account-section {
     padding: 20px;
     max-width: 800px;
@@ -53,13 +52,13 @@
     color: #555;
 }
 
-/* .form-group input {
+.form-group input {
     width: 100%;
     padding: 12px;
     border: 1px solid #ddd;
     border-radius: 5px;
     font-size: 16px;
-} */
+}
 
 .form-group input:disabled {
     background-color: #f5f5f5;
@@ -70,13 +69,10 @@
     margin-top: 10px;
     display: flex;
     justify-content: flex-end;
+    gap: 10px; /* Added gap to ensure buttons have space between them */
 }
 
-.password-section {
-    margin-top: 30px;
-    padding-top: 20px;
-    border-top: 1px solid #eee;
-}
+/* Removed the password-section styles as that section has been removed */
 
 .btn-save,
 .btn-cancel,
@@ -86,10 +82,10 @@
     border-radius: 5px;
     font-weight: bold;
     cursor: pointer;
-    margin-left: 10px;
     transition: background-color 0.3s;
 }
 
+/* Removed margin-left from buttons since we're using gap in the container */
 .btn-save {
     background-color: #0066cc;
     color: white;
@@ -124,7 +120,6 @@
     background-color: #f5f5f5;
     color: #333;
     border: 1px solid #ddd;
-    margin: 0;
 }
 
 .btn-change-password:hover {
@@ -144,17 +139,6 @@
 }
 
 /* Password change modal */
-/* .modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-} */
-
 .modal {
     display: none;
     position: fixed;
@@ -166,17 +150,6 @@
     background-color: rgba(0, 0, 0, 0.5);
     overflow-y: auto; /* Enable scrolling */
 }
-
-/* .modal-content {
-    background-color: white;
-    margin: 10% auto;
-    padding: 30px;
-    border-radius: 10px;
-    width: 90%;
-    max-width: 500px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-    position: relative;
-} */
 
 .close-modal {
     position: absolute;
@@ -190,19 +163,6 @@
 .close-modal:hover {
     color: #000;
 }
-
-/* .modal-title {
-    margin-top: 0;
-    margin-bottom: 20px;
-    color: #333;
-} */
-
-/* .modal-footer {
-    margin-top: 30px;
-    display: flex;
-    justify-content: flex-end;
-} */
-
 
 .modal-content {
     background-color: white;
@@ -248,16 +208,6 @@
 .modal-footer .btn-save,
 .modal-footer .btn-cancel {
     min-width: 100px; /* Ensure buttons have a minimum width */
-}
-
-/* Ensure input fields are clearly visible */
-.form-group input {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 16px;
-    background-color: white; /* Ensure inputs are visible */
 }
 
 /* Add a small animation for better user experience */
