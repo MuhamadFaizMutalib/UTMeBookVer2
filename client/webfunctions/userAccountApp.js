@@ -350,4 +350,12 @@ angular.module('accountApp', [])
         }
       }
     });
+
+    document.addEventListener('DOMContentLoaded', function() {
+      var modal = document.getElementById('passwordModal');
+      if (modal) {
+        modal.style.display = 'none';
+      }
+    });
+
   }]);
