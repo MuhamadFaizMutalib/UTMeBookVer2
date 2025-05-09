@@ -90,24 +90,13 @@
             </div>
         </section>
         
-
         <!-- Banner Section -->
         <section class="banner-section">
-            <div class="banner-carousel">
-                <!-- Banner slides -->
-                <div class="banner-slide" ng-repeat="slide in bannerSlides" ng-class="{'active': currentSlide === $index}">
-                    <div class="banner" ng-style="{'background-image': 'linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(' + getImagePath(slide.image) + ')'}">
-                        <div class="banner-content">
-                            <h2>{{slide.title}}</h2>
-                            <p>{{slide.description}}</p>
-                            <button class="btn-primary">{{slide.buttonText}}</button>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Banner navigation dots -->
-                <div class="banner-dots">
-                    <span class="dot" ng-repeat="slide in bannerSlides" ng-class="{'active': currentSlide === $index}" ng-click="setSlide($index)"></span>
+            <div class="banner">
+                <div class="banner-content">
+                    <h2>Welcome to UTMeBook</h2>
+                    <p>Discover thousands of eBooks for your reading pleasure</p>
+                    <button class="btn-primary">Explore Now</button>
                 </div>
             </div>
         </section>
