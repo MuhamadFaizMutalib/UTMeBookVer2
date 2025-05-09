@@ -230,19 +230,19 @@ angular.module('dashboardApp', [])
         title: "Welcome to UTMeBook",
         description: "Discover thousands of eBooks for your reading pleasure",
         buttonText: "Explore Now",
-        imageUrl: "../webstyles/img/Ban1.jpg"
+        imageUrl: "/client/webstyles/img/Ban1.jpg"
       },
       {
         title: "Academic Excellence",
         description: "Find textbooks and research papers from top universities",
         buttonText: "Browse Academic",
-        imageUrl: "../webstyles/img/Ban3.jpg"
+        imageUrl: "client/webstyles/img/Ban3.jpg"
       },
       {
         title: "Technical Knowledge",
         description: "Enhance your skills with our wide range of technical eBooks",
         buttonText: "View Technical",
-        imageUrl: "../webstyles/img/Ban2.png"
+        imageUrl: "client/webstyles/img/Ban2.png"
       }
     ];
 
@@ -260,7 +260,7 @@ angular.module('dashboardApp', [])
     }
 
     // Start the automatic rotation
-    var bannerInterval = setInterval(rotateBanner, 3000);
+    var bannerInterval = setInterval(rotateBanner, 15000);
 
     // Clear interval when controller is destroyed
     $scope.$on('$destroy', function() {
