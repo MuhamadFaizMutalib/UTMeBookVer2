@@ -222,6 +222,52 @@ angular.module('dashboardApp', [])
         $window.location.href = '/login';
       }
     };
+
+
+    // Banner slideshow functionality
+    $scope.bannerSlides = [
+      {
+        title: "Welcome to UTMeBook",
+        description: "Discover thousands of eBooks for your reading pleasure",
+        buttonText: "Explore Now",
+        imageUrl: "../webstyles/img/Ban1.jpg"
+      },
+      {
+        title: "Academic Excellence",
+        description: "Find textbooks and research papers from top universities",
+        buttonText: "Browse Academic",
+        imageUrl: "../webstyles/img/Ban3.jpg"
+      },
+      {
+        title: "Technical Knowledge",
+        description: "Enhance your skills with our wide range of technical eBooks",
+        buttonText: "View Technical",
+        imageUrl: "../webstyles/img/Ban2.png"
+      }
+    ];
+
+    $scope.currentSlide = 0;
+
+    // Function to change slides
+    $scope.setSlide = function(index) {
+      $scope.currentSlide = index;
+    };
+
+    // Auto-rotate banner slides
+    function rotateBanner() {
+      $scope.currentSlide = ($scope.currentSlide + 1) % $scope.bannerSlides.length;
+      $scope.$apply();
+    }
+
+    // Start the automatic rotation
+    var bannerInterval = setInterval(rotateBanner, 3000);
+
+    // Clear interval when controller is destroyed
+    $scope.$on('$destroy', function() {
+      clearInterval(bannerInterval);
+    });
+
+
     
     // Adjust mobile menu on window resize
     angular.element($window).bind('resize', function() {
