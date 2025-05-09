@@ -224,27 +224,33 @@ angular.module('dashboardApp', [])
     };
 
 
-    // Banner slideshow functionality
+    // Banner slideshow functionality with image path function
     $scope.bannerSlides = [
       {
         title: "Welcome to UTMeBook",
         description: "Discover thousands of eBooks for your reading pleasure",
         buttonText: "Explore Now",
-        imageUrl: "/client/webstyles/img/Ban1.jpg"
+        image: "Ban1.jpg"
       },
       {
         title: "Academic Excellence",
         description: "Find textbooks and research papers from top universities",
         buttonText: "Browse Academic",
-        imageUrl: "client/webstyles/img/Ban3.jpg"
+        image: "Ban3.jpg"
       },
       {
         title: "Technical Knowledge",
         description: "Enhance your skills with our wide range of technical eBooks",
         buttonText: "View Technical",
-        imageUrl: "client/webstyles/img/Ban2.png"
+        image: "Ban2.png"
       }
     ];
+
+    // Function to resolve image paths correctly
+    $scope.getImagePath = function(imageName) {
+      // Return the complete path
+      return '../webstyles/img/' + imageName;
+    };
 
     $scope.currentSlide = 0;
 

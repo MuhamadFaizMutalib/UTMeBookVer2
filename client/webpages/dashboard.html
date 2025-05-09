@@ -96,7 +96,7 @@
             <div class="banner-carousel">
                 <!-- Banner slides -->
                 <div class="banner-slide" ng-repeat="slide in bannerSlides" ng-class="{'active': currentSlide === $index}">
-                    <div class="banner" ng-style="{'background-image': 'linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(' + slide.imageUrl + ')'}">
+                    <div class="banner" ng-style="{'background-image': 'linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(' + getImagePath(slide.image) + ')'}">
                         <div class="banner-content">
                             <h2>{{slide.title}}</h2>
                             <p>{{slide.description}}</p>
