@@ -64,7 +64,7 @@ WHERE id = 123;
 
 ##########################################################
 
-UPDATE users SET role = 'admin' WHERE email = 'rafiqiadli11@gmail.com';
+UPDATE users SET role = 'admin' WHERE email = 'gengcangkui@gmail.com';
 
 ########################################################################
 
@@ -78,3 +78,5 @@ DROP TABLE encrypted;
 DROP TABLE books;
 DROP TABLE user_profiles;
 DROP TABLE publicmessages;
+
+
