@@ -2385,10 +2385,6 @@ app.get('/place-order', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/webpages/place-order.html'));
 });
 
-// app.get('/messages', (req, res) => {
-//   res.sendFile(path.join(__dirname, 'client/webpages/messages.html'));
-// });
-
 app.get('/public-messages', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/webpages/public-messages.html'));
 });

@@ -186,7 +186,7 @@
                                 
                                 <!-- Add Download Button -->
                                 <button class="btn-download" ng-click="downloadBook(selectedPurchase)">
-                                    <i class="fas fa-download"></i> Download Book
+                                    <i class="fas fa-download"></i> View Ebook
                                 </button>
                             </div>
                         </div>
@@ -208,14 +208,14 @@
                                 <label for="order-status">Update Order Status</label>
                                 <select id="order-status" ng-model="selectedPurchase.newStatus">
                                     <option value="Pending">Pending</option>
-                                    <option value="Processing">Processing</option>
+                                    <!-- <option value="Processing">Processing</option> -->
                                     <option value="Delivered">Delivered</option>
                                     <option value="Canceled">Canceled</option>
                                 </select>
                             </div>
                             
                             <button class="btn-primary" ng-click="updateStatus()">
-                                <i class="fas fa-save"></i> Update Status
+                                <i class="fas fa-save"></i> Encrypt Ebook
                             </button>
                         </div>
                     </div>

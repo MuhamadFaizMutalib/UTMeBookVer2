@@ -30,7 +30,7 @@
         <ul ng-class="{'show-mobile': mobileMenuOpen}">
             <li>
                 <a href="#" ng-click="setActiveTab('user-book-manager')" ng-class="{'active': activeTab === 'user-book-manager'}">
-                    <i class="fas fa-plus-circle"></i> User & Book Manager
+                    <i class="fas fa-plus-circle"></i> Users & Books Management
                 </a>
             </li>
             <li>
@@ -63,9 +63,9 @@
                             <input type="text" placeholder="Search books..." ng-model="bookSearch">
                             <i class="fas fa-search"></i>
                         </div>
-                        <button class="btn-add" ng-click="showAddBookModal()">
+                        <!-- <button class="btn-add" ng-click="showAddBookModal()">
                             <i class="fas fa-plus"></i> Add Book
-                        </button>
+                        </button> -->
                     </div>
                     <div class="book-grid">
                         <div class="book-card" ng-repeat="book in books | filter:bookSearch">
@@ -94,9 +94,9 @@
                             <input type="text" placeholder="Search users..." ng-model="userSearch">
                             <i class="fas fa-search"></i>
                         </div>
-                        <button class="btn-add" ng-click="showAddUserModal()">
+                        <!-- <button class="btn-add" ng-click="showAddUserModal()">
                             <i class="fas fa-plus"></i> Add User
-                        </button>
+                        </button> -->
                     </div>
                     <div class="user-list">
                         <div class="user-card" ng-repeat="user in users | filter:userSearch | filter:{role: '!admin'}">

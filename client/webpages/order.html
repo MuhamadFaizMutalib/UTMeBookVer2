@@ -40,7 +40,7 @@
                 </li>
                 <li ng-class="{'active': true}">
                     <a href="#" ng-click="setActiveTab('order')">
-                        <i class="fas fa-clipboard-list"></i> Order
+                        <i class="fas fa-clipboard-list"></i> MyBook
                     </a>
                 </li>
                 <li>
@@ -49,11 +49,11 @@
                         <span class="notification-badge" ng-if="unreadCount > 0">{{ unreadCount }}</span>
                     </a>
                 </li>
-                <li>
+                <!-- <li>
                     <a href="#" ng-click="setActiveTab('mybook')">
                         <i class="fas fa-book"></i> MyBook
                     </a>
-                </li>
+                </li> -->
                 <li>
                     <a href="#" ng-click="setActiveTab('account')">
                         <i class="fas fa-user"></i> Account
@@ -108,7 +108,8 @@
                                     <button class="btn-download disabled" ng-if="purchase.status !== 'Delivered' && purchase.status !== 'Canceled'">
                                         <i class="fas fa-download"></i> Download (Unavailable)
                                     </button>
-                                    <button class="btn-edit" ng-click="editMAC(purchase)" ng-if="purchase.status !== 'Canceled'">
+                                    <!-- Hide Edit MAC button when status is Delivered -->
+                                    <button class="btn-edit" ng-click="editMAC(purchase)" ng-if="purchase.status !== 'Canceled' && purchase.status !== 'Delivered'">
                                         <i class="fas fa-edit"></i> Edit MAC
                                     </button>
                                     <button class="btn-cancel" ng-click="cancelOrder(purchase)" ng-if="purchase.status === 'Pending'">
@@ -193,10 +194,11 @@
                                 }">{{ book.status }}</span></p>
                                 <p class="upload-date"><strong>Uploaded on:</strong> {{ book.uploadDate | date:'mediumDate' }}</p>
                                 <div class="book-actions">
-                                    <button class="btn-edit" ng-click="editBook(book)">
+                                    <!-- Hide Edit and Remove buttons when status is Sold -->
+                                    <button class="btn-edit" ng-click="editBook(book)" ng-if="book.status !== 'Sold'">
                                         <i class="fas fa-edit"></i> Edit
                                     </button>
-                                    <button class="btn-delete" ng-click="deleteBook(book)">
+                                    <button class="btn-delete" ng-click="deleteBook(book)" ng-if="book.status !== 'Sold'">
                                         <i class="fas fa-trash"></i> Remove
                                     </button>
                                 </div>
