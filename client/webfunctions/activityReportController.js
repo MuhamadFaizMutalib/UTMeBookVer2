@@ -1,4 +1,4 @@
-// Activity Report Controller
+// Activity Report Controller - Updated with Enhanced Chart Labels and Percentages
 angular.module('adminApp')
   .controller('ActivityReportController', ['$scope', '$http', '$window', function($scope, $http, $window) {
     // Get user from localStorage
@@ -29,7 +29,7 @@ angular.module('adminApp')
     
     // Initialize month and year selectors - Set to current month/year
     const currentDate = new Date();
-    $scope.selectedMonth = currentDate.getMonth() + 1; // Already set to current month
+    $scope.selectedMonth = currentDate.getMonth() + 1;
     $scope.selectedYear = currentDate.getFullYear();
     
     // Generate months array
@@ -174,7 +174,8 @@ angular.module('adminApp')
               borderColor: '#4CAF50',
               backgroundColor: 'rgba(76, 175, 80, 0.1)',
               tension: 0.3,
-              fill: false
+              fill: true,
+              borderWidth: 2
             },
             {
               label: 'Books Uploaded',
@@ -182,7 +183,8 @@ angular.module('adminApp')
               borderColor: '#2196F3',
               backgroundColor: 'rgba(33, 150, 243, 0.1)',
               tension: 0.3,
-              fill: false
+              fill: true,
+              borderWidth: 2
             },
             {
               label: 'Purchases',
@@ -190,7 +192,8 @@ angular.module('adminApp')
               borderColor: '#FF9800',
               backgroundColor: 'rgba(255, 152, 0, 0.1)',
               tension: 0.3,
-              fill: false
+              fill: true,
+              borderWidth: 2
             }
           ]
         },
@@ -200,9 +203,25 @@ angular.module('adminApp')
           plugins: {
             legend: {
               position: 'top',
+              labels: {
+                usePointStyle: true,
+                padding: 15,
+                font: {
+                  size: 13
+                }
+              }
             },
             title: {
-              display: false
+              display: true,
+              text: `Daily Activity for ${monthName} ${$scope.selectedYear}`,
+              font: {
+                size: 16,
+                weight: 'bold'
+              },
+              padding: {
+                top: 10,
+                bottom: 30
+              }
             }
           },
           scales: {
@@ -210,15 +229,25 @@ angular.module('adminApp')
               display: true,
               title: {
                 display: true,
-                text: `Days in ${monthName} ${$scope.selectedYear}`,
+                text: `Days of ${monthName}`,
                 font: {
                   size: 14,
                   weight: 'bold'
+                },
+                padding: {
+                  top: 10,
+                  bottom: 0
                 }
               },
               grid: {
                 display: true,
-                color: 'rgba(0, 0, 0, 0.1)'
+                color: 'rgba(0, 0, 0, 0.05)',
+                drawBorder: false
+              },
+              ticks: {
+                font: {
+                  size: 12
+                }
               }
             },
             y: {
@@ -230,21 +259,29 @@ angular.module('adminApp')
                 font: {
                   size: 14,
                   weight: 'bold'
+                },
+                padding: {
+                  top: 0,
+                  bottom: 10
                 }
               },
               ticks: {
-                stepSize: 1
+                stepSize: 1,
+                font: {
+                  size: 12
+                }
               },
               grid: {
                 display: true,
-                color: 'rgba(0, 0, 0, 0.1)'
+                color: 'rgba(0, 0, 0, 0.05)',
+                drawBorder: false
               }
             }
           }
         }
       });
       
-      // Update Category Chart with percentages
+      // Update Category Chart with enhanced percentages
       const categoryCtx = document.getElementById('categoryChart').getContext('2d');
       if (categoryChart) {
         categoryChart.destroy();
@@ -253,6 +290,53 @@ angular.module('adminApp')
       const categoryLabels = $scope.reportData.purchasesByCategory.map(item => item.category);
       const categoryData = $scope.reportData.purchasesByCategory.map(item => parseInt(item.count));
       const categoryPercentages = calculatePercentages(categoryData);
+      
+      // Create custom plugin for displaying percentages
+      const categoryPercentagePlugin = {
+        id: 'categoryPercentages',
+        afterDatasetsDraw: function(chart) {
+          const ctx = chart.ctx;
+          ctx.save();
+          
+          const dataset = chart.data.datasets[0];
+          const meta = chart.getDatasetMeta(0);
+          
+          meta.data.forEach((element, index) => {
+            // Get the percentage value
+            const percentage = categoryPercentages[index];
+            
+            // Only display if percentage is greater than 3%
+            if (percentage > 3) {
+              // Calculate position
+              const { x, y } = element.tooltipPosition();
+              
+              // Draw white background for better readability
+              ctx.fillStyle = 'white';
+              ctx.strokeStyle = '#333';
+              ctx.lineWidth = 2;
+              ctx.font = 'bold 14px Arial';
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              
+              const text = `${percentage}%`;
+              const textWidth = ctx.measureText(text).width;
+              const padding = 6;
+              
+              // Draw background
+              ctx.beginPath();
+              ctx.roundRect(x - textWidth/2 - padding, y - 10, textWidth + padding*2, 20, 5);
+              ctx.fill();
+              ctx.stroke();
+              
+              // Draw text
+              ctx.fillStyle = '#333';
+              ctx.fillText(text, x, y);
+            }
+          });
+          
+          ctx.restore();
+        }
+      };
       
       categoryChart = new Chart(categoryCtx, {
         type: 'doughnut',
@@ -266,8 +350,12 @@ angular.module('adminApp')
               '#FFCE56',
               '#4BC0C0',
               '#9966FF',
-              '#FF9F40'
-            ]
+              '#FF9F40',
+              '#FF6384',
+              '#C9CBCF'
+            ],
+            borderWidth: 2,
+            borderColor: '#fff'
           }]
         },
         options: {
@@ -276,6 +364,28 @@ angular.module('adminApp')
           plugins: {
             legend: {
               position: 'bottom',
+              labels: {
+                padding: 15,
+                font: {
+                  size: 13
+                },
+                generateLabels: function(chart) {
+                  const data = chart.data;
+                  if (data.labels.length && data.datasets.length) {
+                    return data.labels.map((label, index) => {
+                      const value = data.datasets[0].data[index];
+                      const percentage = categoryPercentages[index];
+                      return {
+                        text: `${label} (${percentage}%)`,
+                        fillStyle: data.datasets[0].backgroundColor[index],
+                        hidden: false,
+                        index: index
+                      };
+                    });
+                  }
+                  return [];
+                }
+              }
             },
             tooltip: {
               callbacks: {
@@ -283,38 +393,16 @@ angular.module('adminApp')
                   const label = context.label || '';
                   const value = context.parsed;
                   const percentage = categoryPercentages[context.dataIndex];
-                  return `${label}: ${value} (${percentage}%)`;
+                  return `${label}: ${value} purchases (${percentage}%)`;
                 }
               }
-            },
-            // Custom plugin to display percentages on chart
-            datalabels: false // We'll use a custom approach
-          },
-          // Custom plugin to display percentages
-          plugins: [{
-            afterDatasetsDraw: function(chart) {
-              const ctx = chart.ctx;
-              chart.data.datasets.forEach((dataset, i) => {
-                const meta = chart.getDatasetMeta(i);
-                meta.data.forEach((element, index) => {
-                  if (categoryPercentages[index] > 5) { // Only show if percentage > 5%
-                    const percentage = categoryPercentages[index];
-                    const position = element.tooltipPosition();
-                    
-                    ctx.fillStyle = '#000';
-                    ctx.font = 'bold 12px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(`${percentage}%`, position.x, position.y);
-                  }
-                });
-              });
             }
-          }]
-        }
+          }
+        },
+        plugins: [categoryPercentagePlugin]
       });
       
-      // Update Activity Pie Chart with percentages
+      // Update Activity Pie Chart with enhanced percentages
       const pieCtx = document.getElementById('activityPieChart').getContext('2d');
       if (activityPieChart) {
         activityPieChart.destroy();
@@ -327,6 +415,50 @@ angular.module('adminApp')
       ];
       const activityPercentages = calculatePercentages(activityData);
       
+      // Create custom plugin for activity pie chart
+      const activityPercentagePlugin = {
+        id: 'activityPercentages',
+        afterDatasetsDraw: function(chart) {
+          const ctx = chart.ctx;
+          ctx.save();
+          
+          const dataset = chart.data.datasets[0];
+          const meta = chart.getDatasetMeta(0);
+          
+          meta.data.forEach((element, index) => {
+            const percentage = activityPercentages[index];
+            
+            if (percentage > 0) {
+              const { x, y } = element.tooltipPosition();
+              
+              // Draw percentage with background
+              ctx.fillStyle = 'white';
+              ctx.strokeStyle = '#333';
+              ctx.lineWidth = 2;
+              ctx.font = 'bold 16px Arial';
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              
+              const text = `${percentage}%`;
+              const textWidth = ctx.measureText(text).width;
+              const padding = 8;
+              
+              // Draw background
+              ctx.beginPath();
+              ctx.roundRect(x - textWidth/2 - padding, y - 12, textWidth + padding*2, 24, 5);
+              ctx.fill();
+              ctx.stroke();
+              
+              // Draw text
+              ctx.fillStyle = '#333';
+              ctx.fillText(text, x, y);
+            }
+          });
+          
+          ctx.restore();
+        }
+      };
+      
       activityPieChart = new Chart(pieCtx, {
         type: 'pie',
         data: {
@@ -337,7 +469,9 @@ angular.module('adminApp')
               '#4CAF50',
               '#2196F3',
               '#FF9800'
-            ]
+            ],
+            borderWidth: 2,
+            borderColor: '#fff'
           }]
         },
         options: {
@@ -346,6 +480,28 @@ angular.module('adminApp')
           plugins: {
             legend: {
               position: 'bottom',
+              labels: {
+                padding: 15,
+                font: {
+                  size: 13
+                },
+                generateLabels: function(chart) {
+                  const data = chart.data;
+                  if (data.labels.length && data.datasets.length) {
+                    return data.labels.map((label, index) => {
+                      const value = data.datasets[0].data[index];
+                      const percentage = activityPercentages[index];
+                      return {
+                        text: `${label}: ${value} (${percentage}%)`,
+                        fillStyle: data.datasets[0].backgroundColor[index],
+                        hidden: false,
+                        index: index
+                      };
+                    });
+                  }
+                  return [];
+                }
+              }
             },
             tooltip: {
               callbacks: {
@@ -357,33 +513,26 @@ angular.module('adminApp')
                 }
               }
             }
-          },
-          // Custom plugin to display percentages on the pie chart
-          plugins: [{
-            afterDatasetsDraw: function(chart) {
-              const ctx = chart.ctx;
-              chart.data.datasets.forEach((dataset, i) => {
-                const meta = chart.getDatasetMeta(i);
-                meta.data.forEach((element, index) => {
-                  if (activityPercentages[index] > 5) { // Only show if percentage > 5%
-                    const percentage = activityPercentages[index];
-                    const position = element.tooltipPosition();
-                    
-                    ctx.fillStyle = '#fff';
-                    ctx.font = 'bold 14px Arial';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.strokeStyle = '#000';
-                    ctx.lineWidth = 3;
-                    ctx.strokeText(`${percentage}%`, position.x, position.y);
-                    ctx.fillText(`${percentage}%`, position.x, position.y);
-                  }
-                });
-              });
-            }
-          }]
-        }
+          }
+        },
+        plugins: [activityPercentagePlugin]
       });
+    }
+    
+    // Add polyfill for roundRect if not supported
+    if (!CanvasRenderingContext2D.prototype.roundRect) {
+      CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radius) {
+        if (width < 2 * radius) radius = width / 2;
+        if (height < 2 * radius) radius = height / 2;
+        this.beginPath();
+        this.moveTo(x + radius, y);
+        this.arcTo(x + width, y, x + width, y + height, radius);
+        this.arcTo(x + width, y + height, x, y + height, radius);
+        this.arcTo(x, y + height, x, y, radius);
+        this.arcTo(x, y, x + width, y, radius);
+        this.closePath();
+        return this;
+      };
     }
     
     // Initial load - will automatically use current month/year
