@@ -293,6 +293,8 @@ body {
     padding: 1rem;
     margin-bottom: 1rem;
     transition: transform 0.3s, box-shadow 0.3s;
+    position: relative;  /* Add this to allow absolute positioning of children */
+    min-height: 120px;   /* Ensure enough height for content + button */
 }
 
 .user-card:hover {
@@ -313,10 +315,21 @@ body {
     margin-right: 1rem;
 }
 
-.user-info {
-    flex: 1;
+.user-info .btn-delete {
+    width: auto;        /* Change from 100% to auto */
+    margin-top: 0.5rem;
+    float: right;       /* Float to the right */
+    min-width: 80px;    /* Ensure button has minimum width */
+    position: absolute; /* Position absolutely */
+    right: 1rem;        /* Position from right edge */
+    bottom: 1rem;       /* Position from bottom */
 }
 
+
+.user-info {
+    flex: 1;
+    padding-right: 90px; /* Add padding to prevent text from overlapping with the button */
+}
 .user-info h3 {
     font-size: 1rem;
     margin-bottom: 0.5rem;
