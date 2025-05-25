@@ -1,4 +1,4 @@
-// Activity Report Controller - Updated with Enhanced Chart Labels and Percentages
+// Activity Report Controller - Fixed Version
 angular.module('adminApp')
   .controller('ActivityReportController', ['$scope', '$http', '$window', function($scope, $http, $window) {
     // Get user from localStorage
@@ -89,6 +89,9 @@ angular.module('adminApp')
       $scope.loading = true;
       $scope.noData = false;
       
+      // Destroy existing charts before loading new data
+      destroyAllCharts();
+      
       $http.get('/api/admin/activity-report', {
         params: {
           userId: $scope.user.id,
@@ -98,15 +101,24 @@ angular.module('adminApp')
       })
       .then(function(response) {
         if (response.data.success) {
-          $scope.reportData = response.data.data;
+          // Reset report data first
+          $scope.reportData = {
+            summary: response.data.data.summary || {},
+            dailyData: response.data.data.dailyData || { users: [], books: [], purchases: [] },
+            purchasesByCategory: response.data.data.purchasesByCategory || []
+          };
           
           // Check if there's any data
-          if ($scope.reportData.summary.totalUsers === 0 && 
-              $scope.reportData.summary.totalBooks === 0 && 
-              $scope.reportData.summary.totalPurchases === 0) {
+          if (($scope.reportData.summary.totalUsers || 0) === 0 && 
+              ($scope.reportData.summary.totalBooks || 0) === 0 && 
+              ($scope.reportData.summary.totalPurchases || 0) === 0) {
             $scope.noData = true;
           } else {
-            updateCharts();
+            $scope.noData = false;
+            // Use setTimeout to ensure DOM is ready
+            setTimeout(function() {
+              updateCharts();
+            }, 100);
           }
         }
         $scope.loading = false;
@@ -118,6 +130,22 @@ angular.module('adminApp')
       });
     };
     
+    // Helper function to destroy all charts
+    function destroyAllCharts() {
+      if (dailyActivityChart) {
+        dailyActivityChart.destroy();
+        dailyActivityChart = null;
+      }
+      if (categoryChart) {
+        categoryChart.destroy();
+        categoryChart = null;
+      }
+      if (activityPieChart) {
+        activityPieChart.destroy();
+        activityPieChart = null;
+      }
+    }
+    
     // Helper function to calculate percentages
     function calculatePercentages(data) {
       const total = data.reduce((sum, value) => sum + value, 0);
@@ -126,6 +154,19 @@ angular.module('adminApp')
     
     // Update charts with new data
     function updateCharts() {
+      try {
+        updateDailyActivityChart();
+        updateCategoryChart();
+        updateActivityPieChart();
+      } catch (error) {
+        console.error('Error updating charts:', error);
+      }
+    }
+    
+    function updateDailyActivityChart() {
+      const dailyCtx = document.getElementById('dailyActivityChart');
+      if (!dailyCtx) return;
+      
       // Prepare data for daily activity chart
       const daysInMonth = new Date($scope.selectedYear, $scope.selectedMonth, 0).getDate();
       const labels = [];
@@ -138,32 +179,38 @@ angular.module('adminApp')
         labels.push(i.toString());
       }
       
-      // Fill in the data
-      $scope.reportData.dailyData.users.forEach(item => {
-        const day = new Date(item.date).getDate();
-        usersData[day - 1] = parseInt(item.count);
-      });
+      // Fill in the data - with null checks
+      if ($scope.reportData.dailyData.users) {
+        $scope.reportData.dailyData.users.forEach(item => {
+          const day = new Date(item.date).getDate();
+          if (day >= 1 && day <= daysInMonth) {
+            usersData[day - 1] = parseInt(item.count) || 0;
+          }
+        });
+      }
       
-      $scope.reportData.dailyData.books.forEach(item => {
-        const day = new Date(item.date).getDate();
-        booksData[day - 1] = parseInt(item.count);
-      });
+      if ($scope.reportData.dailyData.books) {
+        $scope.reportData.dailyData.books.forEach(item => {
+          const day = new Date(item.date).getDate();
+          if (day >= 1 && day <= daysInMonth) {
+            booksData[day - 1] = parseInt(item.count) || 0;
+          }
+        });
+      }
       
-      $scope.reportData.dailyData.purchases.forEach(item => {
-        const day = new Date(item.date).getDate();
-        purchasesData[day - 1] = parseInt(item.count);
-      });
-      
-      // Update Daily Activity Chart with enhanced axis labels
-      const dailyCtx = document.getElementById('dailyActivityChart').getContext('2d');
-      if (dailyActivityChart) {
-        dailyActivityChart.destroy();
+      if ($scope.reportData.dailyData.purchases) {
+        $scope.reportData.dailyData.purchases.forEach(item => {
+          const day = new Date(item.date).getDate();
+          if (day >= 1 && day <= daysInMonth) {
+            purchasesData[day - 1] = parseInt(item.count) || 0;
+          }
+        });
       }
       
       // Get month name for display
       const monthName = $scope.months.find(m => m.value === $scope.selectedMonth).name;
       
-      dailyActivityChart = new Chart(dailyCtx, {
+      dailyActivityChart = new Chart(dailyCtx.getContext('2d'), {
         type: 'line',
         data: {
           labels: labels,
@@ -280,80 +327,32 @@ angular.module('adminApp')
           }
         }
       });
+    }
+    
+    function updateCategoryChart() {
+      const categoryCtx = document.getElementById('categoryChart');
+      if (!categoryCtx) return;
       
-      // Update Category Chart with enhanced percentages
-      const categoryCtx = document.getElementById('categoryChart').getContext('2d');
-      if (categoryChart) {
-        categoryChart.destroy();
-      }
-      
-      const categoryLabels = $scope.reportData.purchasesByCategory.map(item => item.category);
-      const categoryData = $scope.reportData.purchasesByCategory.map(item => parseInt(item.count));
+      const categoryLabels = ($scope.reportData.purchasesByCategory || []).map(item => item.category);
+      const categoryData = ($scope.reportData.purchasesByCategory || []).map(item => parseInt(item.count) || 0);
       const categoryPercentages = calculatePercentages(categoryData);
       
-      // Create custom plugin for displaying percentages
-      const categoryPercentagePlugin = {
-        id: 'categoryPercentages',
-        afterDatasetsDraw: function(chart) {
-          const ctx = chart.ctx;
-          ctx.save();
-          
-          const dataset = chart.data.datasets[0];
-          const meta = chart.getDatasetMeta(0);
-          
-          meta.data.forEach((element, index) => {
-            // Get the percentage value
-            const percentage = categoryPercentages[index];
-            
-            // Only display if percentage is greater than 3%
-            if (percentage > 3) {
-              // Calculate position
-              const { x, y } = element.tooltipPosition();
-              
-              // Draw white background for better readability
-              ctx.fillStyle = 'white';
-              ctx.strokeStyle = '#333';
-              ctx.lineWidth = 2;
-              ctx.font = 'bold 14px Arial';
-              ctx.textAlign = 'center';
-              ctx.textBaseline = 'middle';
-              
-              const text = `${percentage}%`;
-              const textWidth = ctx.measureText(text).width;
-              const padding = 6;
-              
-              // Draw background
-              ctx.beginPath();
-              ctx.roundRect(x - textWidth/2 - padding, y - 10, textWidth + padding*2, 20, 5);
-              ctx.fill();
-              ctx.stroke();
-              
-              // Draw text
-              ctx.fillStyle = '#333';
-              ctx.fillText(text, x, y);
-            }
-          });
-          
-          ctx.restore();
-        }
-      };
+      // Handle empty data
+      const hasData = categoryData.length > 0 && categoryData.some(val => val > 0);
+      const chartLabels = hasData ? categoryLabels : ['No Data'];
+      const chartData = hasData ? categoryData : [1];
+      const chartColors = hasData ? [
+        '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', 
+        '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF'
+      ] : ['#E0E0E0'];
       
-      categoryChart = new Chart(categoryCtx, {
+      categoryChart = new Chart(categoryCtx.getContext('2d'), {
         type: 'doughnut',
         data: {
-          labels: categoryLabels.length > 0 ? categoryLabels : ['No Data'],
+          labels: chartLabels,
           datasets: [{
-            data: categoryData.length > 0 ? categoryData : [1],
-            backgroundColor: [
-              '#FF6384',
-              '#36A2EB',
-              '#FFCE56',
-              '#4BC0C0',
-              '#9966FF',
-              '#FF9F40',
-              '#FF6384',
-              '#C9CBCF'
-            ],
+            data: chartData,
+            backgroundColor: chartColors,
             borderWidth: 2,
             borderColor: '#fff'
           }]
@@ -371,7 +370,7 @@ angular.module('adminApp')
                 },
                 generateLabels: function(chart) {
                   const data = chart.data;
-                  if (data.labels.length && data.datasets.length) {
+                  if (data.labels.length && data.datasets.length && hasData) {
                     return data.labels.map((label, index) => {
                       const value = data.datasets[0].data[index];
                       const percentage = categoryPercentages[index];
@@ -383,13 +382,19 @@ angular.module('adminApp')
                       };
                     });
                   }
-                  return [];
+                  return [{
+                    text: 'No Data Available',
+                    fillStyle: '#E0E0E0',
+                    hidden: false,
+                    index: 0
+                  }];
                 }
               }
             },
             tooltip: {
               callbacks: {
                 label: function(context) {
+                  if (!hasData) return 'No data available';
                   const label = context.label || '';
                   const value = context.parsed;
                   const percentage = categoryPercentages[context.dataIndex];
@@ -398,78 +403,29 @@ angular.module('adminApp')
               }
             }
           }
-        },
-        plugins: [categoryPercentagePlugin]
+        }
       });
-      
-      // Update Activity Pie Chart with enhanced percentages
-      const pieCtx = document.getElementById('activityPieChart').getContext('2d');
-      if (activityPieChart) {
-        activityPieChart.destroy();
-      }
+    }
+    
+    function updateActivityPieChart() {
+      const pieCtx = document.getElementById('activityPieChart');
+      if (!pieCtx) return;
       
       const activityData = [
-        $scope.reportData.summary.totalUsers,
-        $scope.reportData.summary.totalBooks,
-        $scope.reportData.summary.totalPurchases
+        $scope.reportData.summary.totalUsers || 0,
+        $scope.reportData.summary.totalBooks || 0,
+        $scope.reportData.summary.totalPurchases || 0
       ];
       const activityPercentages = calculatePercentages(activityData);
+      const hasData = activityData.some(val => val > 0);
       
-      // Create custom plugin for activity pie chart
-      const activityPercentagePlugin = {
-        id: 'activityPercentages',
-        afterDatasetsDraw: function(chart) {
-          const ctx = chart.ctx;
-          ctx.save();
-          
-          const dataset = chart.data.datasets[0];
-          const meta = chart.getDatasetMeta(0);
-          
-          meta.data.forEach((element, index) => {
-            const percentage = activityPercentages[index];
-            
-            if (percentage > 0) {
-              const { x, y } = element.tooltipPosition();
-              
-              // Draw percentage with background
-              ctx.fillStyle = 'white';
-              ctx.strokeStyle = '#333';
-              ctx.lineWidth = 2;
-              ctx.font = 'bold 16px Arial';
-              ctx.textAlign = 'center';
-              ctx.textBaseline = 'middle';
-              
-              const text = `${percentage}%`;
-              const textWidth = ctx.measureText(text).width;
-              const padding = 8;
-              
-              // Draw background
-              ctx.beginPath();
-              ctx.roundRect(x - textWidth/2 - padding, y - 12, textWidth + padding*2, 24, 5);
-              ctx.fill();
-              ctx.stroke();
-              
-              // Draw text
-              ctx.fillStyle = '#333';
-              ctx.fillText(text, x, y);
-            }
-          });
-          
-          ctx.restore();
-        }
-      };
-      
-      activityPieChart = new Chart(pieCtx, {
+      activityPieChart = new Chart(pieCtx.getContext('2d'), {
         type: 'pie',
         data: {
-          labels: ['New Users', 'Books Uploaded', 'Purchases'],
+          labels: hasData ? ['New Users', 'Books Uploaded', 'Purchases'] : ['No Data'],
           datasets: [{
-            data: activityData,
-            backgroundColor: [
-              '#4CAF50',
-              '#2196F3',
-              '#FF9800'
-            ],
+            data: hasData ? activityData : [1],
+            backgroundColor: hasData ? ['#4CAF50', '#2196F3', '#FF9800'] : ['#E0E0E0'],
             borderWidth: 2,
             borderColor: '#fff'
           }]
@@ -487,7 +443,7 @@ angular.module('adminApp')
                 },
                 generateLabels: function(chart) {
                   const data = chart.data;
-                  if (data.labels.length && data.datasets.length) {
+                  if (data.labels.length && data.datasets.length && hasData) {
                     return data.labels.map((label, index) => {
                       const value = data.datasets[0].data[index];
                       const percentage = activityPercentages[index];
@@ -499,13 +455,19 @@ angular.module('adminApp')
                       };
                     });
                   }
-                  return [];
+                  return [{
+                    text: 'No Data Available',
+                    fillStyle: '#E0E0E0',
+                    hidden: false,
+                    index: 0
+                  }];
                 }
               }
             },
             tooltip: {
               callbacks: {
                 label: function(context) {
+                  if (!hasData) return 'No data available';
                   const label = context.label || '';
                   const value = context.parsed;
                   const percentage = activityPercentages[context.dataIndex];
@@ -514,26 +476,14 @@ angular.module('adminApp')
               }
             }
           }
-        },
-        plugins: [activityPercentagePlugin]
+        }
       });
     }
     
-    // Add polyfill for roundRect if not supported
-    if (!CanvasRenderingContext2D.prototype.roundRect) {
-      CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radius) {
-        if (width < 2 * radius) radius = width / 2;
-        if (height < 2 * radius) radius = height / 2;
-        this.beginPath();
-        this.moveTo(x + radius, y);
-        this.arcTo(x + width, y, x + width, y + height, radius);
-        this.arcTo(x + width, y + height, x, y + height, radius);
-        this.arcTo(x, y + height, x, y, radius);
-        this.arcTo(x, y, x + width, y, radius);
-        this.closePath();
-        return this;
-      };
-    }
+    // Cleanup function
+    $scope.$on('$destroy', function() {
+      destroyAllCharts();
+    });
     
     // Initial load - will automatically use current month/year
     $scope.updateReport();
