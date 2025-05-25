@@ -11,95 +11,131 @@
     <script src="https://js.stripe.com/v3/"></script>
     <script src="../webfunctions/placeOrderApp.js"></script>
     <style>
-        /* Additional styles for payment options */
-        .payment-options {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            margin-bottom: 25px;
+        /* Additional styles for payment section */
+        .payment-section {
+            margin-bottom: 30px;
         }
         
-        .payment-method {
-            display: flex;
-            align-items: center;
-            padding: 15px;
+        #card-element {
+            padding: 12px;
             border: 1px solid #ddd;
             border-radius: 8px;
-            cursor: pointer;
+            background-color: white;
             transition: all 0.3s;
+            margin-bottom: 12px;
         }
         
-        .payment-method:hover {
+        #card-element:focus {
             border-color: #0066cc;
             box-shadow: 0 2px 8px rgba(0, 102, 204, 0.1);
         }
         
-        .payment-method.selected {
+        #card-element.StripeElement--focus {
             border-color: #0066cc;
-            background-color: rgba(0, 102, 204, 0.05);
+            box-shadow: 0 2px 8px rgba(0, 102, 204, 0.1);
         }
         
-        .payment-method-icon {
-            flex: 0 0 40px;
-            font-size: 20px;
-            color: #0066cc;
-            text-align: center;
-        }
-        
-        .payment-method-details {
-            flex: 1;
-            margin-left: 15px;
-        }
-        
-        .payment-method-title {
-            font-weight: 600;
-            margin-bottom: 3px;
-        }
-        
-        .payment-method-description {
+        #card-errors {
+            color: #dc3545;
             font-size: 0.85rem;
-            color: #666;
+            margin-top: 8px;
+            margin-bottom: 15px;
         }
         
-        .btn-place-order, .btn-stripe-payment {
-            min-width: 180px;
-            padding: 12px 25px;
+        .payment-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
         }
         
-        .btn-stripe-payment {
+        .payment-header i {
+            font-size: 24px;
+            color: #6772e5;
+            margin-right: 10px;
+        }
+        
+        .card-details {
+            margin-bottom: 25px;
+        }
+        
+        .card-details-header {
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .secure-payment-notice {
+            display: flex;
+            align-items: center;
+            color: #28a745;
+            font-size: 0.85rem;
+            margin-top: 10px;
+        }
+        
+        .secure-payment-notice i {
+            margin-right: 8px;
+        }
+        
+        .btn-pay {
             background: linear-gradient(135deg, #6772e5, #4350b8);
             color: white;
             border: none;
             border-radius: 6px;
             font-size: 16px;
             font-weight: 600;
+            padding: 12px 25px;
             cursor: pointer;
             transition: all 0.3s;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
+            min-width: 200px;
         }
         
-        .btn-stripe-payment:hover {
+        .btn-pay:hover {
             background: linear-gradient(135deg, #5b66d9, #3a47ad);
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(103, 114, 229, 0.25);
         }
         
-        .btn-place-order {
-            background-color: #ff9800;
+        .btn-pay:disabled {
+            background: #a2a5c0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
         
-        .btn-place-order:hover {
-            background-color: #f57c00;
+        .payment-form {
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #e1e1e1;
+            background-color: #f9f9f9;
         }
         
-        .order-actions {
+        .card-icons {
             display: flex;
-            gap: 15px;
-            justify-content: center;
-            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .card-icons i {
+            font-size: 24px;
+            color: #6c757d;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
     </style>
 </head>
@@ -141,11 +177,6 @@
                         <span class="notification-badge" ng-if="unreadCount > 0">{{ unreadCount }}</span>
                     </a>
                 </li>
-                <!-- <li>
-                    <a href="#" ng-click="setActiveTab('mybook')">
-                        <i class="fas fa-book"></i> MyBook
-                    </a>
-                </li> -->
                 <li>
                     <a href="#" ng-click="setActiveTab('account')">
                         <i class="fas fa-user"></i> Account
@@ -178,37 +209,30 @@
             
             <!-- Payment Method Section -->
             <div class="payment-section">
-                <h3>Payment Method</h3>
-                <p style="color: #666; margin-bottom: 15px;">
-                  Choose your preferred payment method or proceed without payment for testing.
-                </p>
+                <div class="payment-header">
+                    <i class="fab fa-stripe"></i>
+                    <h3>Payment Details</h3>
+                </div>
                 
-                <div class="payment-options">
-                    <!-- Stripe Payment Option -->
-                    <div class="payment-method" ng-class="{'selected': paymentMethod === 'stripe'}" 
-                         ng-click="paymentMethod = 'stripe'">
-                        <div class="payment-method-icon">
-                            <i class="fab fa-stripe-s"></i>
-                        </div>
-                        <div class="payment-method-details">
-                            <div class="payment-method-title">Pay with Stripe</div>
-                            <div class="payment-method-description">
-                                Secure payment with credit/debit card or digital wallet
-                            </div>
-                        </div>
+                <div class="payment-form">
+                    <div class="card-icons">
+                        <i class="fab fa-cc-visa"></i>
+                        <i class="fab fa-cc-mastercard"></i>
+                        <i class="fab fa-cc-amex"></i>
+                        <i class="fab fa-cc-discover"></i>
                     </div>
                     
-                    <!-- Bypass Payment Option -->
-                    <div class="payment-method" ng-class="{'selected': paymentMethod === 'bypass'}" 
-                         ng-click="paymentMethod = 'bypass'">
-                        <div class="payment-method-icon">
-                            <i class="fas fa-hand-holding-usd"></i>
+                    <div class="card-details">
+                        <div class="card-details-header">
+                            Card Information
                         </div>
-                        <div class="payment-method-details">
-                            <div class="payment-method-title">Bypass Payment (Demo)</div>
-                            <div class="payment-method-description">
-                                Skip payment for testing purposes only
-                            </div>
+                        <!-- Stripe Card Element will be inserted here -->
+                        <div id="card-element"></div>
+                        <!-- Used to display form errors -->
+                        <div id="card-errors" role="alert"></div>
+                        
+                        <div class="secure-payment-notice">
+                            <i class="fas fa-lock"></i> Your payment info is secure and encrypted
                         </div>
                     </div>
                 </div>
@@ -224,19 +248,16 @@
                     <button class="btn-instruction" ng-click="showInstructions('desktop')">
                         <i class="fa fa-laptop"></i> Desktop Instruction
                     </button>
-                    <!-- <button class="btn-instruction" ng-click="showInstructions('mobile')">
-                        <i class="fa fa-mobile-alt"></i> Mobile Instruction
-                    </button> -->
                 </div>
             </div>
             
             <!-- Place Order Button -->
             <div class="order-actions">
-                <button class="btn-stripe-payment" ng-if="paymentMethod === 'stripe'" ng-click="goToStripePayment()">
-                    <i class="fab fa-stripe-s"></i> Pay with Stripe
-                </button>
-                <button class="btn-place-order" ng-if="paymentMethod === 'bypass'" ng-click="placeOrder()">
-                    <i class="fas fa-bolt"></i> Place Order
+                <button id="payment-button" class="btn-pay" ng-click="submitPayment()" ng-disabled="paymentProcessing">
+                    <span ng-if="!paymentProcessing"><i class="fab fa-stripe"></i> Pay RM{{ book.price.toFixed(2) }}</span>
+                    <span ng-if="paymentProcessing">
+                        <div class="loading-spinner"></div> Processing...
+                    </span>
                 </button>
             </div>
         </section>
@@ -269,31 +290,6 @@
                         <p>Alternatively, download our MAC reader tool:</p>
                         <a href="/uploads/apps/UTMeBook_PDFReader.exe" download class="btn-download">
                             <i class="fa fa-download"></i> Download Desktop MacReader
-                        </a>
-                    </div>
-                </div>
-                
-                <div class="instruction-steps" ng-if="instructionType === 'mobile'">
-                    <p>To find your MAC address on Android:</p>
-                    <ol>
-                        <li>Go to <strong>Settings</strong></li>
-                        <li>Tap on <strong>About Phone</strong></li>
-                        <li>Tap on <strong>Status</strong> or <strong>Hardware Information</strong></li>
-                        <li>Look for "Wi-Fi MAC address" or "WLAN MAC Address"</li>
-                    </ol>
-                    
-                    <p>To find your MAC address on iOS:</p>
-                    <ol>
-                        <li>Go to <strong>Settings</strong></li>
-                        <li>Tap on <strong>General</strong></li>
-                        <li>Tap on <strong>About</strong></li>
-                        <li>Look for "Wi-Fi Address"</li>
-                    </ol>
-                    
-                    <div class="download-section">
-                        <p>Alternatively, download our MAC reader app:</p>
-                        <a href="/uploads/apps/MACReader.apk" download class="btn-download">
-                            <i class="fa fa-download"></i> Download Mobile MacReader
                         </a>
                     </div>
                 </div>
