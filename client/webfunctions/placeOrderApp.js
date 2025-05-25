@@ -209,6 +209,7 @@ angular.module('placeOrderApp', [])
       placeOrder(mockPaymentIntentId);
     };
 
+
     // Function to place the order after successful payment
     function placeOrder(paymentIntentId) {
       const orderData = {

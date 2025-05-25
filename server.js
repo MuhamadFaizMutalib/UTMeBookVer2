@@ -1012,7 +1012,7 @@ app.post('/api/purchases/place-order', async (req, res) => {
         bookId,
         book.seller_id,
         paymentIntentId || null,
-        paymentMethod ='Processing'
+        'Pending'
       ]
     );
     
@@ -1037,7 +1037,7 @@ app.post('/api/purchases/place-order', async (req, res) => {
         [
           buyerId,
           admin.id,
-          `New Order: ${orderId} ${paymentMethod === 'bypass' ? '(BYPASSED)' : ''}`,
+          `New Order: ${orderId}`,
           `A new purchase has been made:\n\nOrder ID: ${orderId}\nBook: ${book.title}\nBuyer: ${buyer.username}\nPayment Method: ${paymentMethod}\nPayment Intent: ${paymentIntentId || 'N/A'}`,
           orderId
         ]
