@@ -982,6 +982,14 @@ app.post('/api/purchases/place-order', async (req, res) => {
     const randomDigits = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
     const orderId = `UTM${timestamp}${randomDigits}`;
     
+    // Get buyer information
+    const buyerResult = await pool.query(
+      `SELECT username, email FROM users WHERE id = $1`,
+      [buyerId]
+    );
+    
+    const buyer = buyerResult.rows[0];
+    
     // Insert purchase record
     const purchaseResult = await pool.query(
       `INSERT INTO purchases (
@@ -1016,7 +1024,7 @@ app.post('/api/purchases/place-order', async (req, res) => {
     
     // Create message for admin users
     const admins = await pool.query(
-      `SELECT id FROM users WHERE role = 'admin'`
+      `SELECT id, email FROM users WHERE role = 'admin'`
     );
     
     // Insert messages for all admin users
@@ -1030,13 +1038,77 @@ app.post('/api/purchases/place-order', async (req, res) => {
           buyerId,
           admin.id,
           `New Order: ${orderId} ${paymentMethod === 'bypass' ? '(BYPASSED)' : ''}`,
-          `A new purchase has been made:\n\nOrder ID: ${orderId}\nBook: ${book.title}\nPayment Intent: ${paymentIntentId}`,
+          `A new purchase has been made:\n\nOrder ID: ${orderId}\nBook: ${book.title}\nBuyer: ${buyer.username}\nPayment Method: ${paymentMethod}\nPayment Intent: ${paymentIntentId || 'N/A'}`,
           orderId
         ]
       );
     });
     
     await Promise.all(messagePromises);
+    
+    // Send email notifications to all admins
+    const emailPromises = admins.rows.map(admin => {
+      const mailOptions = {
+        from: process.env.EMAIL_USER || 'gengcangkui@gmail.com',
+        to: admin.email,
+        subject: `UTMeBook - New Order Pending Verification: ${orderId}`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #333;">New Order Pending Verification</h2>
+            <p>A new book purchase has been made and is waiting for your verification.</p>
+            
+            <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="color: #0066cc; margin-top: 0;">Order Details:</h3>
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 8px 0;"><strong>Order ID:</strong></td>
+                  <td>${orderId}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0;"><strong>Book Title:</strong></td>
+                  <td>${book.title}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0;"><strong>Category:</strong></td>
+                  <td>${book.category}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0;"><strong>Price:</strong></td>
+                  <td>RM${book.price}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0;"><strong>Buyer:</strong></td>
+                  <td>${buyer.username} (${buyer.email})</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0;"><strong>Payment Method:</strong></td>
+                  <td>${paymentMethod}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0;"><strong>MAC Address:</strong></td>
+                  <td>${macAddress}</td>
+                </tr>
+              </table>
+            </div>
+            
+            <p>Please log in to the admin panel to verify and process this order.</p>
+            
+            <div style="margin-top: 30px; padding: 20px; background: #f0f0f0; border-radius: 8px;">
+              <p style="margin: 0; color: #666; font-size: 14px;">
+                This is an automated message from UTMeBook. Please do not reply to this email.
+              </p>
+            </div>
+          </div>
+        `
+      };
+      
+      return transporter.sendMail(mailOptions);
+    });
+    
+    // Send emails without blocking the response
+    Promise.all(emailPromises).catch(error => {
+      console.error('Error sending admin notification emails:', error);
+    });
     
     res.status(201).json({
       success: true,
@@ -1517,17 +1589,17 @@ app.put('/api/admin/purchases/update-status/:orderId', async (req, res) => {
       );
     }
     
-    // If sendNotification is true, send a notification to the buyer
-    if (sendNotification) {
-      // Get the buyer's name
-      const buyerResult = await pool.query(
-        'SELECT username FROM users WHERE id = $1',
-        [purchase.buyer_id]
-      );
+    // Get the buyer's information
+    const buyerResult = await pool.query(
+      'SELECT username, email FROM users WHERE id = $1',
+      [purchase.buyer_id]
+    );
+    
+    if (buyerResult.rows.length > 0) {
+      const buyer = buyerResult.rows[0];
       
-      if (buyerResult.rows.length > 0) {
-        const buyerName = buyerResult.rows[0].username;
-        
+      // If sendNotification is true, send a notification to the buyer
+      if (sendNotification) {
         // Prepare notification content based on the new status
         let title = '';
         let content = '';
@@ -1535,19 +1607,19 @@ app.put('/api/admin/purchases/update-status/:orderId', async (req, res) => {
         switch (newStatus) {
           case 'Processing':
             title = `Order ${orderId} is being processed`;
-            content = `Dear ${buyerName},\n\nYour order for "${purchase.title}" is now being processed. We'll notify you when your order is ready for download.\n\nOrder ID: ${orderId}\nBook: ${purchase.title}\nPrice: RM${purchase.price}\n\nThank you for your purchase!`;
+            content = `Dear ${buyer.username},\n\nYour order for "${purchase.title}" is now being processed. We'll notify you when your order is ready for download.\n\nOrder ID: ${orderId}\nBook: ${purchase.title}\nPrice: RM${purchase.price}\n\nThank you for your purchase!`;
             break;
           case 'Delivered':
             title = `Order ${orderId} is ready for download`;
-            content = `Dear ${buyerName},\n\nGreat news! Your order for "${purchase.title}" is now ready for download. You can access your purchase from the "My Book" section or directly from your orders page.\n\nOrder ID: ${orderId}\nBook: ${purchase.title}\nPrice: RM${purchase.price}\n\nThe book has been encrypted with your device's MAC address for security. Thank you for your purchase!`;
+            content = `Dear ${buyer.username},\n\nGreat news! Your order for "${purchase.title}" is now ready for download. You can access your purchase from the "My Book" section or directly from your orders page.\n\nOrder ID: ${orderId}\nBook: ${purchase.title}\nPrice: RM${purchase.price}\n\nThe book has been encrypted with your device's MAC address for security. Thank you for your purchase!`;
             break;
           case 'Canceled':
             title = `Order ${orderId} has been canceled`;
-            content = `Dear ${buyerName},\n\nYour order for "${purchase.title}" has been canceled.\n\nOrder ID: ${orderId}\nBook: ${purchase.title}\nPrice: RM${purchase.price}\n\nIf you did not request this cancellation or have any questions, please contact our support team.`;
+            content = `Dear ${buyer.username},\n\nYour order for "${purchase.title}" has been canceled.\n\nOrder ID: ${orderId}\nBook: ${purchase.title}\nPrice: RM${purchase.price}\n\nIf you did not request this cancellation or have any questions, please contact our support team.`;
             break;
           default:
             title = `Order ${orderId} status updated`;
-            content = `Dear ${buyerName},\n\nYour order for "${purchase.title}" has been updated to status: ${newStatus}.\n\nOrder ID: ${orderId}\nBook: ${purchase.title}\nPrice: RM${purchase.price}\n\nThank you for your purchase!`;
+            content = `Dear ${buyer.username},\n\nYour order for "${purchase.title}" has been updated to status: ${newStatus}.\n\nOrder ID: ${orderId}\nBook: ${purchase.title}\nPrice: RM${purchase.price}\n\nThank you for your purchase!`;
         }
         
         // Insert notification into publicMessages table
@@ -1559,6 +1631,164 @@ app.put('/api/admin/purchases/update-status/:orderId', async (req, res) => {
           [purchase.buyer_id, 'order', title, content, orderId, false]
         );
       }
+      
+      // Send email notification to buyer
+      let emailSubject = '';
+      let emailHtml = '';
+      
+      switch (newStatus) {
+        case 'Delivered':
+          emailSubject = `UTMeBook - Your Order ${orderId} is Ready for Download!`;
+          emailHtml = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #333;">Your Order is Ready!</h2>
+              <p>Dear ${buyer.username},</p>
+              <p>Great news! Your purchased book has been verified by our admin and is now ready for download.</p>
+              
+              <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="color: #0066cc; margin-top: 0;">Order Details:</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                  <tr>
+                    <td style="padding: 8px 0;"><strong>Order ID:</strong></td>
+                    <td>${orderId}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0;"><strong>Book Title:</strong></td>
+                    <td>${purchase.title}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0;"><strong>Category:</strong></td>
+                    <td>${purchase.category}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0;"><strong>Price:</strong></td>
+                    <td>RM${purchase.price}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0;"><strong>Status:</strong></td>
+                    <td style="color: #28a745; font-weight: bold;">Delivered</td>
+                  </tr>
+                </table>
+              </div>
+              
+              <div style="background: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="color: #1976d2; margin-top: 0;">How to Download Your Book:</h3>
+                <ol>
+                  <li>Log in to your UTMeBook account</li>
+                  <li>Go to "My Book" section</li>
+                  <li>Find your order and click "Download"</li>
+                  <li>Your book will be downloaded in encrypted format</li>
+                  <li>Use UTMeBook PDF Reader to open the encrypted book</li>
+                </ol>
+                <p><strong>Note:</strong> The book has been encrypted with your device's MAC address for security purposes.</p>
+              </div>
+              
+              <p>Thank you for your purchase!</p>
+              
+              <div style="margin-top: 30px; padding: 20px; background: #f0f0f0; border-radius: 8px;">
+                <p style="margin: 0; color: #666; font-size: 14px;">
+                  This is an automated message from UTMeBook. Please do not reply to this email.
+                </p>
+              </div>
+            </div>
+          `;
+          break;
+          
+        case 'Canceled':
+          emailSubject = `UTMeBook - Order ${orderId} Canceled`;
+          emailHtml = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #333;">Order Canceled</h2>
+              <p>Dear ${buyer.username},</p>
+              <p>Your order has been canceled by the administrator.</p>
+              
+              <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="color: #dc3545; margin-top: 0;">Order Details:</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                  <tr>
+                    <td style="padding: 8px 0;"><strong>Order ID:</strong></td>
+                    <td>${orderId}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0;"><strong>Book Title:</strong></td>
+                    <td>${purchase.title}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0;"><strong>Price:</strong></td>
+                    <td>RM${purchase.price}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0;"><strong>Status:</strong></td>
+                    <td style="color: #dc3545; font-weight: bold;">Canceled</td>
+                  </tr>
+                </table>
+              </div>
+              
+              <p>If you did not request this cancellation or have any questions, please contact our support team.</p>
+              
+              <div style="margin-top: 30px; padding: 20px; background: #f0f0f0; border-radius: 8px;">
+                <p style="margin: 0; color: #666; font-size: 14px;">
+                  This is an automated message from UTMeBook. Please do not reply to this email.
+                </p>
+              </div>
+            </div>
+          `;
+          break;
+          
+        default:
+          // For other status updates (Processing, etc.)
+          emailSubject = `UTMeBook - Order ${orderId} Status Update`;
+          emailHtml = `
+            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+              <h2 style="color: #333;">Order Status Updated</h2>
+              <p>Dear ${buyer.username},</p>
+              <p>Your order status has been updated.</p>
+              
+              <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                <h3 style="color: #0066cc; margin-top: 0;">Order Details:</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                  <tr>
+                    <td style="padding: 8px 0;"><strong>Order ID:</strong></td>
+                    <td>${orderId}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0;"><strong>Book Title:</strong></td>
+                    <td>${purchase.title}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0;"><strong>Price:</strong></td>
+                    <td>RM${purchase.price}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 8px 0;"><strong>Status:</strong></td>
+                    <td style="font-weight: bold;">${newStatus}</td>
+                  </tr>
+                </table>
+              </div>
+              
+              <p>Thank you for your patience!</p>
+              
+              <div style="margin-top: 30px; padding: 20px; background: #f0f0f0; border-radius: 8px;">
+                <p style="margin: 0; color: #666; font-size: 14px;">
+                  This is an automated message from UTMeBook. Please do not reply to this email.
+                </p>
+              </div>
+            </div>
+          `;
+      }
+      
+      // Send email to buyer
+      const mailOptions = {
+        from: process.env.EMAIL_USER || 'gengcangkui@gmail.com',
+        to: buyer.email,
+        subject: emailSubject,
+        html: emailHtml
+      };
+      
+      // Send email without blocking the response
+      transporter.sendMail(mailOptions).catch(error => {
+        console.error('Error sending buyer notification email:', error);
+      });
     }
     
     res.status(200).json({
