@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UTMeBook - Activity Report</title>
+    <link rel="stylesheet" href="../webstyles/css/admin.css">
+    <link rel="stylesheet" href="../webstyles/css/activity-report.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../webfunctions/adminApp.js"></script>
+    <script src="../webfunctions/activityReportController.js"></script>
+</head>
+<body ng-app="adminApp" ng-controller="ActivityReportController">
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <h1>UTMeBook Admin</h1>
+            </div>
+            <div>
+                <span>Welcome, {{ user.username }}</span>
+                <button class="btn-logout" ng-click="logout()">Logout</button>
+            </div>
+            <button class="mobile-menu-toggle" ng-click="toggleMobileMenu()">
+                <i class="fas fa-bars"></i>
+            </button>
+        </header>
+
+        <!-- Navigation Bar -->
+        <nav class="navbar">
+            <ul ng-class="{'show-mobile': mobileMenuOpen}">
+                <li>
+                    <a href="#" ng-click="setActiveTab('user-book-manager')" ng-class="{'active': activeTab === 'user-book-manager'}">
+                        <i class="fas fa-plus-circle"></i> Users & Books Management
+                    </a>
+                </li>
+                <li>
+                    <a href="#" ng-click="setActiveTab('mssgAdmin')" ng-class="{'active': activeTab === 'mssgAdmin'}">
+                        <i class="fas fa-envelope"></i> Messages
+                    </a>
+                </li>
+                <li>
+                    <a href="#" ng-click="setActiveTab('adminAccount')" ng-class="{'active': activeTab === 'adminAccount'}">
+                        <i class="fas fa-user"></i> Account
+                    </a>
+                </li>
+                <li>
+                    <a href="#" ng-click="setActiveTab('activity-report')" ng-class="{'active': activeTab === 'activity-report'}">
+                        <i class="fa-solid fa-file"></i> Activity Report
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <main class="content">
+            <div class="report-container">
+                <div class="report-header">
+                    <h2>Activity Report</h2>
+                    <div class="month-selector">
+                        <label>Select Month:</label>
+                        <select ng-model="selectedMonth" ng-change="updateReport()">
+                            <option ng-repeat="month in months" value="{{month.value}}">{{month.name}}</option>
+                        </select>
+                        <select ng-model="selectedYear" ng-change="updateReport()">
+                            <option ng-repeat="year in years" value="{{year}}">{{year}}</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Summary Cards -->
+                <div class="summary-cards">
+                    <div class="summary-card users">
+                        <div class="card-icon">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>New Users</h3>
+                            <p class="card-value">{{ reportData.summary.totalUsers || 0 }}</p>
+                            <p class="card-label">Registered this month</p>
+                        </div>
+                    </div>
+
+                    <div class="summary-card books">
+                        <div class="card-icon">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Books Uploaded</h3>
+                            <p class="card-value">{{ reportData.summary.totalBooks || 0 }}</p>
+                            <p class="card-label">Added this month</p>
+                        </div>
+                    </div>
+
+                    <div class="summary-card purchases">
+                        <div class="card-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Books Purchased</h3>
+                            <p class="card-value">{{ reportData.summary.totalPurchases || 0 }}</p>
+                            <p class="card-label">Sold this month</p>
+                        </div>
+                    </div>
+
+                    <div class="summary-card revenue">
+                        <div class="card-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Total Revenue</h3>
+                            <p class="card-value">RM {{ (reportData.summary.totalRevenue || 0).toFixed(2) }}</p>
+                            <p class="card-label">Earned this month</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="charts-section">
+                    <!-- Daily Activity Chart -->
+                    <div class="chart-container full-width">
+                        <h3>Daily Activity Overview</h3>
+                        <canvas id="dailyActivityChart"></canvas>
+                    </div>
+
+                    <!-- Category Distribution Chart -->
+                    <div class="chart-container half-width">
+                        <h3>Purchases by Category</h3>
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+
+                    <!-- Monthly Trend Chart -->
+                    <div class="chart-container half-width">
+                        <h3>Activity Distribution</h3>
+                        <canvas id="activityPieChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Loading Indicator -->
+                <div class="loading" ng-show="loading">
+                    <i class="fas fa-spinner fa-spin"></i> Loading report data...
+                </div>
+
+                <!-- No Data Message -->
+                <div class="no-data" ng-show="!loading && noData">
+                    <i class="fas fa-chart-line"></i>
+                    <p>No activity data available for the selected month.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

@@ -23,8 +23,8 @@ angular.module('adminApp', [])
         case 'mssgAdmin':
           $window.location.href = '/mssgAdmin';
           break;
-        case 'report':
-          $window.location.href = '/report';
+        case 'activity-report':
+          $window.location.href = '/activity-report';
           break;
         case 'adminAccount':
           $window.location.href = '/adminAccount';

@@ -2550,7 +2550,131 @@ app.get('/api/public-messages/:userId/unread-count', async (req, res) => {
 
 //////////////////////////////////// [END PUBLIC MESSAGES ENDPOINTS] ///////////////////////////////////
 
+//////////////////////////////////// [ ACTIVITY REPORT ] ///////////////////////////////////
 
+// API endpoint to get activity report data
+app.get('/api/admin/activity-report', async (req, res) => {
+  const { userId, year, month } = req.query;
+  
+  try {
+    // Verify user is an admin
+    const adminCheck = await pool.query(
+      'SELECT * FROM users WHERE id = $1 AND role = $2',
+      [userId, 'admin']
+    );
+    
+    if (adminCheck.rows.length === 0) {
+      return res.status(403).json({
+        success: false,
+        message: 'You do not have permission to view activity reports'
+      });
+    }
+    
+    // Set date range for the selected month
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0, 23, 59, 59);
+    
+    // Get new user registrations for the month
+    const userRegistrations = await pool.query(
+      `SELECT COUNT(*) as count, DATE(created_at) as date
+       FROM users
+       WHERE created_at >= $1 AND created_at <= $2
+       GROUP BY DATE(created_at)
+       ORDER BY date`,
+      [startDate, endDate]
+    );
+    
+    // Get total users registered in the month
+    const totalUsers = await pool.query(
+      `SELECT COUNT(*) as count
+       FROM users
+       WHERE created_at >= $1 AND created_at <= $2`,
+      [startDate, endDate]
+    );
+    
+    // Get books uploaded in the month
+    const booksUploaded = await pool.query(
+      `SELECT COUNT(*) as count, DATE(created_at) as date
+       FROM books
+       WHERE created_at >= $1 AND created_at <= $2
+       GROUP BY DATE(created_at)
+       ORDER BY date`,
+      [startDate, endDate]
+    );
+    
+    // Get total books uploaded in the month
+    const totalBooks = await pool.query(
+      `SELECT COUNT(*) as count
+       FROM books
+       WHERE created_at >= $1 AND created_at <= $2`,
+      [startDate, endDate]
+    );
+    
+    // Get purchases made in the month
+    const purchases = await pool.query(
+      `SELECT COUNT(*) as count, DATE(purchase_date) as date
+       FROM purchases
+       WHERE purchase_date >= $1 AND purchase_date <= $2
+       GROUP BY DATE(purchase_date)
+       ORDER BY date`,
+      [startDate, endDate]
+    );
+    
+    // Get total purchases in the month
+    const totalPurchases = await pool.query(
+      `SELECT COUNT(*) as count
+       FROM purchases
+       WHERE purchase_date >= $1 AND purchase_date <= $2`,
+      [startDate, endDate]
+    );
+    
+    // Get category-wise purchases
+    const purchasesByCategory = await pool.query(
+      `SELECT category, COUNT(*) as count
+       FROM purchases
+       WHERE purchase_date >= $1 AND purchase_date <= $2
+       GROUP BY category
+       ORDER BY count DESC`,
+      [startDate, endDate]
+    );
+    
+    // Get revenue data
+    const revenue = await pool.query(
+      `SELECT SUM(price) as total_revenue
+       FROM purchases
+       WHERE purchase_date >= $1 AND purchase_date <= $2 AND order_status != 'Canceled'`,
+      [startDate, endDate]
+    );
+    
+    res.status(200).json({
+      success: true,
+      data: {
+        summary: {
+          totalUsers: parseInt(totalUsers.rows[0].count),
+          totalBooks: parseInt(totalBooks.rows[0].count),
+          totalPurchases: parseInt(totalPurchases.rows[0].count),
+          totalRevenue: parseFloat(revenue.rows[0].total_revenue || 0)
+        },
+        dailyData: {
+          users: userRegistrations.rows,
+          books: booksUploaded.rows,
+          purchases: purchases.rows
+        },
+        purchasesByCategory: purchasesByCategory.rows
+      }
+    });
+    
+  } catch (err) {
+    console.error('Error fetching activity report:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching activity report',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+  }
+});
+
+//////////////////////////////////// [ END ACTIVITY REPORT ] ///////////////////////////////////
 
 // Serve static files from the uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -2623,6 +2747,10 @@ app.get('/mssgAdmin', (req, res) => {
   res.sendFile(path.join(__dirname, 'client/webpages/mssgAdmin.html'));
 });
 
+// Add this route after the other routes
+app.get('/activity-report', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/webpages/activity-report.html'));
+});
 
 // Start server and initialize database
 app.listen(PORT, () => {
