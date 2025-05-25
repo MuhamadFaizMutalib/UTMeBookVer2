@@ -1012,7 +1012,7 @@ app.post('/api/purchases/place-order', async (req, res) => {
         bookId,
         book.seller_id,
         paymentIntentId || null,
-        paymentMethod === 'bypass' ? 'Pending' : 'Processing'
+        paymentMethod ='Processing'
       ]
     );
     
