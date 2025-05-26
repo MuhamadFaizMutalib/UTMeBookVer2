@@ -43,12 +43,6 @@ body {
     flex-wrap: wrap; /* Allow wrapping */
 }
 
-/* .user-info {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-} */
-
 .btn-logout {
     background-color: #f44336;
     color: white;
@@ -295,19 +289,6 @@ body {
     overflow-y: auto;
 }
 
-/* .user-card {
-    display: flex;
-    align-items: center;
-    background-color: white;
-    border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    padding: 1rem;
-    margin-bottom: 1rem;
-    transition: transform 0.3s, box-shadow 0.3s;
-    position: relative;  
-    min-height: 120px;   
-} */
-
 .user-card {
     display: flex;
     background-color: white;
@@ -324,18 +305,6 @@ body {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* .user-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background-color: #1e88e5;
-    color: white;
-    font-size: 1.5rem;
-    margin-right: 1rem;
-} */
 
 .user-icon {
     flex: 0 0 60px; /* Fixed width, doesn't grow or shrink */
@@ -375,10 +344,7 @@ body {
 }
 
 
-/* .user-info {
-    flex: 1;
-    padding-right: 90px; 
-} */
+
 .user-info h3 {
     font-size: 1rem;
     margin-bottom: 0.5rem;

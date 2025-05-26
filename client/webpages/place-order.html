@@ -266,28 +266,30 @@
         <div class="modal" ng-if="showInstructionModal">
             <div class="modal-content">
                 <span class="close-modal" ng-click="closeInstructions()">&times;</span>
-                <h3>{{ instructionType === 'desktop' ? 'Desktop MAC Address Instructions' : 'Mobile MAC Address Instructions' }}</h3>
-                
-                <div class="instruction-steps" ng-if="instructionType === 'desktop'">
-                    <p>To find your MAC address on Windows:</p>
-                    <ol>
-                        <li>Press <strong>Win + R</strong> to open Run dialog</li>
-                        <li>Type <strong>cmd</strong> and press Enter</li>
-                        <li>In the command prompt, type <strong>ipconfig /all</strong> and press Enter</li>
-                        <li>Look for "Physical Address" under your network adapter</li>
-                    </ol>
+
+                    <h3>{{ instructionType === 'desktop' ? 'Desktop MAC Address Instructions' : 'Mobile MAC Address Instructions' }}</h3>
                     
-                    <p>To find your MAC address on Mac:</p>
+                    <p>Using the UTMeBook PDF Reader application:</p>
+                    
+                    <ol>
+                        <li>UTMeBook PDF Reader is a specialized application designed to open <strong>encrypted PDF files</strong>.</li>
+                        <li>It also has the capability to <strong>read and copy the MAC address</strong> of the client device automatically.</li>
+                        <li>No manual steps are required — simply open the application and load your encrypted PDF file.</li>
+                        <li>The app will handle both decryption and MAC address retrieval in the background.</li>
+                    </ol>
+
+                    
+                    <!-- <p>To find your MAC address on Mac:</p>
                     <ol>
                         <li>Click the Apple menu and select System Preferences</li>
                         <li>Click Network</li>
                         <li>Select your connection (Wi-Fi or Ethernet) and click Advanced</li>
                         <li>Go to the Hardware tab</li>
                         <li>Your MAC Address is listed as "MAC Address"</li>
-                    </ol>
+                    </ol> -->
                     
                     <div class="download-section">
-                        <p>Alternatively, download our MAC reader tool:</p>
+                        <p>You can <strong>download the UTMeBook PDF Reader application from the button below</strong>.</p>
                         <a href="/uploads/apps/UTMeBook_PDFReader.exe" download class="btn-download">
                             <i class="fa fa-download"></i> Download Desktop MacReader
                         </a>
