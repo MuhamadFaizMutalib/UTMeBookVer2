@@ -26,10 +26,12 @@ git push origin main
 [To Connect RenderDB ]
 
 To connect WITH WEB@GIT Deployment = postgresql://utmebookdb_user:3WpIOVlDseuWlBnOZ3tvMTHnp9VJ1r5q@dpg-d00ck4adbo4c738upcug-a/utmebookdb
-                                     postgresql://utmebookdb_cohv_user:4V3sVhRQzHMJhgy7vqgBlAZAjIGuHDfb@dpg-d0m7ro0gjchc739koqfg-a/utmebookdb_cohv 
+                                     postgresql://utmebookdb_cohv_user:4V3sVhRQzHMJhgy7vqgBlAZAjIGuHDfb@dpg-d0m7ro0gjchc739koqfg-a/utmebookdb_cohv
+psql postgresql://utmebookdb_yja9_user:36auPjCp76VLGUuF2cVL4js5wv1bwphb@dpg-d1g01tumcj7s73c6n99g-a/utmebookdb_yja9 
 
 To connect WITH cmd Controls = psql postgresql://utmebookdb_user:3WpIOVlDseuWlBnOZ3tvMTHnp9VJ1r5q@dpg-d00ck4adbo4c738upcug-a.singapore-postgres.render.com/utmebookdb
                                postgresql://utmebookdb_cohv_user:4V3sVhRQzHMJhgy7vqgBlAZAjIGuHDfb@dpg-d0m7ro0gjchc739koqfg-a.singapore-postgres.render.com/utmebookdb_cohv
+psql postgresql://utmebookdb_yja9_user:36auPjCp76VLGUuF2cVL4js5wv1bwphb@dpg-d1g01tumcj7s73c6n99g-a.singapore-postgres.render.com/utmebookdb_yja9
 
 
 ########################################################

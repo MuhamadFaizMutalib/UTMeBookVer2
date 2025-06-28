@@ -27,7 +27,7 @@ app.use(express.static(path.join(__dirname, 'client')));
 
 // PostgreSQL connection - Use environment variables
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/utmebookdb_cohv',
+  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/utmebookdb_yja9',
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
