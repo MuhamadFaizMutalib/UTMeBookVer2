@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="../webstyles/css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="../webfunctions/adminApp.js"></script>
     <style>
         /* Additional styles for filters */
         .filter-group {
@@ -143,11 +144,11 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="controls-right">
-                            <!-- <button class="btn-add" ng-click="showAddBookModal()">
+                        <!-- <div class="controls-right">
+                            <button class="btn-add" ng-click="showAddBookModal()">
                                 <i class="fas fa-plus"></i> Add Book
-                            </button> -->
-                        </div>
+                            </button>
+                        </div> -->
                     </div>
                     <div class="book-grid">
                         <div class="book-card" ng-repeat="book in filteredBooks | filter:bookSearch">
@@ -185,11 +186,11 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="controls-right">
-                            <!-- <button class="btn-add" ng-click="showAddUserModal()">
+                        <!-- <div class="controls-right">
+                            <button class="btn-add" ng-click="showAddUserModal()">
                                 <i class="fas fa-plus"></i> Add User
-                            </button> -->
-                        </div>
+                            </button>
+                        </div> -->
                     </div>
                     <div class="user-list">
                         <div class="user-card" ng-repeat="user in filteredUsers | filter:userSearch | filter:{role: '!admin'}">
