@@ -105,6 +105,12 @@
                                     <button class="btn-download" ng-click="downloadBook(purchase)" ng-if="purchase.status === 'Delivered'">
                                         <i class="fas fa-download"></i> Download
                                     </button>
+            
+                                    <a href="/uploads/apps/UTMeBook_PDFReader.exe" download class="btn-download">
+                                        <i class="fa fa-download"></i> Download UTMeBook PDF Reader
+                                    </a>
+                                
+
                                     <button class="btn-download disabled" ng-if="purchase.status !== 'Delivered' && purchase.status !== 'Canceled'">
                                         <i class="fas fa-download"></i> Download (Unavailable)
                                     </button>
