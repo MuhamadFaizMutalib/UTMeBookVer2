@@ -7,7 +7,71 @@
     <link rel="stylesheet" href="../webstyles/css/admin.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
-    <script src="../webfunctions/adminApp.js"></script>
+    <style>
+        /* Additional styles for filters */
+        .filter-group {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .filter-select {
+            padding: 0.75rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            background-color: white;
+            cursor: pointer;
+            min-width: 150px;
+        }
+        
+        .filter-select:focus {
+            outline: none;
+            border-color: #1e88e5;
+        }
+        
+        .section-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .controls-left {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex: 1;
+        }
+        
+        .controls-right {
+            display: flex;
+            align-items: center;
+        }
+        
+        @media (max-width: 768px) {
+            .section-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .controls-left {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-select {
+                min-width: auto;
+            }
+        }
+    </style>
 </head>
 <body ng-app="adminApp" ng-controller="AdminController">
     <div class="dashboard-container">
@@ -59,16 +123,34 @@
                 <div class="section books-section">
                     <h2>Books Management</h2>
                     <div class="section-controls">
-                        <div class="search-bar">
-                            <input type="text" placeholder="Search books..." ng-model="bookSearch">
-                            <i class="fas fa-search"></i>
+                        <div class="controls-left">
+                            <div class="search-bar">
+                                <input type="text" placeholder="Search books..." ng-model="bookSearch">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <div class="filter-group">
+                                <select class="filter-select" ng-model="bookCategoryFilter" ng-change="applyBookFilters()">
+                                    <option value="">All Categories</option>
+                                    <option value="Computer Science">Computer Science</option>
+                                    <option value="Engineering">Engineering</option>
+                                    <option value="Mathematics">Mathematics</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                                <select class="filter-select" ng-model="bookDateFilter" ng-change="applyBookFilters()">
+                                    <option value="">All Dates</option>
+                                    <option value="newest">Newest First</option>
+                                    <option value="oldest">Oldest First</option>
+                                </select>
+                            </div>
                         </div>
-                        <!-- <button class="btn-add" ng-click="showAddBookModal()">
-                            <i class="fas fa-plus"></i> Add Book
-                        </button> -->
+                        <div class="controls-right">
+                            <!-- <button class="btn-add" ng-click="showAddBookModal()">
+                                <i class="fas fa-plus"></i> Add Book
+                            </button> -->
+                        </div>
                     </div>
                     <div class="book-grid">
-                        <div class="book-card" ng-repeat="book in books | filter:bookSearch">
+                        <div class="book-card" ng-repeat="book in filteredBooks | filter:bookSearch">
                             <div class="book-cover" ng-click="showBookDetails(book)">
                                 <img ng-src="{{ book.coverUrl }}" alt="{{ book.title }}">
                             </div>
@@ -77,7 +159,7 @@
                                 <p><strong>Seller:</strong> {{ book.sellerName }}</p>
                                 <p><strong>Price:</strong> RM {{ book.price.toFixed(2) }}</p>
                                 <p><strong>Date:</strong> {{ book.uploadDate | date:'MMM dd, yyyy' }}</p>
-                                <p><strong>Status:</strong> <span class="status-badge {{ book.status.toLowerCase() }}">{{ book.status }}</span></p>
+                                <p><strong>Category:</strong> <span class="status-badge available">{{ book.category }}</span></p>
                                 <button class="btn-delete" ng-click="confirmDeleteBook(book)">
                                     <i class="fas fa-trash"></i> Delete
                                 </button>
@@ -90,16 +172,27 @@
                 <div class="section users-section">
                     <h2>Users Management</h2>
                     <div class="section-controls">
-                        <div class="search-bar">
-                            <input type="text" placeholder="Search users..." ng-model="userSearch">
-                            <i class="fas fa-search"></i>
+                        <div class="controls-left">
+                            <div class="search-bar">
+                                <input type="text" placeholder="Search users..." ng-model="userSearch">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <div class="filter-group">
+                                <select class="filter-select" ng-model="userDateFilter" ng-change="applyUserFilters()">
+                                    <option value="">All Dates</option>
+                                    <option value="newest">Newest First</option>
+                                    <option value="oldest">Oldest First</option>
+                                </select>
+                            </div>
                         </div>
-                        <!-- <button class="btn-add" ng-click="showAddUserModal()">
-                            <i class="fas fa-plus"></i> Add User
-                        </button> -->
+                        <div class="controls-right">
+                            <!-- <button class="btn-add" ng-click="showAddUserModal()">
+                                <i class="fas fa-plus"></i> Add User
+                            </button> -->
+                        </div>
                     </div>
                     <div class="user-list">
-                        <div class="user-card" ng-repeat="user in users | filter:userSearch | filter:{role: '!admin'}">
+                        <div class="user-card" ng-repeat="user in filteredUsers | filter:userSearch | filter:{role: '!admin'}">
                             <div class="user-icon">
                                 <i class="fas fa-user"></i>
                             </div>
@@ -178,9 +271,9 @@
                         <label for="bookCategory">Category</label>
                         <select id="bookCategory" ng-model="newBook.category" required>
                             <option value="">Select a category</option>
-                            <option value="Computer Science">Texbook</option>
-                            <option value="Engineering">Research</option>
-                            <option value="Mathematics">Academic</option>
+                            <option value="Computer Science">Computer Science</option>
+                            <option value="Engineering">Engineering</option>
+                            <option value="Mathematics">Mathematics</option>
                             <option value="Other">Other</option>
                         </select>
                     </div>
