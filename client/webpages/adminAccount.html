@@ -66,6 +66,24 @@
             margin-bottom: 1.5rem;
         }
         
+        /* Edit Profile Button (Blue) */
+        .btn-edit {
+            background-color: #1e88e5;
+            color: white;
+            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s;
+            margin-right: 10px;
+        }
+        
+        .btn-edit:hover {
+            background-color: #1565c0;
+        }
+        
+        /* Save Changes Button (Green) */
         .btn-save {
             background-color: #4caf50;
             color: white;
@@ -95,6 +113,22 @@
         
         .btn-password:hover {
             background-color: #1565c0;
+        }
+        
+        .btn-cancel {
+            background-color: #757575;
+            color: white;
+            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s;
+            margin-right: 10px;
+        }
+        
+        .btn-cancel:hover {
+            background-color: #616161;
         }
         
         .divider {
@@ -147,6 +181,18 @@
         
         .password-requirements li {
             margin-bottom: 0.25rem;
+        }
+        
+        /* Readonly input styling */
+        input[readonly], textarea[readonly] {
+            background-color: #f5f5f5;
+            cursor: default;
+        }
+        
+        input:not([readonly]):focus, textarea:not([readonly]):focus {
+            border-color: #1e88e5;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(30, 136, 229, 0.2);
         }
         
         @media (max-width: 768px) {
@@ -241,21 +287,21 @@
                     <i class="fas fa-exclamation-circle"></i> {{ profileUpdateError }}
                 </div>
 
-                    <form class="account-form" ng-submit="updateProfile()">
+                    <form class="account-form" ng-submit="handleProfileAction()">
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="username">Username</label>
-                                <input type="text" id="username" ng-model="profile.username" required>
+                                <input type="text" id="username" ng-model="profile.username" ng-readonly="!editMode" required>
                             </div>
                             <div class="form-group">
                                 <label for="email">Email Address</label>
-                                <input type="email" id="email" ng-model="profile.email" required>
+                                <input type="email" id="email" ng-model="profile.email" ng-readonly="!editMode" required>
                             </div>
                         </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="phone">Phone Number</label>
-                                <input type="tel" id="phone" ng-model="profile.phone" placeholder="e.g., +60123456789">
+                                <input type="tel" id="phone" ng-model="profile.phone" ng-readonly="!editMode" placeholder="e.g., +60123456789">
                             </div>
                             <div class="form-group">
                                 <label for="role">Role</label>
@@ -264,19 +310,29 @@
                         </div>
                         <div class="form-group">
                             <label for="address">Address</label>
-                            <textarea id="address" ng-model="profile.address" rows="3" placeholder="Enter your address"></textarea>
+                            <textarea id="address" ng-model="profile.address" ng-readonly="!editMode" rows="3" placeholder="Enter your address"></textarea>
                         </div>
                         <div class="form-actions">
-                            <button type="submit" class="btn-save">
+                            <!-- Edit Mode Toggle Button -->
+                            <button type="button" ng-if="!editMode" class="btn-edit" ng-click="enableEditMode()">
+                                <i class="fas fa-edit"></i> Edit Profile
+                            </button>
+                            
+                            <!-- Save and Cancel Buttons (shown in edit mode) -->
+                            <button type="submit" ng-if="editMode" class="btn-save">
                                 <i class="fas fa-save"></i> Save Changes
                             </button>
+                            <button type="button" ng-if="editMode" class="btn-cancel" ng-click="cancelEdit()">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
+                            
+                            <!-- Change Password Button (always visible) -->
                             <button type="button" class="btn-password" ng-click="showPasswordModal = true">
                                 <i class="fas fa-key"></i> Change Password
                             </button>
                         </div>
                     </form>
                 </div>
-
 
                 
                 <!-- Password Change Modal -->
@@ -354,6 +410,7 @@
                 $scope.activeTab = 'adminAccount';
                 $scope.mobileMenuOpen = false;
                 $scope.showPasswordModal = false;
+                $scope.editMode = false; // New variable to track edit mode
                 
                 // Profile data
                 $scope.profile = {
@@ -363,6 +420,9 @@
                     address: '',
                     role: ''
                 };
+                
+                // Store original profile data for cancel functionality
+                $scope.originalProfile = {};
                 
                 // Password form
                 $scope.passwordForm = {
@@ -381,6 +441,33 @@
                 $scope.profileUpdateError = '';
                 $scope.passwordUpdateSuccess = '';
                 $scope.passwordUpdateError = '';
+                
+                // Enable edit mode
+                $scope.enableEditMode = function() {
+                    $scope.editMode = true;
+                    // Store original values for cancel functionality
+                    $scope.originalProfile = angular.copy($scope.profile);
+                    // Clear any previous messages
+                    $scope.profileUpdateSuccess = '';
+                    $scope.profileUpdateError = '';
+                };
+                
+                // Cancel edit mode
+                $scope.cancelEdit = function() {
+                    $scope.editMode = false;
+                    // Restore original values
+                    $scope.profile = angular.copy($scope.originalProfile);
+                    // Clear any messages
+                    $scope.profileUpdateSuccess = '';
+                    $scope.profileUpdateError = '';
+                };
+                
+                // Handle profile action (save when in edit mode)
+                $scope.handleProfileAction = function() {
+                    if ($scope.editMode) {
+                        $scope.updateProfile();
+                    }
+                };
                 
                 // Close password modal
                 $scope.closePasswordModal = function() {
@@ -402,6 +489,7 @@
                         .then(function(response) {
                             if (response.data.success) {
                                 $scope.profile = response.data.profile;
+                                $scope.originalProfile = angular.copy($scope.profile);
                             }
                         })
                         .catch(function(error) {
@@ -483,6 +571,10 @@
                             $scope.user.username = $scope.profile.username;
                             $scope.user.email = $scope.profile.email;
                             $window.localStorage.setItem('user', JSON.stringify($scope.user));
+                            
+                            // Exit edit mode
+                            $scope.editMode = false;
+                            $scope.originalProfile = angular.copy($scope.profile);
                             
                             // Clear success message after 3 seconds
                             $timeout(function() {
